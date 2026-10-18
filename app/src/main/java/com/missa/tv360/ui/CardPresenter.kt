@@ -50,7 +50,7 @@ class CardPresenter : Presenter() {
             ContextCompat.getDrawable(card.context, R.drawable.ic_live_badge)
         } else null
         // Vignette : distante (catalogue du dépôt) si présente, sinon drawable local.
-        val fallback = if (video.cardRes != 0) video.cardRes else FallbackArt.forKind(video.kind)
+        val fallback = if (video.cardRes != 0) video.cardRes else defaultCardFor(video.kind)
         // Always reset recycled cards immediately; the remote image may take a moment.
         ContextCompat.getDrawable(card.context, fallback)
             ?.let { card.mainImageView.setImageDrawable(it) }
@@ -62,6 +62,21 @@ class CardPresenter : Presenter() {
             card.tag = null
         }
     }
+
+    /** Drawable local par défaut (items du catalogue distant sans vignette). */
+    private fun defaultCardFor(kind: com.missa.tv360.data.ContentKind): Int =
+        when (kind) {
+            com.missa.tv360.data.ContentKind.LIVE_TV -> R.drawable.card_nasa
+            com.missa.tv360.data.ContentKind.LIVE_SPORT -> R.drawable.card_sport
+            com.missa.tv360.data.ContentKind.MOVIE -> R.drawable.card_phantom
+            com.missa.tv360.data.ContentKind.SERIES -> R.drawable.card_series
+            com.missa.tv360.data.ContentKind.SHORT -> R.drawable.card_bunny
+            com.missa.tv360.data.ContentKind.RADIO -> R.drawable.card_radio
+            com.missa.tv360.data.ContentKind.PODCAST -> R.drawable.card_podcast
+            com.missa.tv360.data.ContentKind.MUSIC -> R.drawable.card_music
+            com.missa.tv360.data.ContentKind.KIDS -> R.drawable.card_fun
+            com.missa.tv360.data.ContentKind.GAME -> R.drawable.card_game
+        }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {
         val card = viewHolder.view as ImageCardView

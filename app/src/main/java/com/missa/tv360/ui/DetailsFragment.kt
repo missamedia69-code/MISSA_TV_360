@@ -63,8 +63,7 @@ class DetailsFragment : DetailsSupportFragment() {
         }
 
         val overviewRow = DetailsOverviewRow(video).apply {
-            val artworkRes = video.cardRes.takeIf { it != 0 } ?: FallbackArt.forKind(video.kind)
-            ContextCompat.getDrawable(requireContext(), artworkRes)?.let { imageDrawable = it }
+            ContextCompat.getDrawable(requireContext(), video.cardRes)?.let { imageDrawable = it }
             actionsAdapter = ArrayObjectAdapter().apply {
                 val actionLabel = when {
                     video.isAudioOnly -> getString(R.string.action_listen)
@@ -85,10 +84,7 @@ class DetailsFragment : DetailsSupportFragment() {
                 putExtra(PlayerActivity.EXTRA_TITLE, video.title)
                 putExtra(PlayerActivity.EXTRA_LIVE, video.isLive)
                 putExtra(PlayerActivity.EXTRA_AUDIO_ONLY, video.isAudioOnly)
-                putExtra(
-                    PlayerActivity.EXTRA_COVER_RES,
-                    video.cardRes.takeIf { it != 0 } ?: FallbackArt.forKind(video.kind),
-                )
+                putExtra(PlayerActivity.EXTRA_COVER_RES, video.cardRes)
             }
         )
     }
