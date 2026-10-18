@@ -7,6 +7,7 @@ import androidx.leanback.widget.Presenter
 import com.missa.tv360.R
 import com.missa.tv360.data.Game
 import com.missa.tv360.ui.ThumbnailLoader
+import com.missa.tv360.ui.fondParDefaut
 
 /**
  * Presentateur des cartes de jeu telechargeable (ImageCardView Leanback).
@@ -51,7 +52,7 @@ class GameCardPresenter : Presenter() {
         }
         card.contentText = meta
         // Vignette du catalogue si fournie, sinon visuel de marque.
-        ContextCompat.getDrawable(card.context, R.drawable.card_game)
+        ContextCompat.getDrawable(card.context, fondParDefaut("jeux_video"))
             ?.let { card.mainImageView.setImageDrawable(it) }
         val remote = game.thumbnailUrl
         if (!remote.isNullOrBlank()) {
