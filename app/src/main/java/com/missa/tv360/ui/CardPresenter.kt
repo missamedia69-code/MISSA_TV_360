@@ -17,7 +17,9 @@ class CardPresenter : Presenter() {
         val card = ImageCardView(parent.context).apply {
             isFocusable = true
             isFocusableInTouchMode = true
-            setMainImageAdjustViewBounds(true)
+            // Keep the original tile footprint (the legacy cards were 320×180).
+            setMainImageAdjustViewBounds(false)
+            setMainImageDimensions(320, 180)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
             setBackgroundColor(ContextCompat.getColor(parent.context, R.color.missa_card_bg))
             // Contraste et retour de focus visibles depuis le canapé.

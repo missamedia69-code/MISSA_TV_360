@@ -19,7 +19,9 @@ class GameCardPresenter : Presenter() {
         val card = ImageCardView(parent.context).apply {
             isFocusable = true
             isFocusableInTouchMode = true
-            setMainImageAdjustViewBounds(true)
+            // Match the legacy game-card image size; source fallback PNGs are 1280×720.
+            setMainImageAdjustViewBounds(false)
+            setMainImageDimensions(320, 180)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
             setBackgroundColor(ContextCompat.getColor(parent.context, R.color.missa_card_bg))
             setOnFocusChangeListener { view, focused ->
