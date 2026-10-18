@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thème TV sombre dérivé de la palette du logo :
+     fond navy, jaune pour le focus, bleu/vert pour les accents. -->
+<resources>
+
+    <style name="Theme.MissaTv" parent="@style/Theme.Leanback">
+        <item name="android:windowBackground">@color/missa_navy_deep</item>
+        <item name="android:colorPrimary">@color/missa_yellow</item>
+        <item name="android:colorAccent">@color/missa_yellow</item>
+        <item name="defaultBrandColor">@color/missa_blue</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <!-- PlayerActivity extends AppCompatActivity => thème dérivé d'AppCompat
+         obligatoire (Theme.Leanback ne l'est pas) -->
+    <style name="Theme.MissaTv.Player" parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:colorAccent">@color/missa_yellow</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+
+    <!-- Overview (écran de détails) -->
+    <style name="MissaDetailsOverviewSection">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+</resources>

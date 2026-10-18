@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MISSA TV 360</string>
+
+    <!-- En-têtes des 10 lignes de contenu -->
+    <string name="row_live_tv">TV Direct</string>
+    <string name="row_sport">Sport Direct</string>
+    <string name="row_films">Films</string>
+    <string name="row_series">Séries</string>
+    <string name="row_shorts">Films courts</string>
+    <string name="row_music">Musique</string>
+    <string name="row_radio">Radio</string>
+    <string name="row_podcast">Podcasts</string>
+    <string name="row_kids">Jeunesse</string>
+    <string name="row_games">Jeux vidéo</string>
+
+    <!-- Détails -->
+    <string name="action_play">Lire</string>
+    <string name="details_description">Aucune description disponible.</string>
+
+    <!-- Lecteur -->
+    <string name="player_error">Impossible de lire ce contenu.</string>
+
+    <!-- Recherche Leanback -->
+    <string name="search_title">Rechercher</string>
+    <string name="settings_title">Paramètres</string>
+</resources>

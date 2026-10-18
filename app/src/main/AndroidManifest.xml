@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Lecture reseau (catalogues Pages + streaming) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Telechargement des fichiers de jeu -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <!-- Installation d'APK (jeux telechargeables) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_APPS" />
+
+    <!-- Application Android TV : bannière obligatoire, leanback requis, tactile non requis -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="true" />
+
+    <application
+        android:allowBackup="true"
+        android:banner="@drawable/banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:requestLegacyExternalStorage="true"
+        android:theme="@style/Theme.MissaTv"
+        tools:ignore="MissingApplicationIcon">
+
+        <!-- FileProvider : installe les APK telecharges depuis le cache prive -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- Écran d'accueil : parcours Leanback (lignes de contenus) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Lecteur vidéo (Media3 ExoPlayer) — thème AppCompat requis
+             (PlayerActivity extends AppCompatActivity) -->
+        <activity
+            android:name=".playback.PlayerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.MissaTv.Player"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+    </application>
+</manifest>

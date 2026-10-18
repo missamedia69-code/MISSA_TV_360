@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-10-18T15:06:19.194361+00:00",
+  "rows": [
+    {
+      "id": "films",
+      "title": "Films",
+      "items": [
+        {
+          "id": "film-phantom",
+          "title": "Phantom of the Opera",
+          "kind": "movie",
+          "description": "Film muet fantastique (1929), domaine public.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-scarlet",
+          "title": "Scarlet Street",
+          "kind": "movie",
+          "description": "Film noir de Fritz Lang (1945), domaine public.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-gaslight",
+          "title": "Gaslight",
+          "kind": "movie",
+          "description": "Mystère psychologique (1940), restauré.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://archive.org/download/gaslight-1940-colorized-movie-576p-sd/gaslight-1940-colorized%20movie-576p-sd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    }
+  ]
+}

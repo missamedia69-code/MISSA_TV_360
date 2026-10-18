@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-10-18T15:06:19.282039+00:00",
+  "rows": [
+    {
+      "id": "radio",
+      "title": "Radio",
+      "items": [
+        {
+          "id": "radio-groove",
+          "title": "Groove Salad",
+          "kind": "radio",
+          "description": "Webradio ambient — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "radio-lush",
+          "title": "Lush",
+          "kind": "radio",
+          "description": "Webradio voix féminines — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/lush-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "radio-drone",
+          "title": "Drone Zone",
+          "kind": "radio",
+          "description": "Webradio ambient spatial — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/dronezone-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    }
+  ]
+}

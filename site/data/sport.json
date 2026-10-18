@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-10-18T15:06:19.286337+00:00",
+  "rows": [
+    {
+      "id": "sport",
+      "title": "Sport Direct",
+      "items": [
+        {
+          "id": "sport-demo-1",
+          "title": "Sport · Emplacement 1",
+          "kind": "sport",
+          "description": "Emplacement réservé pour vos droits sport en direct.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    }
+  ]
+}

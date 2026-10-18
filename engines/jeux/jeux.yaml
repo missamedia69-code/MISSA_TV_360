@@ -1,0 +1,32 @@
+# Manifeste des jeux téléchargeables — engine « jeux ».
+#
+# Chaque entrée décrit un jeu que l'application propose d'installer.
+# Les binaires (APK) sont publiés via les Releases du dépôt ; l'URL de
+# téléchargement pointe vers la Release correspondante.
+#
+# Champs :
+#   id             identifiant stable (slug)
+#   title          titre affiché
+#   kind           toujours "game"
+#   description    texte de la fiche
+#   thumbnail_url  vignette (optionnel)
+#   download_url   URL directe du fichier (Release GitHub, CDN…)
+#   size_bytes     taille en octets (affichée à l'utilisateur)
+#   sha256         somme de contrôle — vérifiée avant installation
+#                  (générer : python engines/jeux/engine.py --hash fichier.apk)
+#   package_type   apk | asset | web
+#   version_name   ex. "1.2.0"
+#   version_code   ex. 12
+#   genre          ex. "Puzzle"
+
+# Exemple (à remplacer par vos jeux) :
+# - id: mon-jeu-1
+#   title: Mon Jeu 1
+#   description: Un puzzle relaxant.
+#   download_url: https://github.com/COMPTE/DEPOT/releases/download/v1.0.0/monjeu1.apk
+#   size_bytes: 12345678
+#   sha256: 0000000000000000000000000000000000000000000000000000000000000000
+#   package_type: apk
+#   version_name: "1.0.0"
+#   version_code: 1
+#   genre: Puzzle

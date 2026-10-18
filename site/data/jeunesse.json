@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-10-18T15:06:19.198082+00:00",
+  "rows": [
+    {
+      "id": "jeunesse",
+      "title": "Jeunesse",
+      "items": [
+        {
+          "id": "kids-bbb",
+          "title": "Big Buck Bunny",
+          "kind": "kids",
+          "description": "Animation douce, Blender CC BY.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    }
+  ]
+}

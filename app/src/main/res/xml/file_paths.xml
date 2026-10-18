@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider exposant le cache des jeux a l'installateur systeme.
+     Necessaire pour installer des APK telecharges (ACTION_VIEW + URI). -->
+<paths>
+    <cache-path
+        name="games"
+        path="games/" />
+</paths>

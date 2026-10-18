@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Palette extraite du logo MISSA TV 360 -->
+<resources>
+    <!-- Couleurs principales du logo -->
+    <color name="missa_yellow">#FAE504</color>
+    <color name="missa_blue">#0142AB</color>
+    <color name="missa_green">#00A030</color>
+    <color name="missa_white">#FFFFFF</color>
+
+    <!-- Dérivés sombres pour l'interface TV (thème dark) -->
+    <color name="missa_navy">#0A1633</color>
+    <color name="missa_navy_deep">#060E22</color>
+    <color name="missa_card_bg">#12214A</color>
+
+    <!-- Texte -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B8C4E0</color>
+    <color name="text_on_yellow">#0A1633</color>
+
+    <!-- Focus / sélection -->
+    <color name="focus_highlight">#FAE504</color>
+    <color name="badge_live">#E02020</color>
+</resources>

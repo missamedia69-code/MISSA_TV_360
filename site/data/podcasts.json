@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-10-18T15:06:19.280549+00:00",
+  "rows": [
+    {
+      "id": "podcasts",
+      "title": "Podcasts",
+      "items": [
+        {
+          "id": "pod-demo-1",
+          "title": "Podcast · Emplacement 1",
+          "kind": "podcast",
+          "description": "Emplacement réservé podcasts.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/spacestation-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    }
+  ]
+}
