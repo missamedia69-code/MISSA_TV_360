@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MISSA TV 360</string>
+    <string name="catalog_loading">Préparation de votre catalogue…</string>
 
     <!-- En-têtes des 10 lignes de contenu -->
     <string name="row_live_tv">TV Direct</string>

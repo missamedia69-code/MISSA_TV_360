@@ -55,9 +55,14 @@ class PlayerActivity : AppCompatActivity() {
         if (!intent.getBooleanExtra(EXTRA_AUDIO_ONLY, false)) return
         val coverRes = intent.getIntExtra(EXTRA_COVER_RES, 0)
         if (coverRes != 0) {
-            findViewById<android.widget.ImageView>(R.id.player_cover).apply {
-                setImageResource(coverRes)
-                visibility = android.view.View.VISIBLE
+            // PlayerView's artwork layer keeps the audio cover visible while
+            // retaining the normal playback controls for radio and podcasts.
+            findViewById<PlayerView>(R.id.player_view).apply {
+                useArtwork = true
+                defaultArtwork = androidx.core.content.ContextCompat.getDrawable(
+                    this@PlayerActivity, coverRes
+                )
+                setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
             }
         }
     }

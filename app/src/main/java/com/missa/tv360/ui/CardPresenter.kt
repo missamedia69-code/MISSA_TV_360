@@ -19,9 +19,18 @@ class CardPresenter : Presenter() {
             isFocusableInTouchMode = true
             setMainImageAdjustViewBounds(true)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
-            setBackgroundColor(
-                ContextCompat.getColor(parent.context, R.color.missa_card_bg)
-            )
+            setBackgroundColor(ContextCompat.getColor(parent.context, R.color.missa_card_bg))
+            // Contraste et retour de focus visibles depuis le canapé.
+            cameraDistance = 12_000 * resources.displayMetrics.density
+            setOnFocusChangeListener { view, focused ->
+                view.animate().cancel()
+                view.animate()
+                    .scaleX(if (focused) 1.07f else 1f)
+                    .scaleY(if (focused) 1.07f else 1f)
+                    .setDuration(150)
+                    .start()
+                view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+            }
         }
         return ViewHolder(card)
     }
@@ -30,8 +39,13 @@ class CardPresenter : Presenter() {
     override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
         val video = item as Video
         val card = viewHolder.view as ImageCardView
-        card.titleText = if (video.isSeries) "${video.seriesTitle}" else video.title
-        card.contentText = video.subtitle() + if (video.isSeries) "" else ""
+        card.titleText = if (video.isSeries) video.seriesTitle else video.title
+        card.contentText = video.subtitle()
+        card.contentDescription = buildString {
+            append(video.title)
+            append(". ").append(video.subtitle())
+            if (video.isLive) append(". En direct")
+        }
         card.badgeImage = if (video.isLive) {
             ContextCompat.getDrawable(card.context, R.drawable.ic_live_badge)
         } else null
@@ -68,6 +82,7 @@ class CardPresenter : Presenter() {
         card.tag = null
         card.badgeImage = null
         card.mainImage = null
+        card.contentDescription = null
         card.titleText = null
         card.contentText = null
     }

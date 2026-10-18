@@ -6,6 +6,7 @@ import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import com.missa.tv360.R
 import com.missa.tv360.data.Game
+import com.missa.tv360.ui.ThumbnailLoader
 
 /**
  * Presentateur des cartes de jeu telechargeable (ImageCardView Leanback).
@@ -19,9 +20,16 @@ class GameCardPresenter : Presenter() {
             isFocusableInTouchMode = true
             setMainImageAdjustViewBounds(true)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
-            setBackgroundColor(
-                ContextCompat.getColor(parent.context, R.color.missa_card_bg)
-            )
+            setBackgroundColor(ContextCompat.getColor(parent.context, R.color.missa_card_bg))
+            setOnFocusChangeListener { view, focused ->
+                view.animate().cancel()
+                view.animate()
+                    .scaleX(if (focused) 1.07f else 1f)
+                    .scaleY(if (focused) 1.07f else 1f)
+                    .setDuration(150)
+                    .start()
+                view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+            }
         }
         return ViewHolder(card)
     }
@@ -31,21 +39,35 @@ class GameCardPresenter : Presenter() {
         val game = item as Game
         val card = viewHolder.view as ImageCardView
         card.titleText = game.title
+        card.contentDescription = buildString {
+            append(game.title)
+            if (!game.genre.isNullOrBlank()) append(". ").append(game.genre)
+            if (game.sizeBytes > 0) append(". ").append(game.humanSize())
+        }
         val meta = buildString {
             if (!game.genre.isNullOrBlank()) append(game.genre) else append("Jeu")
             if (game.sizeBytes > 0) append(" • ").append(game.humanSize())
             if (!game.versionName.isNullOrBlank()) append(" • v").append(game.versionName)
         }
         card.contentText = meta
-        // Pas de vignette distante dans la v1 : on garde le fond de marque.
-        ContextCompat.getDrawable(card.context, R.drawable.card_game)
-            ?.let { card.mainImageView.setImageDrawable(it) }
+        // Vignette du catalogue si fournie, sinon visuel de marque.
+        val remote = game.thumbnailUrl
+        if (!remote.isNullOrBlank()) {
+            card.tag = remote
+            ThumbnailLoader.load(card, remote)
+        } else {
+            card.tag = null
+            ContextCompat.getDrawable(card.context, R.drawable.card_game)
+                ?.let { card.mainImageView.setImageDrawable(it) }
+        }
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {
         val card = viewHolder.view as ImageCardView
+        card.tag = null
         card.badgeImage = null
         card.mainImage = null
+        card.contentDescription = null
         card.titleText = null
         card.contentText = null
     }

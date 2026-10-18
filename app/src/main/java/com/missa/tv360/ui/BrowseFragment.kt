@@ -47,6 +47,7 @@ class BrowseFragment : BrowseSupportFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val catalog = CatalogRepository.loadCatalog()
             bindCatalog(catalog)
+            requireActivity().findViewById<View>(R.id.catalog_loading)?.visibility = View.GONE
         }
     }
 
