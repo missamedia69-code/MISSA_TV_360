@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="320dp" android:height="180dp"
-    android:viewportWidth="320" android:viewportHeight="180">
-    <path android:fillColor="#0A1633" android:pathData="M0 0 H320 V180 H0 Z"/>
-    <path android:fillColor="#060E22" android:pathData="M0 144 H320 V180 H0 Z"/>
-    <path android:fillColor="#0142AB" android:pathData="M0 0 H320 V8 H0 Z"/>
-    <path android:fillColor="#00A030" android:pathData="M0 8 H7 V180 H0 Z"/>
-    <path android:fillColor="#FAE504" android:pathData="M312 0 H320 V180 H312 Z"/>
-    <path android:fillColor="#00A030" android:pathData="M160 37 A54 54 0 1 0 160 145 A54 54 0 0 0 160 37 Z"/>
-    <path android:fillColor="#FAE504" android:pathData="M160 58 L177 71 L171 91 H149 L143 71 Z M149 91 L133 103 L139 123 L159 130 L179 121 L184 102 L171 91"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M143 71 L127 65 L112 81 L119 101 L133 103 M177 71 L194 64 L209 82 L201 101 L184 102 M139 123 L132 137 M179 121 L188 137"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="320dp" android:height="180dp" android:viewportWidth="320" android:viewportHeight="180">
+  <path android:fillColor="#0A1633" android:pathData="M0 0 H320 V180 H0 Z"/>
+  <path android:fillColor="#0142AB" android:pathData="M160 29 A61 61 0 1 0 160 151 A61 61 0 1 0 160 29 Z"/>
+  <path android:fillColor="#00000000" android:strokeColor="#FAE504" android:strokeWidth="2" android:pathData="M160 34 A56 56 0 1 0 160 146 A56 56 0 1 0 160 34 Z"/>
+  <path android:fillColor="#0142AB" android:pathData="M160 38 A52 52 0 1 0 160 142 A52 52 0 1 0 160 38 Z"/>
+  <path android:fillColor="#FFFFFF" android:pathData="M160 48 A42 42 0 1 0 160 132 A42 42 0 1 0 160 48 Z"/>
+  <path android:fillColor="#00A030" android:pathData="M160 68 L174 78 L169 94 H151 L146 78 Z"/>
+  <path android:fillColor="#00000000" android:strokeColor="#0142AB" android:strokeWidth="4" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M160 48 L160 68 M126 64 L146 78 M194 64 L174 78 M118 91 L151 94 M202 91 L169 94 M137 123 L151 94 M183 123 L169 94"/>
 </vector>
