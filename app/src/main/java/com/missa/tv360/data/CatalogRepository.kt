@@ -91,7 +91,7 @@ object CatalogRepository {
                 listOf(
                     Video("game-open", title,
                         "Parcourir et installer les jeux telechargeables publies par le depot.",
-                        R.drawable.card_game, "", kind = ContentKind.GAME,
+                        R.drawable.fallback_game, "", kind = ContentKind.GAME,
                         isGamesLauncher = true),
                 )
             } else {
@@ -111,10 +111,10 @@ object CatalogRepository {
         VideoRow(R.string.row_live_tv, listOf(
             Video("live-nasa", "NASA TV Public",
                 "Chaîne publique de la NASA en flux HLS continu (usage autorisé).",
-                R.drawable.card_nasa, NASA_TV, kind = ContentKind.LIVE_TV, format = "hls"),
+                R.drawable.fallback_live_tv, NASA_TV, kind = ContentKind.LIVE_TV, format = "hls"),
             Video("live-bipbop", "BipBop Advanced",
                 "Flux HLS de test d'Apple (fMP4 multi-débit) — valide la lecture adaptative.",
-                R.drawable.card_apple, BIPBOP, kind = ContentKind.LIVE_TV, format = "hls"),
+                R.drawable.fallback_live_tv, BIPBOP, kind = ContentKind.LIVE_TV, format = "hls"),
         )),
 
         // ── 2. SPORT DIRECT ──────────────────────────────────────────
@@ -122,12 +122,12 @@ object CatalogRepository {
             Video("sport-demo-1", "Sport · Emplacement 1",
                 "Emplacement réservé pour vos droits sport en direct. " +
                     "Branchez votre flux via le BFF : GET v1/stream/{id}.",
-                R.drawable.card_sport, GTV + "SubaruOutbackOnStreetAndDirt.mp4",
+                R.drawable.fallback_sport, GTV + "SubaruOutbackOnStreetAndDirt.mp4",
                 kind = ContentKind.LIVE_SPORT),
             Video("sport-demo-2", "Sport · Emplacement 2",
                 "Emplacement réservé (match, résumé ou magazine sportif). " +
                     "Flux HLS live recommandé.",
-                R.drawable.card_sport, GTV + "VolkswagenGTIReview.mp4",
+                R.drawable.fallback_sport, GTV + "VolkswagenGTIReview.mp4",
                 kind = ContentKind.LIVE_SPORT),
         )),
 
@@ -135,38 +135,38 @@ object CatalogRepository {
         VideoRow(R.string.row_films, listOf(
             Video("film-phantom", "Phantom of the Opera",
                 "Film muet fantastique de Rupert Julian (1929), domaine public.",
-                R.drawable.card_phantom,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/ThePhantomOfTheOpera1929/" +
                     "thepaantomoftheopera1929_512kb.mp4",
                 kind = ContentKind.MOVIE),
             Video("film-scarlet", "Scarlet Street",
                 "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
-                R.drawable.card_scarlet,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/" +
                     "scarlet%20street-1945-restored%20movie-720p-hd.mp4",
                 kind = ContentKind.MOVIE),
             Video("film-gaslight", "Gaslight",
                 "Mystère psychologique de George Cukor (1940), restauré et colorisé.",
-                R.drawable.card_gaslight,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/gaslight-1940-colorized-movie-576p-sd/" +
                     "gaslight-1940-colorized%20movie-576p-sd.mp4",
                 kind = ContentKind.MOVIE),
             Video("film-mrx", "The Amazing Mr. X",
                 "Film noir mystérieux de Harold Schuster (1948), restauré.",
-                R.drawable.card_mrx,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/the-amazing-mr.-x-1948-restored-movie-720p-hd/" +
                     "The%20Amazing%20Mr.%20X-1948-restored%20movie-720p-hd.mp4",
                 kind = ContentKind.MOVIE),
             Video("film-sanfran", "Old San Francisco",
                 "Drame mélodramatique de Alan Crosland (1927), domaine public.",
-                R.drawable.card_sanfran,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/old-san-francisco-1927-dvd-mkv/" +
                     "Old%20San%20Francisco%20(1927)%20%7Btmdb-104433%7D%20%5BDVD%5D" +
                     "%5BAC3%202.0%5D%5BMPEG2%5D.mp4",
                 kind = ContentKind.MOVIE),
             Video("film-hometown", "Home Town Story",
                 "Drame familial americain de Arthur Lubin (1951), domaine public.",
-                R.drawable.card_gaslight,
+                R.drawable.fallback_movie,
                 "https://archive.org/download/home-town-story-1951-classic-family-drama/" +
                     "Home%20Town%20Story%20(1951)%20%2B%2B%2B%2B%2B%20Classic%20Family%20Drama).mp4",
                 kind = ContentKind.MOVIE),
@@ -176,17 +176,17 @@ object CatalogRepository {
         VideoRow(R.string.row_series, listOf(
             Video("ser-a-e1", "Les Grandes Escapades",
                 "Épisode 1 — les grandes vacances prennent un tour inattendu.",
-                R.drawable.card_series, GTV + "ForBiggerBlazes.mp4",
+                R.drawable.fallback_series, GTV + "ForBiggerBlazes.mp4",
                 kind = ContentKind.SERIES, seriesTitle = "Les Grandes Escapades",
                 season = 1, episode = 1),
             Video("ser-a-e2", "Les Grandes Escapades",
                 "Épisode 2 — direction la montagne.",
-                R.drawable.card_series, GTV + "ForBiggerEscapes.mp4",
+                R.drawable.fallback_series, GTV + "ForBiggerEscapes.mp4",
                 kind = ContentKind.SERIES, seriesTitle = "Les Grandes Escapades",
                 season = 1, episode = 2),
             Video("ser-a-e3", "Les Grandes Escapades",
                 "Épisode 3 — le grand jeu.",
-                R.drawable.card_series, GTV + "ForBiggerFun.mp4",
+                R.drawable.fallback_series, GTV + "ForBiggerFun.mp4",
                 kind = ContentKind.SERIES, seriesTitle = "Les Grandes Escapades",
                 season = 1, episode = 3),
         )),
@@ -195,16 +195,16 @@ object CatalogRepository {
         VideoRow(R.string.row_shorts, listOf(
             Video("short-bbb", "Big Buck Bunny",
                 "Court-metrage d'animation de la Blender Foundation (2008), CC BY.",
-                R.drawable.card_bunny, GTV + "BigBuckBunny.mp4", kind = ContentKind.SHORT),
+                R.drawable.fallback_short, GTV + "BigBuckBunny.mp4", kind = ContentKind.SHORT),
             Video("short-ed", "Elephants Dream",
                 "Premier film entierement libre de la Blender Foundation (2006), CC BY.",
-                R.drawable.card_dream, GTV + "ElephantsDream.mp4", kind = ContentKind.SHORT),
+                R.drawable.fallback_short, GTV + "ElephantsDream.mp4", kind = ContentKind.SHORT),
             Video("short-sintel", "Sintel",
                 "Court-metrage de la Blender Institute (2010), CC BY.",
-                R.drawable.card_sintel, GTV + "Sintel.mp4", kind = ContentKind.SHORT),
+                R.drawable.fallback_short, GTV + "Sintel.mp4", kind = ContentKind.SHORT),
             Video("short-tos", "Tears of Steel",
                 "Court-metrage sci-fi de la Blender Foundation (2012), CC BY.",
-                R.drawable.card_steel, GTV + "TearsOfSteel.mp4", kind = ContentKind.SHORT),
+                R.drawable.fallback_short, GTV + "TearsOfSteel.mp4", kind = ContentKind.SHORT),
         )),
 
         // ── 6. MUSIQUE ───────────────────────────────────────────────
@@ -212,11 +212,11 @@ object CatalogRepository {
             Video("music-demo-1", "Musique · Emplacement 1",
                 "Emplacement reserve pour clips, concerts ou albums video. " +
                     "Branchez vos contenus via le BFF.",
-                R.drawable.card_music, GTV + "WhatCarCanYouGetForAGrand.mp4",
+                R.drawable.fallback_music, GTV + "WhatCarCanYouGetForAGrand.mp4",
                 kind = ContentKind.MUSIC),
             Video("music-demo-2", "Musique · Emplacement 2",
                 "Emplacement reserve (playlist, best-of, festival).",
-                R.drawable.card_music, GTV + "WeAreGoingOnBullrun.mp4",
+                R.drawable.fallback_music, GTV + "WeAreGoingOnBullrun.mp4",
                 kind = ContentKind.MUSIC),
         )),
 
@@ -224,19 +224,19 @@ object CatalogRepository {
         VideoRow(R.string.row_radio, listOf(
             Video("radio-groove", "Groove Salad",
                 "Webradio ambient / downtempo — SomaFM (ecoute libre, flou donation).",
-                R.drawable.card_radio, SOMAFM + "groovesalad-128-mp3",
+                R.drawable.fallback_radio, SOMAFM + "groovesalad-128-mp3",
                 kind = ContentKind.RADIO, format = "mp3"),
             Video("radio-lush", "Lush",
                 "Webradio voix feminines / electronica — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "lush-128-mp3",
+                R.drawable.fallback_radio, SOMAFM + "lush-128-mp3",
                 kind = ContentKind.RADIO, format = "mp3"),
             Video("radio-drone", "Drone Zone",
                 "Webradio ambient spatial — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "dronezone-128-mp3",
+                R.drawable.fallback_radio, SOMAFM + "dronezone-128-mp3",
                 kind = ContentKind.RADIO, format = "mp3"),
             Video("radio-poptron", "PopTron",
                 "Webradio indie pop / electro — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "poptron-128-mp3",
+                R.drawable.fallback_radio, SOMAFM + "poptron-128-mp3",
                 kind = ContentKind.RADIO, format = "mp3"),
         )),
 
@@ -245,11 +245,11 @@ object CatalogRepository {
             Video("pod-demo-1", "Podcast · Emplacement 1",
                 "Emplacement reserve pour vos podcasts audio/video (flux ou flux RSS " +
                     "transforme en episodes par le BFF).",
-                R.drawable.card_podcast, SOMAFM + "spacestation-128-mp3",
+                R.drawable.fallback_podcast, SOMAFM + "spacestation-128-mp3",
                 kind = ContentKind.PODCAST, format = "mp3"),
             Video("pod-demo-2", "Podcast · Emplacement 2",
                 "Emplacement reserve (interview, magazine, formation).",
-                R.drawable.card_podcast, SOMAFM + "defcon-128-mp3",
+                R.drawable.fallback_podcast, SOMAFM + "defcon-128-mp3",
                 kind = ContentKind.PODCAST, format = "mp3"),
         )),
 
@@ -257,20 +257,20 @@ object CatalogRepository {
         VideoRow(R.string.row_kids, listOf(
             Video("kids-bbb", "Big Buck Bunny",
                 "Le lapin geant et ses petits amis — animation douce, Blender CC BY.",
-                R.drawable.card_bunny, GTV + "BigBuckBunny.mp4", kind = ContentKind.KIDS),
+                R.drawable.fallback_kids, GTV + "BigBuckBunny.mp4", kind = ContentKind.KIDS),
             Video("kids-ed", "Elephants Dream",
                 "Aventure onirique en machine — Blender CC BY.",
-                R.drawable.card_dream, GTV + "ElephantsDream.mp4", kind = ContentKind.KIDS),
+                R.drawable.fallback_kids, GTV + "ElephantsDream.mp4", kind = ContentKind.KIDS),
             Video("kids-fun", "For Bigger Fun",
                 "Clip court ludique — demonstration Google.",
-                R.drawable.card_fun, GTV + "ForBiggerFun.mp4", kind = ContentKind.KIDS),
+                R.drawable.fallback_kids, GTV + "ForBiggerFun.mp4", kind = ContentKind.KIDS),
         )),
 
         // ── 10. JEUX VIDEO (telechargeables via l'engine « jeux » du depot) ──
         VideoRow(R.string.row_games, listOf(
             Video("game-open", "Jeux video",
                 "Parcourir et installer les jeux telechargeables publies par le depot.",
-                R.drawable.card_game, "", kind = ContentKind.GAME,
+                R.drawable.fallback_game, "", kind = ContentKind.GAME,
                 isGamesLauncher = true),
         )),
     )
