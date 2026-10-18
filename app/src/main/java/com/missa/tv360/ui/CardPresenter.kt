@@ -21,7 +21,7 @@ class CardPresenter : Presenter() {
             setMainImageAdjustViewBounds(false)
             setMainImageDimensions(320, 180)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
-            setBackgroundColor(ContextCompat.getColor(parent.context, R.color.missa_card_bg))
+            setBackgroundResource(R.drawable.card_focus_state)
             // Contraste et retour de focus visibles depuis le canapé.
             cameraDistance = 12_000 * resources.displayMetrics.density
             setOnFocusChangeListener { view, focused ->
