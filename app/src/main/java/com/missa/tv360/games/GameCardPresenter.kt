@@ -5,7 +5,9 @@ import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
 import com.missa.tv360.R
+import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.Game
+import com.missa.tv360.ui.FallbackArt
 import com.missa.tv360.ui.ThumbnailLoader
 
 /**
@@ -51,7 +53,7 @@ class GameCardPresenter : Presenter() {
         }
         card.contentText = meta
         // Vignette du catalogue si fournie, sinon visuel de marque.
-        ContextCompat.getDrawable(card.context, R.drawable.card_game)
+        ContextCompat.getDrawable(card.context, FallbackArt.forKind(ContentKind.GAME))
             ?.let { card.mainImageView.setImageDrawable(it) }
         val remote = game.thumbnailUrl
         if (!remote.isNullOrBlank()) {
