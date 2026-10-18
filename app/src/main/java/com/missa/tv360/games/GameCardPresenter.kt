@@ -51,14 +51,14 @@ class GameCardPresenter : Presenter() {
         }
         card.contentText = meta
         // Vignette du catalogue si fournie, sinon visuel de marque.
+        ContextCompat.getDrawable(card.context, R.drawable.card_game)
+            ?.let { card.mainImageView.setImageDrawable(it) }
         val remote = game.thumbnailUrl
         if (!remote.isNullOrBlank()) {
             card.tag = remote
             ThumbnailLoader.load(card, remote)
         } else {
             card.tag = null
-            ContextCompat.getDrawable(card.context, R.drawable.card_game)
-                ?.let { card.mainImageView.setImageDrawable(it) }
         }
     }
 

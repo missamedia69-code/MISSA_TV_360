@@ -50,15 +50,16 @@ class CardPresenter : Presenter() {
             ContextCompat.getDrawable(card.context, R.drawable.ic_live_badge)
         } else null
         // Vignette : distante (catalogue du dépôt) si présente, sinon drawable local.
+        val fallback = if (video.cardRes != 0) video.cardRes else defaultCardFor(video.kind)
+        // Always reset recycled cards immediately; the remote image may take a moment.
+        ContextCompat.getDrawable(card.context, fallback)
+            ?.let { card.mainImageView.setImageDrawable(it) }
         val remote = video.cardUrl
         if (!remote.isNullOrBlank()) {
             card.tag = remote
             ThumbnailLoader.load(card, remote)
         } else {
             card.tag = null
-            val fallback = if (video.cardRes != 0) video.cardRes else defaultCardFor(video.kind)
-            ContextCompat.getDrawable(card.context, fallback)
-                ?.let { card.mainImageView.setImageDrawable(it) }
         }
     }
 
