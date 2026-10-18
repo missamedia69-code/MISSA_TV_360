@@ -37,6 +37,21 @@ KNOWN_KINDS = {
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "site", "data")
 
+# Ordre canonique des 10 lignes du catalogue (imposé par l'app Android).
+# Doit rester aligné avec CANONICAL_ORDER dans CatalogRepository.kt.
+CANONICAL_ROW_ORDER = [
+    "tv_direct", "sport", "films", "series", "films_courts",
+    "radio", "podcasts", "musique", "jeunesse", "jeux",
+]
+
+
+def canonical_index(row_id: str) -> int:
+    """Position d'une ligne dans l'ordre canonique (inconnues à la fin)."""
+    try:
+        return CANONICAL_ROW_ORDER.index(row_id)
+    except ValueError:
+        return len(CANONICAL_ROW_ORDER)
+
 
 # ── Modèle ───────────────────────────────────────────────────────────────────
 @dataclass
@@ -145,6 +160,8 @@ def consolidate(out_dir: str = DATA_DIR) -> str:
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
         rows.extend(data.get("rows", []))
+    # Tri selon l'ordre canonique des 10 catégories (l'app s'attend à cet ordre).
+    rows.sort(key=lambda r: canonical_index(r.get("id", "")))
     payload = {
         "generated_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "rows": rows,

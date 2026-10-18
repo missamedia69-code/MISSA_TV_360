@@ -63,7 +63,7 @@ def build_rows() -> list[Row]:
             version_code=e.get("version_code"),
             genre=e.get("genre"),
         ))
-    return [Row(id="games", title="Jeux vidéo", items=items)]
+    return [Row(id="jeux", title="Jeux vidéo", items=items)]
 
 
 if __name__ == "__main__":

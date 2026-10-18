@@ -2,14 +2,13 @@
 #
 # Chaque entrée décrit un jeu que l'application propose d'installer.
 # Les binaires (APK) sont publiés via les Releases du dépôt ; l'URL de
-# téléchargement pointe vers la Release correspondante.
+# téléchargement peut aussi pointer vers un hébergeur libre (ex. F-Droid).
 #
 # Champs :
 #   id             identifiant stable (slug)
 #   title          titre affiché
-#   kind           toujours "game"
 #   description    texte de la fiche
-#   thumbnail_url  vignette (optionnel)
+#   thumbnail_url  vignette (optionnel — sinon carte générique)
 #   download_url   URL directe du fichier (Release GitHub, CDN…)
 #   size_bytes     taille en octets (affichée à l'utilisateur)
 #   sha256         somme de contrôle — vérifiée avant installation
@@ -18,15 +17,43 @@
 #   version_name   ex. "1.2.0"
 #   version_code   ex. 12
 #   genre          ex. "Puzzle"
+#
+# Règle de contenu : uniquement des jeux LIBRES (logiciel libre / CC), pour
+# rester dans la même exigence de droits que le reste du catalogue.
 
-# Exemple (à remplacer par vos jeux) :
-# - id: mon-jeu-1
-#   title: Mon Jeu 1
-#   description: Un puzzle relaxant.
-#   download_url: https://github.com/COMPTE/DEPOT/releases/download/v1.0.0/monjeu1.apk
-#   size_bytes: 12345678
-#   sha256: 0000000000000000000000000000000000000000000000000000000000000000
-#   package_type: apk
-#   version_name: "1.0.0"
-#   version_code: 1
-#   genre: Puzzle
+# ── Jeux libres vérifiés (F-Droid, sources et empreintes contrôlées) ─────────
+- id: sgtpuzzles
+  title: Simon Tatham's Puzzles
+  description: "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel
+    libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur."
+  download_url: https://f-droid.org/repo/name.boyle.chris.sgtpuzzles_149.apk
+  size_bytes: 10576188
+  sha256: 6b36d5537984523c57984a784156eb853a92c940fded286483687484f3d652e4
+  package_type: apk
+  version_name: "2025-09-12"
+  version_code: 149
+  genre: Puzzle
+
+- id: droidfish
+  title: DroidFish (échecs)
+  description: "Échiquier complet avec moteurs Stockfish et Cuckoo, parties
+    et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid."
+  download_url: https://f-droid.org/repo/org.petero.droidfish_100.apk
+  size_bytes: 65756441
+  sha256: 7c07233fe461a56dbfa6bc83b2c0d0d7cd3cd45a285db6563829d3ceecaa5aa9
+  package_type: apk
+  version_name: "1.90"
+  version_code: 100
+  genre: Échecs
+
+- id: shattered-pixel-dungeon
+  title: Shattered Pixel Dungeon
+  description: "Roguelike au tour par tour, donjons générés aléatoirement.
+    Logiciel libre — licence GPL-3.0. Source : F-Droid."
+  download_url: https://f-droid.org/repo/com.shatteredpixel.shatteredpixeldungeon_922.apk
+  size_bytes: 30275058
+  sha256: ceef4cdd4beddcb3d85379ac004cb4ab5d918b89dc7366b4ce9c4a3585a5e78e
+  package_type: apk
+  version_name: "4.0.2"
+  version_code: 922
+  genre: Roguelike

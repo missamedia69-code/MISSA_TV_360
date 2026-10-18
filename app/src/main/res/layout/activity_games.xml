@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Conteneur de l'ecran « Jeux video » (GamesActivity).
+
+     On heberge le fragment dans une Activity dediee plutot que de remplacer
+     le Browse : un BrowseSupportFragment place sur une back stack n'ajoute
+     jamais son fragment enfant de lignes (defaut Leanback connu), la grille
+     resterait donc vide. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/games_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />

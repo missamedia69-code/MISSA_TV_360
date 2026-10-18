@@ -17,7 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogRepository
 import com.missa.tv360.data.Video
-import com.missa.tv360.games.GamesFragment
+import com.missa.tv360.games.GamesActivity
 import kotlinx.coroutines.launch
 
 /**
@@ -63,19 +63,29 @@ class BrowseFragment : BrowseSupportFragment() {
         startHeadersTransition(true)
     }
 
+    /**
+     * Ouvre un écran plein dans le MEME conteneur que celui qui heberge le
+     * Browse (R.id.main_browse_container). On evite android.R.id.content :
+     * comme le Browse n'a pas ete ajoute a ce conteneur-la, un « replace »
+     * ne le retirerait pas et les deux vues resteraient superposees.
+     */
     private fun openDetails(video: Video) {
         val fragment: Fragment = DetailsFragment.newInstance(video)
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(android.R.id.content, fragment)
+            .replace(R.id.main_browse_container, fragment)
             .addToBackStack("details")
             .commit()
     }
 
+    /**
+     * Ouvre l'ecran « Jeux video » dans son Activity dediee.
+     *
+     * On ne remplace pas le Browse par un fragment : un BrowseSupportFragment
+     * place sur une back stack n'ajoute pas son fragment enfant de lignes
+     * (defaut Leanback connu) et la grille resterait vide. L'Activity dediee
+     * (comme PlayerActivity) offre en plus un retour « back » naturel.
+     */
     private fun openGames() {
-        val fragment: Fragment = GamesFragment.newInstance()
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(android.R.id.content, fragment)
-            .addToBackStack("games")
-            .commit()
+        startActivity(android.content.Intent(requireContext(), GamesActivity::class.java))
     }
 }

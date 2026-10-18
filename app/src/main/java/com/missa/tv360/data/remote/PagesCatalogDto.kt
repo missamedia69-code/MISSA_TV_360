@@ -2,6 +2,7 @@ package com.missa.tv360.data.remote
 
 import com.google.gson.annotations.SerializedName
 import com.missa.tv360.data.ContentKind
+import com.missa.tv360.data.Game
 import com.missa.tv360.data.Video
 
 /**
@@ -44,6 +45,14 @@ data class PagesItemDto(
     @SerializedName("episode_number") val episodeNumber: Int? = null,
     @SerializedName("duration_sec") val durationSec: Int? = null,
     @SerializedName("audio_only") val audioOnly: Boolean = false,
+    // Champs des jeux téléchargeables (kind = "game")
+    @SerializedName("download_url") val downloadUrl: String? = null,
+    @SerializedName("size_bytes") val sizeBytes: Long? = null,
+    @SerializedName("sha256") val sha256: String? = null,
+    @SerializedName("package_type") val packageType: String? = null,
+    @SerializedName("version_name") val versionName: String? = null,
+    @SerializedName("version_code") val versionCode: Int? = null,
+    @SerializedName("genre") val genre: String? = null,
 ) {
     /** Convertit un item distant en Video, ou null si illisible (pas d'id/titre). */
     fun toVideo(): Video? {
@@ -63,6 +72,25 @@ data class PagesItemDto(
             durationSec = durationSec,
             format = stream?.format ?: if (audioOnly) "mp3" else "mp4",
             cardUrl = thumbnailUrl,
+        )
+    }
+
+    /** Convertit un item de type "game" en Game téléchargeable. */
+    fun toGame(): Game? {
+        val gid = id?.takeIf { it.isNotBlank() } ?: return null
+        val gTitle = title?.takeIf { it.isNotBlank() } ?: return null
+        return Game(
+            id = gid,
+            title = gTitle,
+            description = description.orEmpty(),
+            thumbnailUrl = thumbnailUrl,
+            downloadUrl = downloadUrl.orEmpty(),
+            sizeBytes = sizeBytes ?: 0L,
+            sha256 = sha256,
+            packageType = packageType ?: "apk",
+            versionName = versionName,
+            versionCode = versionCode,
+            genre = genre,
         )
     }
 }

@@ -14,9 +14,12 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // URL du BFF (clean-room). Pointe vers votre futur backend ;
-        // le catalogue local sert de fallback hors-ligne.
-        buildConfigField("String", "BFF_BASE_URL", "\"https://api.missatv.example/\"")
+        // URL du catalogue (clean-room) — le dépôt GitHub / GitHub Pages en
+        // est le « serveur ». Surchargeable au build :
+        //   ./gradlew assembleDebug -PbffBaseUrl=http://10.0.2.2:8765/
+        val bffUrl = (project.findProperty("bffBaseUrl") as String?)
+            ?: "https://api.missatv.example/"
+        buildConfigField("String", "BFF_BASE_URL", "\"$bffUrl\"")
     }
 
     buildTypes {

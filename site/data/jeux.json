@@ -1,10 +1,71 @@
 {
-  "generated_at": "2026-10-18T15:06:19.277482+00:00",
+  "generated_at": "2026-10-18T15:34:48.183964+00:00",
   "rows": [
     {
-      "id": "games",
+      "id": "jeux",
       "title": "Jeux vidéo",
-      "items": []
+      "items": [
+        {
+          "id": "sgtpuzzles",
+          "title": "Simon Tatham's Puzzles",
+          "kind": "game",
+          "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/name.boyle.chris.sgtpuzzles_149.apk",
+          "size_bytes": 10576188,
+          "sha256": "6b36d5537984523c57984a784156eb853a92c940fded286483687484f3d652e4",
+          "package_type": "apk",
+          "version_name": "2025-09-12",
+          "version_code": 149,
+          "genre": "Puzzle"
+        },
+        {
+          "id": "droidfish",
+          "title": "DroidFish (échecs)",
+          "kind": "game",
+          "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/org.petero.droidfish_100.apk",
+          "size_bytes": 65756441,
+          "sha256": "7c07233fe461a56dbfa6bc83b2c0d0d7cd3cd45a285db6563829d3ceecaa5aa9",
+          "package_type": "apk",
+          "version_name": "1.90",
+          "version_code": 100,
+          "genre": "Échecs"
+        },
+        {
+          "id": "shattered-pixel-dungeon",
+          "title": "Shattered Pixel Dungeon",
+          "kind": "game",
+          "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/com.shatteredpixel.shatteredpixeldungeon_922.apk",
+          "size_bytes": 30275058,
+          "sha256": "ceef4cdd4beddcb3d85379ac004cb4ab5d918b89dc7366b4ce9c4a3585a5e78e",
+          "package_type": "apk",
+          "version_name": "4.0.2",
+          "version_code": 922,
+          "genre": "Roguelike"
+        }
+      ]
     }
   ]
 }
