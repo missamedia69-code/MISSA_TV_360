@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/missa_navy_deep">
+    android:background="@drawable/bg_missa_night">
 
     <FrameLayout
         android:id="@+id/main_browse_container"
@@ -16,7 +16,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:background="@color/missa_navy_deep"
+android:background="@drawable/bg_missa_night"
         android:visibility="visible">
 
         <ProgressBar
