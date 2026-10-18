@@ -17,6 +17,9 @@
 
     <!-- Détails -->
     <string name="action_play">Lire</string>
+    <string name="action_watch">Regarder</string>
+    <string name="action_watch_live">Regarder en direct</string>
+    <string name="action_listen">Écouter</string>
     <string name="details_description">Aucune description disponible.</string>
 
     <!-- Lecteur -->

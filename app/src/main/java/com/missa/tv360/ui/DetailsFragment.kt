@@ -33,14 +33,19 @@ class DetailsFragment : DetailsSupportFragment() {
     private class DetailsDescriptionPresenter : AbstractDetailsDescriptionPresenter() {
         override fun onBindDescription(viewHolder: ViewHolder, item: Any) {
             val v = item as Video
-            val meta = buildString {
-                append(v.subtitle())
-                v.durationSec?.let { append(" • ").append(it / 60).append(" min") }
-                if (v.isAudioOnly) append(" • Audio")
-            }
-            val seriesLine = if (v.isSeries) "${v.seriesTitle}\n\n" else ""
-            viewHolder.title.text = if (v.isSeries) "${v.seriesTitle} — E${v.episode ?: 1}" else v.title
-            viewHolder.body.text = "$meta\n\n$seriesLine${v.description}"
+            val metadata = buildList {
+                add(v.kind.label)
+                if (v.isSeries) add("S${v.season ?: 1} · E${v.episode ?: 1}")
+                else if (v.isLive) add("EN DIRECT")
+                v.durationSec?.let { seconds ->
+                    add(if (seconds >= 3600) "${seconds / 3600} h ${(seconds % 3600) / 60} min" else "${seconds / 60} min")
+                }
+                if (v.isAudioOnly) add("Audio")
+            }.joinToString("  •  ")
+            viewHolder.title.text = if (v.isSeries) {
+                "${v.seriesTitle} — S${v.season ?: 1} E${v.episode ?: 1}"
+            } else v.title
+            viewHolder.body.text = if (v.description.isBlank()) metadata else "$metadata\n\n${v.description}"
         }
     }
 
@@ -60,7 +65,12 @@ class DetailsFragment : DetailsSupportFragment() {
         val overviewRow = DetailsOverviewRow(video).apply {
             ContextCompat.getDrawable(requireContext(), video.cardRes)?.let { imageDrawable = it }
             actionsAdapter = ArrayObjectAdapter().apply {
-                add(Action(ACTION_PLAY, getString(R.string.action_play)))
+                val actionLabel = when {
+                    video.isAudioOnly -> getString(R.string.action_listen)
+                    video.isLive -> getString(R.string.action_watch_live)
+                    else -> getString(R.string.action_watch)
+                }
+                add(Action(ACTION_PLAY, actionLabel))
             }
         }
 
