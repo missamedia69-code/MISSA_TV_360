@@ -39,7 +39,34 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
-        run: bash ./gradlew --no-daemon :app:assembleDebug
+        shell: bash
+        run: |
+          set +e
+          bash ./gradlew --no-daemon :app:assembleDebug --stacktrace 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
+          build_status=${PIPESTATUS[0]}
+          if [[ "$build_status" -ne 0 ]]; then
+            python3 - "$RUNNER_TEMP/gradle-build.log" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          lines = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines()
+          interesting = re.compile(
+              r"(e: |error:|FAILURE: Build failed|What went wrong|Execution failed|"
+              r"Could not resolve|Unresolved reference|Kotlin compilation error|"
+              r"No matching variant|Could not find)"
+          )
+          selected = [line for line in lines if interesting.search(line)]
+          if not selected:
+              selected = lines[-30:]
+          print("::group::Gradle failure details")
+          for line in selected[-30:]:
+              safe = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::error title=Gradle build::{safe}")
+          print("::endgroup::")
+          PY
+          fi
+          exit "$build_status"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
