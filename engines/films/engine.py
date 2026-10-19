@@ -186,7 +186,8 @@ def build_archive_test_item() -> Item:
         )
 
 
-def build_rows() -> list[Row]:
+def _build_internet_archive_source() -> list[Item]:
+    """Compile la source IA en fiches normalisées pour le catalogue MISSA."""
     items = [build_archive_test_item()]
     items.extend(
         Item(
@@ -194,11 +195,23 @@ def build_rows() -> list[Row]:
             title=title,
             kind="movie",
             description=description,
-            thumbnail_url=f"https://archive.org/services/img/{quote(archive_id, safe='-._~')}",
+            thumbnail_url=(
+                f"https://archive.org/services/img/{quote(archive_id, safe='-._~')}"
+            ),
             stream=Stream(url=url, format="mp4", live=False),
         )
         for item_id, title, description, url, archive_id in CONTENU_STATIQUE
     )
+    return items
+
+
+# Registre d'agrégation par source : chaque fournisseur ajoute une fonction
+# qui traduit ses contenus en Item; d'autres sources pourront être branchées ici.
+FILM_SOURCES = (_build_internet_archive_source,)
+
+
+def build_rows() -> list[Row]:
+    items = [item for source_builder in FILM_SOURCES for item in source_builder()]
     return [Row(id="films", title="Films", items=items)]
 
 

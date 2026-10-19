@@ -61,6 +61,8 @@ data class Video(
     val isGamesLauncher: Boolean = false,
     /** Vignette distante (catalogue du dépôt). Si présente, remplace cardRes. */
     val cardUrl: String? = null,
+    /** Source brute à résoudre au clic (ex. recherche Internet Archive). */
+    val sourceId: String? = null,
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive
