@@ -12,7 +12,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # contents: write est nécessaire pour publier l'APK dans la release "apk-debug".
+  contents: write
 
 env:
   JAVA_VERSION: "17"
@@ -44,3 +45,28 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
+
+      # Publie l'APK dans la release permanente « apk-debug » : un lien de
+      # téléchargement stable, sans passer par l'onglet Actions ni par la
+      # rétention de 7 jours des artefacts.
+      - name: Publish APK to the apk-debug release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          apk="app/build/outputs/apk/debug/app-debug.apk"
+          short="${GITHUB_SHA:0:7}"
+          notes="APK debug généré par la CI.
+          Dernier build : ${GITHUB_REF_NAME} @ ${short} (run ${GITHUB_RUN_ID}).
+          Fichier : app-debug.apk (debug, non signé en release)."
+          gh release create apk-debug \
+            --target "$GITHUB_SHA" \
+            --title "APK debug — build continu" \
+            --notes "$notes" || true
+          gh release edit apk-debug \
+            --target "$GITHUB_SHA" \
+            --notes "$notes"
+          gh release upload apk-debug "$apk" --clobber
+          gh release view apk-debug --json tagName,assets \
+            --jq '{tagName, assets: [.assets[] | {name, size}]}'
