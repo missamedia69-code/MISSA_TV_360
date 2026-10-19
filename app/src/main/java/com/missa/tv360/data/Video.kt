@@ -67,6 +67,10 @@ data class Video(
     val tags: List<String> = emptyList(),
     val creator: String? = null,
     val releaseYear: String? = null,
+    /** Source d'origine (ex. "NASA") pour la fiche détail. */
+    val source: String? = null,
+    /** Licence (ex. "Domaine public") pour la fiche détail. */
+    val license: String? = null,
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive

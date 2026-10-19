@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.leanback.app.BackgroundManager
 import androidx.leanback.app.DetailsSupportFragment
 import androidx.leanback.widget.AbstractDetailsDescriptionPresenter
 import androidx.leanback.widget.Action
@@ -25,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.Video
+import com.missa.tv360.data.MyListStore
 import com.missa.tv360.data.source.FilmEngineRepository
 import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.playback.PlayerActivity
@@ -37,6 +39,8 @@ class DetailsFragment : DetailsSupportFragment() {
     companion object {
         private const val ARG_VIDEO = "arg_video"
         private const val ACTION_PLAY = 1L
+        private const val ACTION_MY_LIST = 2L
+        private const val ACTION_REPORT = 3L
 
         fun newInstance(video: Video): DetailsFragment = DetailsFragment().apply {
             arguments = Bundle().apply { putSerializable(ARG_VIDEO, video) }
@@ -58,12 +62,18 @@ class DetailsFragment : DetailsSupportFragment() {
                     add(if (seconds >= 3600) "${seconds / 3600} h ${(seconds % 3600) / 60} min" else "${seconds / 60} min")
                 }
                 if (v.isAudioOnly) add("Audio")
+                v.license?.takeIf { it.isNotBlank() }?.let { add(it) }
                 v.tags.take(4).takeIf { it.isNotEmpty() }?.let { add(it.joinToString(" · ")) }
             }.joinToString("  •  ")
             viewHolder.title.text = if (v.isSeries) {
                 "${v.seriesTitle} — S${v.season ?: 1} E${v.episode ?: 1}"
             } else v.title
-            viewHolder.body.text = if (v.description.isBlank()) metadata else "$metadata\n\n${v.description}"
+            val sourceLine = v.source?.takeIf { it.isNotBlank() }?.let { viewHolder.title.context.getString(R.string.details_source, it) }
+            val body = buildString {
+                append(if (v.description.isBlank()) metadata else "$metadata\n\n${v.description}")
+                sourceLine?.let { append("\n\n").append(it) }
+            }
+            viewHolder.body.text = body
         }
     }
 
@@ -75,7 +85,16 @@ class DetailsFragment : DetailsSupportFragment() {
 
         val overviewPresenter = FullWidthDetailsOverviewRowPresenter(DetailsDescriptionPresenter()).apply {
             onActionClickedListener = androidx.leanback.widget.OnActionClickedListener { action ->
-                if (action.id == ACTION_PLAY) openPlayer()
+                when (action.id) {
+                    ACTION_PLAY -> openPlayer()
+                    ACTION_MY_LIST -> {
+                        val nowIn = MyListStore.toggle(requireContext(), video.id)
+                        action.label1 = if (nowIn) getString(R.string.action_my_list_remove) else getString(R.string.action_my_list_add)
+                    }
+                    ACTION_REPORT -> {
+                        Toast.makeText(requireContext(), "Signalement enregistré", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             backgroundColor = ContextCompat.getColor(requireContext(), R.color.missa_navy)
         }
@@ -94,6 +113,19 @@ class DetailsFragment : DetailsSupportFragment() {
                     else -> getString(R.string.action_watch)
                 }
                 add(Action(ACTION_PLAY, actionLabel))
+                val inList = MyListStore.contains(requireContext(), video.id)
+                add(Action(ACTION_MY_LIST, if (inList) getString(R.string.action_my_list_remove) else getString(R.string.action_my_list_add)))
+                add(Action(ACTION_REPORT, getString(R.string.action_report)))
+            }
+        }
+
+        // Fond d'écran basé sur le visuel du contenu.
+        val bg = BackgroundManager.getInstance(requireActivity())
+        bg?.attach(requireActivity().window)
+        video.cardUrl?.takeIf { it.isNotBlank() }?.let { url ->
+            ThumbnailLoader.loadArtwork(url) { bitmap ->
+                if (!isAdded || this.view !== view) return@loadArtwork
+                bg?.drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
             }
         }
 
