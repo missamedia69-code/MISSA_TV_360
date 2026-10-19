@@ -24,16 +24,18 @@ class CardPresenter : Presenter() {
             setBackgroundResource(R.drawable.card_focus_state)
             // Contraste et retour de focus visibles depuis le canapé.
             cameraDistance = 12_000 * resources.displayMetrics.density
-            setOnFocusChangeListener { view, focused ->
-                view.animate().cancel()
-                view.animate()
-                    .scaleX(if (focused) 1.07f else 1f)
-                    .scaleY(if (focused) 1.07f else 1f)
-                    .setDuration(150)
-                    .start()
-                view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
-                BrandCardFocus.apply(view as ImageCardView, focused)
-            }
+        }
+        // Leanback can wrap the card in ShadowOverlayContainer; style the captured
+        // ImageCardView rather than casting the callback's wrapper view.
+        card.setOnFocusChangeListener { view, focused ->
+            view.animate().cancel()
+            view.animate()
+                .scaleX(if (focused) 1.07f else 1f)
+                .scaleY(if (focused) 1.07f else 1f)
+                .setDuration(150)
+                .start()
+            view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+            BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)
     }

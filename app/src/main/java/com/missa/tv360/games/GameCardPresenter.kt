@@ -25,16 +25,17 @@ class GameCardPresenter : Presenter() {
             setMainImageDimensions(320, 180)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
             setBackgroundResource(R.drawable.card_focus_state)
-            setOnFocusChangeListener { view, focused ->
-                view.animate().cancel()
-                view.animate()
-                    .scaleX(if (focused) 1.07f else 1f)
-                    .scaleY(if (focused) 1.07f else 1f)
-                    .setDuration(150)
-                    .start()
-                view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
-                BrandCardFocus.apply(view as ImageCardView, focused)
-            }
+        }
+        // Leanback may pass its ShadowOverlayContainer wrapper to the listener.
+        card.setOnFocusChangeListener { view, focused ->
+            view.animate().cancel()
+            view.animate()
+                .scaleX(if (focused) 1.07f else 1f)
+                .scaleY(if (focused) 1.07f else 1f)
+                .setDuration(150)
+                .start()
+            view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+            BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)
     }
