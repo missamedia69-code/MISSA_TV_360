@@ -3,41 +3,56 @@ package com.missa.tv360.data.source
 import com.missa.tv360.data.Video
 import kotlinx.coroutines.CancellationException
 
-/** Source de films consultable à la demande par la recherche de l'application. */
+/** Adaptateur d'une source brute consultée par le moteur Films natif de l'app. */
 interface FilmSource {
-    /** Identifiant stable utilisé pour résoudre une fiche issue de cette source. */
-    val id: String
+    /** Identifiant de l'adaptateur natif, déclaré comme `adapter` dans le manifeste. */
+    val adapterId: String
 
-    suspend fun search(query: String): List<Video>
-
-    /** Résout un résultat en fiche lisible (flux + métadonnées complètes). */
-    suspend fun resolve(result: Video): Video?
+    suspend fun trending(config: FilmSourceConfig): List<Video>
+    suspend fun search(query: String, config: FilmSourceConfig): List<Video>
+    suspend fun related(video: Video, config: FilmSourceConfig): List<Video>
+    suspend fun resolve(result: Video, config: FilmSourceConfig): Video?
 }
 
 /**
- * Registre des sources brutes du moteur Films.
- * Ajouter un fournisseur ici permet de combiner ses résultats avec les autres.
+ * Registre du moteur Films : agrège les sources activées par le paquet GitHub.
+ * Les fichiers distants ne sont que des paramètres validés, jamais du code exécutable.
  */
 object FilmSourceRegistry {
-    private val sources: List<FilmSource> = listOf(InternetArchiveFilmSource)
+    private val adapters: List<FilmSource> = listOf(InternetArchiveFilmSource)
 
-    suspend fun search(query: String): List<Video> {
-        val matches = mutableListOf<Video>()
+    suspend fun trending(engine: FilmEngineConfig): List<Video> =
+        collect(engine) { source, config -> source.trending(config) }
+
+    suspend fun search(query: String, engine: FilmEngineConfig): List<Video> =
+        collect(engine) { source, config -> source.search(query, config) }
+
+    suspend fun related(video: Video, engine: FilmEngineConfig): List<Video> =
+        collect(engine) { source, config -> source.related(video, config) }
+
+    suspend fun resolve(result: Video, engine: FilmEngineConfig): Video? {
+        val config = engine.sources.firstOrNull { it.id == result.sourceId } ?: return null
+        val source = adapters.firstOrNull { it.adapterId == config.adapter } ?: return null
+        return source.resolve(result, config)
+    }
+
+    private suspend fun collect(
+        engine: FilmEngineConfig,
+        load: suspend (FilmSource, FilmSourceConfig) -> List<Video>,
+    ): List<Video> {
+        val results = mutableListOf<Video>()
         var sourceFailure: Exception? = null
-        for (source in sources) {
+        for (config in engine.sources) {
+            val source = adapters.firstOrNull { it.adapterId == config.adapter } ?: continue
             try {
-                matches += source.search(query)
+                results += load(source, config)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 if (sourceFailure == null) sourceFailure = error
             }
         }
-        if (matches.isEmpty()) sourceFailure?.let { throw it }
-        return matches.distinctBy { video -> "${video.sourceId}:${video.id}" }
+        if (results.isEmpty()) sourceFailure?.let { throw it }
+        return results.distinctBy { video -> "${video.sourceId}:${video.id}" }
     }
-
-    suspend fun resolve(result: Video): Video? =
-        sources.firstOrNull { source -> source.id == result.sourceId }
-            ?.resolve(result)
 }

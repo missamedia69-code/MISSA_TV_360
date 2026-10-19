@@ -7,6 +7,8 @@
     <string name="row_live_tv">TV Direct</string>
     <string name="row_sport">Sport Direct</string>
     <string name="row_films">Films</string>
+    <string name="row_films_trending">Films · En vogue</string>
+    <string name="related_films_header">Films similaires</string>
     <string name="row_series">Séries</string>
     <string name="row_shorts">Films courts</string>
     <string name="row_music">Musique</string>

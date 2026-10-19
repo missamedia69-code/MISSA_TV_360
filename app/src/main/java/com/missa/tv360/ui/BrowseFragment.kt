@@ -23,9 +23,13 @@ import com.missa.tv360.R
 import com.missa.tv360.data.CatalogRepository
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.VideoRow
+import com.missa.tv360.data.source.FilmEngineConfig
+import com.missa.tv360.data.source.FilmEngineRepository
 import com.missa.tv360.data.source.FilmSourceRegistry
+import com.missa.tv360.data.source.bundledFilmEngineConfig
 import com.missa.tv360.games.GamesActivity
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /**
@@ -36,6 +40,8 @@ class BrowseFragment : BrowseSupportFragment() {
 
     private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
     private var searchResultsRow: ListRow? = null
+    private var filmListAdapter: ArrayObjectAdapter? = null
+    private var engineConfig: FilmEngineConfig? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -59,24 +65,75 @@ class BrowseFragment : BrowseSupportFragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val catalog = CatalogRepository.loadCatalog()
+            val appContext = requireContext().applicationContext
+            val catalogTask = async { CatalogRepository.loadCatalog() }
+            val engineTask = async {
+                try {
+                    FilmEngineRepository.refresh(appContext)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    bundledFilmEngineConfig()
+                }
+            }
+
+            val catalog = catalogTask.await()
             bindCatalog(catalog)
             requireActivity().findViewById<View>(R.id.catalog_loading)?.visibility = View.GONE
+
+            val config = engineTask.await()
+            engineConfig = config
+            val trending = try {
+                FilmSourceRegistry.trending(config)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                emptyList()
+            }
+            if (trending.isNotEmpty()) updateFilmRow(trending)
         }
     }
 
     private fun bindCatalog(catalog: List<VideoRow>) {
         rowsAdapter.clear()
         searchResultsRow = null
+        filmListAdapter = null
         val cardPresenter = CardPresenter()
         catalog.forEachIndexed { index, row ->
             val listAdapter = ArrayObjectAdapter(cardPresenter)
             row.videos.forEach { listAdapter.add(it) }
-            val header = row.headerTitle
-                ?: if (row.headerRes != 0) getString(row.headerRes) else ""
+            val isFilms = row.rowId == "films" || row.headerRes == R.string.row_films ||
+                row.headerTitle.equals("Films", ignoreCase = true)
+            val header = if (isFilms) {
+                getString(R.string.row_films_trending)
+            } else {
+                row.headerTitle
+                    ?: if (row.headerRes != 0) getString(row.headerRes) else ""
+            }
+            if (isFilms) filmListAdapter = listAdapter
             rowsAdapter.add(ListRow(HeaderItem(index.toLong(), header), listAdapter))
         }
         startHeadersTransition(true)
+    }
+
+    private fun updateFilmRow(videos: List<Video>) {
+        val existingAdapter = filmListAdapter
+        if (existingAdapter == null) {
+            val newAdapter = ArrayObjectAdapter(CardPresenter()).apply {
+                videos.forEach { add(it) }
+            }
+            rowsAdapter.add(
+                0,
+                ListRow(
+                    HeaderItem(rowsAdapter.size().toLong(), getString(R.string.row_films_trending)),
+                    newAdapter,
+                ),
+            )
+            filmListAdapter = newAdapter
+            return
+        }
+        existingAdapter.clear()
+        videos.forEach { existingAdapter.add(it) }
     }
 
     /** La loupe Leanback ouvre la recherche de films sans ajouter de menu principal. */
@@ -106,7 +163,8 @@ class BrowseFragment : BrowseSupportFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             Toast.makeText(requireContext(), R.string.search_loading, Toast.LENGTH_SHORT).show()
             val results = try {
-                FilmSourceRegistry.search(cleanedQuery)
+                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
+                FilmSourceRegistry.search(cleanedQuery, config)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -142,7 +200,8 @@ class BrowseFragment : BrowseSupportFragment() {
         Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
         viewLifecycleOwner.lifecycleScope.launch {
             val resolved = try {
-                FilmSourceRegistry.resolve(searchResult)
+                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
+                FilmSourceRegistry.resolve(searchResult, config)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {

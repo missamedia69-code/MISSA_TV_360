@@ -29,7 +29,9 @@ object PagesClient {
                 connectTimeout = timeoutMs
                 readTimeout = timeoutMs
                 requestMethod = "GET"
+                useCaches = false
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Cache-Control", "no-cache")
             }
             if (conn.responseCode != HttpURLConnection.HTTP_OK) return null
             val body = conn.inputStream.bufferedReader().use(BufferedReader::readText)

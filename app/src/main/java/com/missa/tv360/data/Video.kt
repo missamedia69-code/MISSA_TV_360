@@ -63,6 +63,10 @@ data class Video(
     val cardUrl: String? = null,
     /** Source brute à résoudre au clic (ex. recherche Internet Archive). */
     val sourceId: String? = null,
+    /** Métadonnées normalisées utilisées par le moteur pour trouver des contenus similaires. */
+    val tags: List<String> = emptyList(),
+    val creator: String? = null,
+    val releaseYear: String? = null,
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive

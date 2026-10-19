@@ -7,6 +7,7 @@ on:
       - "arena/**"
     paths-ignore:
       - "preview-catalog/data/catalog.json"
+      - "preview-catalog/engines/films/manifest.json"
   pull_request:
     branches:
       - main
@@ -87,7 +88,8 @@ jobs:
           set -euo pipefail
           pip install pyyaml
           python engines/build_all.py
-          mkdir -p preview-catalog/data
+          mkdir -p preview-catalog/data preview-catalog/engines/films
+          cp engines/films/manifest.json preview-catalog/engines/films/manifest.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -116,7 +118,7 @@ jobs:
               encoding="utf-8",
           )
           PY
-          git add preview-catalog/data/catalog.json
+          git add preview-catalog/data/catalog.json preview-catalog/engines/films/manifest.json
           if git diff --cached --quiet; then
             echo "Le catalogue de prévisualisation est déjà à jour."
           else

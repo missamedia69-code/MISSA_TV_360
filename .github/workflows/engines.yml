@@ -36,6 +36,12 @@ jobs:
       - name: Run all engines & consolidate catalog
         run: python engines/build_all.py
 
+      # Paquet déclaratif consommé par le moteur Films intégré à l'application.
+      - name: Publish in-app film engine package
+        run: |
+          mkdir -p site/engines/films
+          cp engines/films/manifest.json site/engines/films/manifest.json
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
