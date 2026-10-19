@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MISSA TV 360</string>
+    <string name="catalog_loading">Préparation de votre catalogue…</string>
 
     <!-- En-têtes des 10 lignes de contenu -->
     <string name="row_live_tv">TV Direct</string>
     <string name="row_sport">Sport Direct</string>
     <string name="row_films">Films</string>
+    <string name="row_films_trending">Films · En vogue</string>
+    <string name="related_films_header">Films similaires</string>
     <string name="row_series">Séries</string>
     <string name="row_shorts">Films courts</string>
     <string name="row_music">Musique</string>
@@ -16,12 +19,23 @@
 
     <!-- Détails -->
     <string name="action_play">Lire</string>
+    <string name="action_watch">Regarder</string>
+    <string name="action_watch_live">Regarder en direct</string>
+    <string name="action_listen">Écouter</string>
     <string name="details_description">Aucune description disponible.</string>
 
     <!-- Lecteur -->
     <string name="player_error">Impossible de lire ce contenu.</string>
 
-    <!-- Recherche Leanback -->
-    <string name="search_title">Rechercher</string>
+    <!-- Recherche Leanback / moteurs de sources -->
+    <string name="search_title">Rechercher un film</string>
+    <string name="search_film_hint">Titre du film</string>
+    <string name="search_submit">Rechercher</string>
+    <string name="search_loading">Recherche dans les sources Films…</string>
+    <string name="search_error">La recherche est indisponible pour le moment.</string>
+    <string name="search_no_results">Aucun film trouvé pour cette recherche.</string>
+    <string name="search_results_header">Résultats pour « %1$s » (%2$d)</string>
+    <string name="search_resolving">Récupération des informations du film…</string>
+    <string name="search_unplayable">Aucun flux MP4 lisible trouvé pour ce film.</string>
     <string name="settings_title">Paramètres</string>
 </resources>

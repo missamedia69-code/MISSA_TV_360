@@ -2,6 +2,7 @@ package com.missa.tv360.ui
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.leanback.app.BrowseSupportFragment
@@ -17,16 +18,25 @@ import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogRepository
 import com.missa.tv360.data.Video
+import com.missa.tv360.data.VideoRow
+import com.missa.tv360.data.source.FilmEngineConfig
+import com.missa.tv360.data.source.FilmEngineRepository
+import com.missa.tv360.data.source.FilmSourceRegistry
+import com.missa.tv360.data.source.bundledFilmEngineConfig
 import com.missa.tv360.games.GamesActivity
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /**
  * Écran principal : lignes de contenus (Browse Leanback).
- * Charge le catalogue (BFF distant avec repli local) puis affiche les lignes.
+ * Charge le catalogue puis permet une recherche à la demande auprès des sources Films.
  */
 class BrowseFragment : BrowseSupportFragment() {
 
     private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+    private var filmListAdapter: ArrayObjectAdapter? = null
+    private var engineConfig: FilmEngineConfig? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -36,38 +46,123 @@ class BrowseFragment : BrowseSupportFragment() {
         isHeadersTransitionOnBackEnabled = true
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_blue)
         adapter = rowsAdapter
+        setOnSearchClickedListener { openFilmSearch() }
 
         onItemViewClickedListener = OnItemViewClickedListener { _: Presenter.ViewHolder, item: Any,
                                                                 _: RowPresenter.ViewHolder, _: Row ->
             if (item is Video) {
-                if (item.isGamesLauncher) openGames() else openDetails(item)
+                when {
+                    item.sourceId != null -> resolveAndOpen(item)
+                    item.isGamesLauncher -> openGames()
+                    else -> openDetails(item)
+                }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val catalog = CatalogRepository.loadCatalog()
+            val appContext = requireContext().applicationContext
+            val catalogTask = async { CatalogRepository.loadCatalog() }
+            val engineTask = async {
+                try {
+                    FilmEngineRepository.refresh(appContext)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    bundledFilmEngineConfig()
+                }
+            }
+
+            val catalog = catalogTask.await()
             bindCatalog(catalog)
+            requireActivity().findViewById<View>(R.id.catalog_loading)?.visibility = View.GONE
+
+            val config = engineTask.await()
+            engineConfig = config
+            val trending = try {
+                FilmSourceRegistry.trending(config)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                emptyList()
+            }
+            if (trending.isNotEmpty()) updateFilmRow(trending)
         }
     }
 
-    private fun bindCatalog(catalog: List<com.missa.tv360.data.VideoRow>) {
+    private fun bindCatalog(catalog: List<VideoRow>) {
         rowsAdapter.clear()
+        filmListAdapter = null
         val cardPresenter = CardPresenter()
         catalog.forEachIndexed { index, row ->
             val listAdapter = ArrayObjectAdapter(cardPresenter)
             row.videos.forEach { listAdapter.add(it) }
-            val header = row.headerTitle
-                ?: if (row.headerRes != 0) getString(row.headerRes) else ""
+            val isFilms = row.rowId == "films" || row.headerRes == R.string.row_films ||
+                row.headerTitle.equals("Films", ignoreCase = true)
+            val header = if (isFilms) {
+                getString(R.string.row_films_trending)
+            } else {
+                row.headerTitle
+                    ?: if (row.headerRes != 0) getString(row.headerRes) else ""
+            }
+            if (isFilms) filmListAdapter = listAdapter
             rowsAdapter.add(ListRow(HeaderItem(index.toLong(), header), listAdapter))
         }
         startHeadersTransition(true)
     }
 
+    private fun updateFilmRow(videos: List<Video>) {
+        val existingAdapter = filmListAdapter
+        if (existingAdapter == null) {
+            val newAdapter = ArrayObjectAdapter(CardPresenter()).apply {
+                videos.forEach { add(it) }
+            }
+            rowsAdapter.add(
+                0,
+                ListRow(
+                    HeaderItem(rowsAdapter.size().toLong(), getString(R.string.row_films_trending)),
+                    newAdapter,
+                ),
+            )
+            filmListAdapter = newAdapter
+            return
+        }
+        existingAdapter.clear()
+        videos.forEach { existingAdapter.add(it) }
+    }
+
+    /** Le composant Leanback natif fournit le clavier TV et l'entrée vocale. */
+    private fun openFilmSearch() {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.main_browse_container, FilmSearchFragment())
+            .addToBackStack("film-search")
+            .commit()
+    }
+
+    private fun resolveAndOpen(searchResult: Video) {
+        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val resolved = try {
+                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
+                FilmSourceRegistry.resolve(searchResult, config)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+            if (!isAdded) return@launch
+            if (resolved == null) {
+                Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
+            } else {
+                openDetails(resolved)
+            }
+        }
+    }
+
     /**
-     * Ouvre un écran plein dans le MEME conteneur que celui qui heberge le
-     * Browse (R.id.main_browse_container). On evite android.R.id.content :
-     * comme le Browse n'a pas ete ajoute a ce conteneur-la, un « replace »
-     * ne le retirerait pas et les deux vues resteraient superposees.
+     * Ouvre un écran plein dans le MEME conteneur que celui qui héberge le
+     * Browse (R.id.main_browse_container). On évite android.R.id.content :
+     * comme le Browse n'a pas été ajouté à ce conteneur-là, un « replace »
+     * ne le retirerait pas et les deux vues resteraient superposées.
      */
     private fun openDetails(video: Video) {
         val fragment: Fragment = DetailsFragment.newInstance(video)
@@ -78,11 +173,11 @@ class BrowseFragment : BrowseSupportFragment() {
     }
 
     /**
-     * Ouvre l'ecran « Jeux video » dans son Activity dediee.
+     * Ouvre l'écran « Jeux vidéo » dans son Activity dédiée.
      *
      * On ne remplace pas le Browse par un fragment : un BrowseSupportFragment
-     * place sur une back stack n'ajoute pas son fragment enfant de lignes
-     * (defaut Leanback connu) et la grille resterait vide. L'Activity dediee
+     * placé sur une back stack n'ajoute pas son fragment enfant de lignes
+     * (défaut Leanback connu) et la grille resterait vide. L'Activity dédiée
      * (comme PlayerActivity) offre en plus un retour « back » naturel.
      */
     private fun openGames() {

@@ -3,6 +3,8 @@ package com.missa.tv360.ui
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.os.Handler
+import android.os.Looper
 import android.widget.ImageView
 import androidx.leanback.widget.ImageCardView
 import java.net.HttpURLConnection
@@ -20,6 +22,7 @@ import java.util.concurrent.Executors
 object ThumbnailLoader {
 
     private val pool = Executors.newFixedThreadPool(3)
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     /** Décodage cible ~ 320px de large (taille d'une carte Leanback). */
     private const val TARGET_WIDTH = 320
@@ -35,6 +38,14 @@ object ThumbnailLoader {
                     card.mainImage = BitmapDrawable(target.resources, bitmap)
                 }
             }
+        }
+    }
+
+    /** Charge une image pour les fiches et le lecteur, puis livre le bitmap sur le thread UI. */
+    fun loadArtwork(url: String, onLoaded: (Bitmap) -> Unit) {
+        pool.execute {
+            val bitmap = fetch(url) ?: return@execute
+            mainHandler.post { onLoaded(bitmap) }
         }
     }
 

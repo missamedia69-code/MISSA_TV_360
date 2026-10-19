@@ -1,6 +1,10 @@
 package com.missa.tv360.games
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.leanback.app.RowsSupportFragment
@@ -45,6 +49,24 @@ class GamesFragment : RowsSupportFragment() {
     }
 
     private fun startDownload(game: Game) {
+        if (game.packageType.equals("apk", ignoreCase = true) &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !requireContext().packageManager.canRequestPackageInstalls()
+        ) {
+            Toast.makeText(
+                requireContext(),
+                "Autorisez l’installation d’applications inconnues, puis sélectionnez à nouveau le jeu.",
+                Toast.LENGTH_LONG,
+            ).show()
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:${requireContext().packageName}"),
+                ),
+            )
+            return
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             Toast.makeText(requireContext(), "Telechargement de ${game.title}…",
                 Toast.LENGTH_SHORT).show()

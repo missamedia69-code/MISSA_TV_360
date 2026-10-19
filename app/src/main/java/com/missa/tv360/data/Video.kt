@@ -9,6 +9,8 @@ import java.io.Serializable
  * Types de contenu supportés par MISSA TV 360.
  * Chaque type a un libellé court pour les cartes et les fiches détails.
  */
+private val CARD_WHITESPACE = Regex("\\s+")
+
 enum class ContentKind(val label: String) {
     LIVE_TV("TV Direct"),
     LIVE_SPORT("Sport Direct"),
@@ -59,18 +61,40 @@ data class Video(
     val isGamesLauncher: Boolean = false,
     /** Vignette distante (catalogue du dépôt). Si présente, remplace cardRes. */
     val cardUrl: String? = null,
+    /** Source brute à résoudre au clic (ex. recherche Internet Archive). */
+    val sourceId: String? = null,
+    /** Métadonnées normalisées utilisées par le moteur pour trouver des contenus similaires. */
+    val tags: List<String> = emptyList(),
+    val creator: String? = null,
+    val releaseYear: String? = null,
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive
     val isAudioOnly: Boolean get() = kind.isAudioOnly
     val isSeries: Boolean get() = seriesTitle != null
 
-    /** Libellé secondaire affiché sur la carte et la fiche détails. */
-    fun subtitle(): String = when {
-        isSeries -> "S${season ?: 1} · E${episode ?: 1}"
-        isLive -> "● DIRECT"
-        isAudioOnly -> "♪ ${kind.label}"
-        else -> kind.label
+    /** Extrait court de description affiché directement sous le titre de la carte. */
+    private fun cardExcerpt(text: String, maxChars: Int = 68): String {
+        val normalized = text.replace(CARD_WHITESPACE, " ").trim()
+        return if (normalized.length <= maxChars) normalized
+        else normalized.take(maxChars - 1).trimEnd() + "…"
+    }
+
+    /** Description courte sur les cartes ; la fiche détails garde le texte complet. */
+    fun subtitle(): String {
+        val excerpt = cardExcerpt(description)
+        val text = when {
+            isSeries -> listOf("S${season ?: 1} · E${episode ?: 1}", excerpt)
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+            isLive -> listOf("● DIRECT", excerpt)
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+            isAudioOnly -> "♪ ${excerpt.ifBlank { kind.label }}"
+            excerpt.isNotBlank() -> excerpt
+            else -> kind.label
+        }
+        return cardExcerpt(text, maxChars = 82)
     }
 }
 

@@ -4,7 +4,7 @@
 <resources>
 
     <style name="Theme.MissaTv" parent="@style/Theme.Leanback">
-        <item name="android:windowBackground">@color/missa_navy_deep</item>
+        <item name="android:windowBackground">@drawable/bg_missa_night</item>
         <item name="android:colorPrimary">@color/missa_yellow</item>
         <item name="android:colorAccent">@color/missa_yellow</item>
         <item name="defaultBrandColor">@color/missa_blue</item>

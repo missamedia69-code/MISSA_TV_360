@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "engine_id": "films",
+  "version": 1,
+  "updated_at": "2026-10-19",
+  "sources": [
+    {
+      "id": "internet_archive",
+      "adapter": "internet_archive",
+      "enabled": true,
+      "media_type": "movies",
+      "trending_query": "mediatype:movies",
+      "trending_sort": "downloads desc",
+      "trending_limit": 20,
+      "search_limit": 40,
+      "search_fields": ["title", "creator", "subject"],
+      "search_sort": "downloads desc",
+      "playable_formats": ["mp4"],
+      "quality_order": "height_then_size",
+      "related_limit": 12,
+      "related_sort": "downloads desc",
+      "related_fields": ["subject", "creator", "title"]
+    }
+  ]
+}

@@ -57,6 +57,5 @@ dépôt, par exemple `https://<compte>.github.io/<depot>/`.
 ## Build de l'application
 
 ```bash
-cd app
-./gradlew assembleDebug     # ou assembleRelease signé
+./gradlew :app:assembleDebug     # ou :app:assembleRelease signé
 ```

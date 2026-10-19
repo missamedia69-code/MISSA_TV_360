@@ -18,7 +18,7 @@ android {
         // est le « serveur ». Surchargeable au build :
         //   ./gradlew assembleDebug -PbffBaseUrl=http://10.0.2.2:8765/
         val bffUrl = (project.findProperty("bffBaseUrl") as String?)
-            ?: "https://api.missatv.example/"
+            ?: "https://missamedia69-code.github.io/MISSA_TV_360/"
         buildConfigField("String", "BFF_BASE_URL", "\"$bffUrl\"")
     }
 
@@ -32,6 +32,14 @@ android {
         }
         debug {
             isMinifyEnabled = false
+        }
+        // Variante isolée pour tester le catalogue de la branche sans modifier
+        // l'application stable ni l'URL publique GitHub Pages.
+        create("preview") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".preview"
+            versionNameSuffix = "-preview"
+            resValue("string", "app_name", "MISSA TV 360 Preview")
         }
     }
 
@@ -67,7 +75,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.5")
 
     // Leanback (interface Android TV : browse, détails, cartes)
-    implementation("androidx.leanback:leanback:1.0.0")
+    implementation("androidx.leanback:leanback:1.2.0")
 
     // Media3 / ExoPlayer (lecture vidéo + HLS)
     implementation("androidx.media3:media3-exoplayer:1.4.1")

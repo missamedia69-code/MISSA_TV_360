@@ -5,6 +5,7 @@
     <color name="missa_yellow">#FAE504</color>
     <color name="missa_blue">#0142AB</color>
     <color name="missa_green">#00A030</color>
+    <color name="missa_green_deep">#123D2B</color>
     <color name="missa_white">#FFFFFF</color>
 
     <!-- Dérivés sombres pour l'interface TV (thème dark) -->
