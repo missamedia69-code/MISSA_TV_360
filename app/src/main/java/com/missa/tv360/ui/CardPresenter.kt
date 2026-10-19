@@ -34,7 +34,7 @@ class CardPresenter : Presenter() {
                 .scaleY(if (focused) 1.07f else 1f)
                 .setDuration(150)
                 .start()
-            view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+            view.elevation = if (focused) 12f * card.resources.displayMetrics.density else 2f
             BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)
