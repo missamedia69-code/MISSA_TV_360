@@ -45,7 +45,7 @@ class BrowseFragment : BrowseSupportFragment() {
         isHeadersTransitionOnBackEnabled = true
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_blue)
         adapter = rowsAdapter
-        onSearchClickedListener = View.OnClickListener { showFilmSearchDialog() }
+        setOnSearchClickedListener { showFilmSearchDialog() }
 
         onItemViewClickedListener = OnItemViewClickedListener { _: Presenter.ViewHolder, item: Any,
                                                                 _: RowPresenter.ViewHolder, _: Row ->
