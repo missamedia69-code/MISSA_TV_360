@@ -1,0 +1,508 @@
+{
+  "rows": [
+    {
+      "id": "tv_direct",
+      "title": "TV Direct",
+      "items": [
+        {
+          "id": "live-nasa",
+          "title": "NASA TV Public",
+          "kind": "live_tv",
+          "description": "Chaîne publique de la NASA en flux HLS continu.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8",
+            "format": "hls",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "live-bipbop",
+          "title": "BipBop Advanced",
+          "kind": "live_tv",
+          "description": "Flux HLS de test d'Apple (multi-débit).",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+            "format": "hls",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "sport",
+      "title": "Sport Direct",
+      "items": [
+        {
+          "id": "sport-demo-1",
+          "title": "Sport · Emplacement 1",
+          "kind": "sport",
+          "description": "Emplacement réservé pour vos droits sport en direct.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "films",
+      "title": "Films",
+      "items": [
+        {
+          "id": "preview-archive-test",
+          "title": "TEST IA — The Phantom of the Opera (1929)",
+          "kind": "movie",
+          "description": "Aperçu isolé du catalogue généré par le moteur Internet Archive.",
+          "thumbnail_url": "https://archive.org/services/img/ThePhantomOfTheOpera1929",
+          "stream": {
+            "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-scarlet",
+          "title": "Scarlet Street",
+          "kind": "movie",
+          "description": "Film noir de Fritz Lang (1945), domaine public.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-gaslight",
+          "title": "Gaslight",
+          "kind": "movie",
+          "description": "Mystère psychologique (1940), restauré.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://archive.org/download/gaslight-1940-colorized-movie-576p-sd/gaslight-1940-colorized%20movie-576p-sd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "series",
+      "title": "Séries",
+      "items": [
+        {
+          "id": "ser-a-e1",
+          "title": "Les Grandes Escapades — É1",
+          "kind": "series",
+          "description": "Épisode 1.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "ser-a-e2",
+          "title": "Les Grandes Escapades — É2",
+          "kind": "series",
+          "description": "Épisode 2.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "films_courts",
+      "title": "Films courts",
+      "items": [
+        {
+          "id": "short-bbb",
+          "title": "Big Buck Bunny",
+          "kind": "short",
+          "description": "Court métrage Blender (2008), CC BY.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "short-sintel",
+          "title": "Sintel",
+          "kind": "short",
+          "description": "Court métrage Blender (2010), CC BY.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "radio",
+      "title": "Radio",
+      "items": [
+        {
+          "id": "radio-groove",
+          "title": "Groove Salad",
+          "kind": "radio",
+          "description": "Webradio ambient — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "radio-lush",
+          "title": "Lush",
+          "kind": "radio",
+          "description": "Webradio voix féminines — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/lush-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "radio-drone",
+          "title": "Drone Zone",
+          "kind": "radio",
+          "description": "Webradio ambient spatial — SomaFM.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/dronezone-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "podcasts",
+      "title": "Podcasts",
+      "items": [
+        {
+          "id": "pod-demo-1",
+          "title": "Podcast · Emplacement 1",
+          "kind": "podcast",
+          "description": "Emplacement réservé podcasts.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://ice1.somafm.com/spacestation-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "musique",
+      "title": "Musique",
+      "items": [
+        {
+          "id": "music-demo-1",
+          "title": "Musique · Emplacement 1",
+          "kind": "music",
+          "description": "Emplacement réservé musique.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "jeunesse",
+      "title": "Jeunesse",
+      "items": [
+        {
+          "id": "kids-bbb",
+          "title": "Big Buck Bunny",
+          "kind": "kids",
+          "description": "Animation douce, Blender CC BY.",
+          "thumbnail_url": null,
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        }
+      ]
+    },
+    {
+      "id": "jeux",
+      "title": "Jeux vidéo",
+      "items": [
+        {
+          "id": "sgtpuzzles",
+          "title": "Simon Tatham's Puzzles",
+          "kind": "game",
+          "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/name.boyle.chris.sgtpuzzles_149.apk",
+          "size_bytes": 10576188,
+          "sha256": "6b36d5537984523c57984a784156eb853a92c940fded286483687484f3d652e4",
+          "package_type": "apk",
+          "version_name": "2025-09-12",
+          "version_code": 149,
+          "genre": "Puzzle"
+        },
+        {
+          "id": "droidfish",
+          "title": "DroidFish (échecs)",
+          "kind": "game",
+          "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/org.petero.droidfish_100.apk",
+          "size_bytes": 65756441,
+          "sha256": "7c07233fe461a56dbfa6bc83b2c0d0d7cd3cd45a285db6563829d3ceecaa5aa9",
+          "package_type": "apk",
+          "version_name": "1.90",
+          "version_code": 100,
+          "genre": "Échecs"
+        },
+        {
+          "id": "shattered-pixel-dungeon",
+          "title": "Shattered Pixel Dungeon",
+          "kind": "game",
+          "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
+          "thumbnail_url": null,
+          "stream": null,
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": "https://f-droid.org/repo/com.shatteredpixel.shatteredpixeldungeon_922.apk",
+          "size_bytes": 30275058,
+          "sha256": "ceef4cdd4beddcb3d85379ac004cb4ab5d918b89dc7366b4ce9c4a3585a5e78e",
+          "package_type": "apk",
+          "version_name": "4.0.2",
+          "version_code": 922,
+          "genre": "Roguelike"
+        }
+      ]
+    }
+  ]
+}
