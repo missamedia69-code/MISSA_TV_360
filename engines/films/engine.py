@@ -31,21 +31,49 @@ ARCHIVE_FALLBACK_URL = (
     "thepaantomoftheopera1929_512kb.mp4"
 )
 
-# Les autres fiches existantes restent inchangées pour cet essai.
+# Complète le test avec les fiches IA déjà présentes dans le catalogue local
+# MISSA ; chaque vignette vient de l'endpoint d'image du même item IA.
 CONTENU_STATIQUE = [
     (
         "film-scarlet",
         "Scarlet Street",
-        "Film noir de Fritz Lang (1945), domaine public.",
+        "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
         "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/"
         "scarlet%20street-1945-restored%20movie-720p-hd.mp4",
+        "scarlet-street-1945-restored-movie-720p-hd",
     ),
     (
         "film-gaslight",
         "Gaslight",
-        "Mystère psychologique (1940), restauré.",
+        "Mystère psychologique de George Cukor (1940), restauré et colorisé.",
         "https://archive.org/download/gaslight-1940-colorized-movie-576p-sd/"
         "gaslight-1940-colorized%20movie-576p-sd.mp4",
+        "gaslight-1940-colorized-movie-576p-sd",
+    ),
+    (
+        "film-mrx",
+        "The Amazing Mr. X",
+        "Film noir mystérieux de Harold Schuster (1948), restauré.",
+        "https://archive.org/download/the-amazing-mr.-x-1948-restored-movie-720p-hd/"
+        "The%20Amazing%20Mr.%20X-1948-restored%20movie-720p-hd.mp4",
+        "the-amazing-mr.-x-1948-restored-movie-720p-hd",
+    ),
+    (
+        "film-sanfran",
+        "Old San Francisco",
+        "Drame mélodramatique d'Alan Crosland (1927), domaine public.",
+        "https://archive.org/download/old-san-francisco-1927-dvd-mkv/"
+        "Old%20San%20Francisco%20(1927)%20%7Btmdb-104433%7D%20%5BDVD%5D"
+        "%5BAC3%202.0%5D%5BMPEG2%5D.mp4",
+        "old-san-francisco-1927-dvd-mkv",
+    ),
+    (
+        "film-hometown",
+        "Home Town Story",
+        "Drame familial américain d'Arthur Lubin (1951), domaine public.",
+        "https://archive.org/download/home-town-story-1951-classic-family-drama/"
+        "Home%20Town%20Story%20(1951)%20%2B%2B%2B%2B%2B%20Classic%20Family%20Drama).mp4",
+        "home-town-story-1951-classic-family-drama",
     ),
 ]
 
@@ -153,6 +181,7 @@ def build_archive_test_item() -> Item:
             title=ARCHIVE_FALLBACK_TITLE,
             kind="movie",
             description=ARCHIVE_FALLBACK_DESCRIPTION,
+            thumbnail_url=f"https://archive.org/services/img/{ARCHIVE_IDENTIFIER}",
             stream=Stream(url=ARCHIVE_FALLBACK_URL, format="mp4", live=False),
         )
 
@@ -165,9 +194,10 @@ def build_rows() -> list[Row]:
             title=title,
             kind="movie",
             description=description,
+            thumbnail_url=f"https://archive.org/services/img/{quote(archive_id, safe='-._~')}",
             stream=Stream(url=url, format="mp4", live=False),
         )
-        for item_id, title, description, url in CONTENU_STATIQUE
+        for item_id, title, description, url, archive_id in CONTENU_STATIQUE
     )
     return [Row(id="films", title="Films", items=items)]
 

@@ -105,7 +105,7 @@ jobs:
                   raise SystemExit("Le film IA de test est absent du catalogue")
               item["id"] = "preview-archive-test"
               item["title"] = "TEST IA — " + item.get("title", "Phantom of the Opera")
-              item["description"] = (
+              item["description"] = item.get("description") or (
                   "Aperçu isolé du catalogue généré par le moteur Internet Archive."
               )
               break

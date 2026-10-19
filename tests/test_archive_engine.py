@@ -56,6 +56,10 @@ class ArchiveEngineTests(unittest.TestCase):
 
         self.assertEqual(item.id, "film-phantom")
         self.assertEqual(item.stream.url, engine.ARCHIVE_FALLBACK_URL)
+        self.assertEqual(
+            item.thumbnail_url,
+            f"https://archive.org/services/img/{engine.ARCHIVE_IDENTIFIER}",
+        )
         self.assertIn("conservation du flux", stderr.getvalue())
 
     def test_build_rows_matches_catalog_schema(self):
@@ -68,8 +72,10 @@ class ArchiveEngineTests(unittest.TestCase):
 
         self.assertEqual(len(rows), 1)
         self.assertEqual([item.id for item in rows[0].items], [
-            "film-phantom", "film-scarlet", "film-gaslight"
+            "film-phantom", "film-scarlet", "film-gaslight",
+            "film-mrx", "film-sanfran", "film-hometown",
         ])
+        self.assertTrue(all(item.thumbnail_url for item in rows[0].items))
         self.assertEqual(validate_row(rows[0]), [])
 
 
