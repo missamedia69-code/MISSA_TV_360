@@ -1,6 +1,7 @@
 package com.missa.tv360.ui
 
 import android.content.Intent
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -75,7 +76,17 @@ class DetailsFragment : DetailsSupportFragment() {
             }
         }
 
-        adapter = ArrayObjectAdapter(presenter).apply { add(overviewRow) }
+        val detailsAdapter = ArrayObjectAdapter(presenter).apply { add(overviewRow) }
+        adapter = detailsAdapter
+
+        video.cardUrl?.takeIf { it.isNotBlank() }?.let { url ->
+            ThumbnailLoader.loadArtwork(url) { bitmap ->
+                // Ignore a late response after the details view has been recreated.
+                if (!isAdded || this.view !== view) return@loadArtwork
+                overviewRow.imageDrawable = BitmapDrawable(resources, bitmap)
+                detailsAdapter.notifyArrayItemRangeChanged(0, 1)
+            }
+        }
     }
 
     private fun openPlayer() {
@@ -89,6 +100,7 @@ class DetailsFragment : DetailsSupportFragment() {
                     PlayerActivity.EXTRA_COVER_RES,
                     if (video.cardRes != 0) video.cardRes else fondParDefaut(video.kind.name),
                 )
+                putExtra(PlayerActivity.EXTRA_COVER_URL, video.cardUrl)
             }
         )
     }

@@ -18,7 +18,7 @@ android {
         // est le « serveur ». Surchargeable au build :
         //   ./gradlew assembleDebug -PbffBaseUrl=http://10.0.2.2:8765/
         val bffUrl = (project.findProperty("bffBaseUrl") as String?)
-            ?: "https://api.missatv.example/"
+            ?: "https://missamedia69-code.github.io/MISSA_TV_360/"
         buildConfigField("String", "BFF_BASE_URL", "\"$bffUrl\"")
     }
 

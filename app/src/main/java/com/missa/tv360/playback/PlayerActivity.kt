@@ -22,6 +22,7 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_LIVE = "extra_live"
         const val EXTRA_AUDIO_ONLY = "extra_audio_only"
         const val EXTRA_COVER_RES = "extra_cover_res"
+        const val EXTRA_COVER_URL = "extra_cover_url"
     }
 
     private var player: ExoPlayer? = null
@@ -53,16 +54,23 @@ class PlayerActivity : AppCompatActivity() {
     /** Mode audio (radio/podcast) : affiche le visuel de fond à la place du noir. */
     private fun setupCover() {
         if (!intent.getBooleanExtra(EXTRA_AUDIO_ONLY, false)) return
+        val playerView = findViewById<PlayerView>(R.id.player_view)
+        playerView.useArtwork = true
+        playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
         val coverRes = intent.getIntExtra(EXTRA_COVER_RES, 0)
         if (coverRes != 0) {
-            // PlayerView's artwork layer keeps the audio cover visible while
-            // retaining the normal playback controls for radio and podcasts.
-            findViewById<PlayerView>(R.id.player_view).apply {
-                useArtwork = true
-                defaultArtwork = androidx.core.content.ContextCompat.getDrawable(
-                    this@PlayerActivity, coverRes
-                )
-                setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+            // Keep a local MISSA fallback visible while an optional remote cover loads.
+            playerView.defaultArtwork = androidx.core.content.ContextCompat.getDrawable(
+                this, coverRes
+            )
+        }
+        intent.getStringExtra(EXTRA_COVER_URL)?.takeIf { it.isNotBlank() }?.let { url ->
+            com.missa.tv360.ui.ThumbnailLoader.loadArtwork(url) { bitmap ->
+                if (!isFinishing && !isDestroyed) {
+                    playerView.defaultArtwork = android.graphics.drawable.BitmapDrawable(
+                        resources, bitmap
+                    )
+                }
             }
         }
     }
