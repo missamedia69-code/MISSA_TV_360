@@ -32,6 +32,7 @@ class CardPresenter : Presenter() {
                     .setDuration(150)
                     .start()
                 view.elevation = if (focused) 12f * resources.displayMetrics.density else 2f
+                BrandCardFocus.apply(view as ImageCardView, focused)
             }
         }
         return ViewHolder(card)
@@ -43,6 +44,7 @@ class CardPresenter : Presenter() {
         val card = viewHolder.view as ImageCardView
         card.titleText = if (video.isSeries) video.seriesTitle else video.title
         card.contentText = video.subtitle()
+        BrandCardFocus.apply(card, card.hasFocus())
         card.contentDescription = buildString {
             append(video.title)
             append(". ").append(video.subtitle())
