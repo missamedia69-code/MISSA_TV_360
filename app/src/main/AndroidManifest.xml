@@ -5,6 +5,8 @@
     <!-- Lecture reseau (catalogues Pages + streaming) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Voice input provided by Leanback SearchSupportFragment. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Telechargement des fichiers de jeu -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />

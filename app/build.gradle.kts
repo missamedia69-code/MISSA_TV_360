@@ -75,7 +75,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.5")
 
     // Leanback (interface Android TV : browse, détails, cartes)
-    implementation("androidx.leanback:leanback:1.0.0")
+    implementation("androidx.leanback:leanback:1.1.0")
 
     // Media3 / ExoPlayer (lecture vidéo + HLS)
     implementation("androidx.media3:media3-exoplayer:1.4.1")

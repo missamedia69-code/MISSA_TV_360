@@ -1,12 +1,8 @@
 package com.missa.tv360.ui
 
 import android.os.Bundle
-import android.text.InputType
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.leanback.app.BrowseSupportFragment
@@ -39,7 +35,6 @@ import kotlinx.coroutines.launch
 class BrowseFragment : BrowseSupportFragment() {
 
     private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
-    private var searchResultsRow: ListRow? = null
     private var filmListAdapter: ArrayObjectAdapter? = null
     private var engineConfig: FilmEngineConfig? = null
 
@@ -51,7 +46,7 @@ class BrowseFragment : BrowseSupportFragment() {
         isHeadersTransitionOnBackEnabled = true
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_blue)
         adapter = rowsAdapter
-        setOnSearchClickedListener { showFilmSearchDialog() }
+        setOnSearchClickedListener { openFilmSearch() }
 
         onItemViewClickedListener = OnItemViewClickedListener { _: Presenter.ViewHolder, item: Any,
                                                                 _: RowPresenter.ViewHolder, _: Row ->
@@ -96,7 +91,6 @@ class BrowseFragment : BrowseSupportFragment() {
 
     private fun bindCatalog(catalog: List<VideoRow>) {
         rowsAdapter.clear()
-        searchResultsRow = null
         filmListAdapter = null
         val cardPresenter = CardPresenter()
         catalog.forEachIndexed { index, row ->
@@ -136,64 +130,12 @@ class BrowseFragment : BrowseSupportFragment() {
         videos.forEach { existingAdapter.add(it) }
     }
 
-    /** La loupe Leanback ouvre la recherche de films sans ajouter de menu principal. */
-    private fun showFilmSearchDialog() {
-        val input = EditText(requireContext()).apply {
-            hint = getString(R.string.search_film_hint)
-            inputType = InputType.TYPE_CLASS_TEXT
-            imeOptions = EditorInfo.IME_ACTION_SEARCH
-            isSingleLine = true
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.search_title)
-            .setView(input)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.search_submit) { _, _ ->
-                searchFilms(input.text?.toString().orEmpty())
-            }
-            .show()
-    }
-
-    private fun searchFilms(query: String) {
-        val cleanedQuery = query.trim()
-        if (cleanedQuery.isBlank()) return
-
-        searchResultsRow?.let { rowsAdapter.remove(it) }
-        searchResultsRow = null
-        viewLifecycleOwner.lifecycleScope.launch {
-            Toast.makeText(requireContext(), R.string.search_loading, Toast.LENGTH_SHORT).show()
-            val results = try {
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
-                FilmSourceRegistry.search(cleanedQuery, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                if (isAdded) {
-                    Toast.makeText(requireContext(), R.string.search_error, Toast.LENGTH_LONG).show()
-                }
-                return@launch
-            }
-            if (!isAdded) return@launch
-            if (results.isEmpty()) {
-                Toast.makeText(requireContext(), R.string.search_no_results, Toast.LENGTH_LONG).show()
-                return@launch
-            }
-
-            searchResultsRow?.let { rowsAdapter.remove(it) }
-            val resultsAdapter = ArrayObjectAdapter(CardPresenter()).apply {
-                results.forEach { add(it) }
-            }
-            val row = ListRow(
-                HeaderItem(
-                    rowsAdapter.size().toLong(),
-                    getString(R.string.search_results_header, cleanedQuery, results.size),
-                ),
-                resultsAdapter,
-            )
-            rowsAdapter.add(0, row)
-            searchResultsRow = row
-            setSelectedPosition(0)
-        }
+    /** Le composant Leanback natif fournit le clavier TV et l'entrée vocale. */
+    private fun openFilmSearch() {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.main_browse_container, FilmSearchFragment())
+            .addToBackStack("film-search")
+            .commit()
     }
 
     private fun resolveAndOpen(searchResult: Video) {
