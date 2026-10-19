@@ -33,6 +33,14 @@ android {
         debug {
             isMinifyEnabled = false
         }
+        // Variante isolée pour tester le catalogue de la branche sans modifier
+        // l'application stable ni l'URL publique GitHub Pages.
+        create("preview") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".preview"
+            versionNameSuffix = "-preview"
+            resValue("string", "app_name", "MISSA TV 360 Preview")
+        }
     }
 
     compileOptions {

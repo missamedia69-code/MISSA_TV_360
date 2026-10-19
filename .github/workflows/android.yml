@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - "arena/**"
+    paths-ignore:
+      - "preview-catalog/data/catalog.json"
   pull_request:
     branches:
       - main
@@ -69,4 +71,97 @@ jobs:
             --notes "$notes"
           gh release upload apk-debug "$apk" --clobber
           gh release view apk-debug --json tagName,assets \
+            --jq '{tagName, assets: [.assets[] | {name, size}]}'
+
+      # Pour les pushes sur arena/*, on génère un catalogue de prévisualisation
+      # sur la branche, sans déployer ni remplacer le site GitHub Pages public.
+      - name: Set up Python for branch preview
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/arena/')
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate branch preview catalog
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/arena/')
+        run: |
+          set -euo pipefail
+          pip install pyyaml
+          python engines/build_all.py
+          mkdir -p preview-catalog/data
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          source = Path("site/data/catalog.json")
+          target = Path("preview-catalog/data/catalog.json")
+          payload = json.loads(source.read_text(encoding="utf-8"))
+          payload.pop("generated_at", None)
+          for row in payload.get("rows", []):
+              if row.get("id") != "films":
+                  continue
+              item = next((entry for entry in row.get("items", [])
+                           if entry.get("id") == "film-phantom"), None)
+              if item is None:
+                  raise SystemExit("Le film IA de test est absent du catalogue")
+              item["id"] = "preview-archive-test"
+              item["title"] = "TEST IA — " + item.get("title", "Phantom of the Opera")
+              item["description"] = (
+                  "Aperçu isolé du catalogue généré par le moteur Internet Archive."
+              )
+              break
+          else:
+              raise SystemExit("Ligne Films absente du catalogue")
+          target.write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2) + chr(10),
+              encoding="utf-8",
+          )
+          PY
+          git add preview-catalog/data/catalog.json
+          if git diff --cached --quiet; then
+            echo "Le catalogue de prévisualisation est déjà à jour."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update branch preview catalog [skip ci]"
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+          fi
+
+      - name: Build branch preview APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/arena/')
+        run: |
+          preview_url="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/refs/heads/${GITHUB_REF_NAME}/preview-catalog/"
+          bash ./gradlew --no-daemon :app:assemblePreview "-PbffBaseUrl=${preview_url}"
+
+      - name: Upload branch preview APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/arena/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: missa-tv-360-preview-apk
+          path: app/build/outputs/apk/preview/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish branch preview APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/arena/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          apk_path="$(find app/build/outputs/apk/preview -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          test -n "$apk_path"
+          cp "$apk_path" /tmp/app-preview.apk
+          short="${GITHUB_SHA:0:7}"
+          notes="APK de prévisualisation isolé pour tester le catalogue de la branche.
+          Branche : ${GITHUB_REF_NAME} @ ${short}.
+          Catalogue : raw GitHub, dossier preview-catalog/data/.
+          Package : com.missa.tv360.preview (installable à côté de l'app standard)."
+          gh release create apk-preview \
+            --target "$GITHUB_SHA" \
+            --title "MISSA TV 360 — aperçu de branche" \
+            --notes "$notes" || true
+          gh release edit apk-preview \
+            --target "$GITHUB_SHA" \
+            --notes "$notes"
+          gh release upload apk-preview /tmp/app-preview.apk --clobber
+          gh release view apk-preview --json tagName,assets \
             --jq '{tagName, assets: [.assets[] | {name, size}]}'
