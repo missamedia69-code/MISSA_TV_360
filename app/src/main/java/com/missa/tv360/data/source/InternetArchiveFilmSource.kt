@@ -223,6 +223,7 @@ object InternetArchiveFilmSource : FilmSource {
 
     private fun readText(value: Any?): String = when (value) {
         is String -> value
+        is Number -> value.toString()
         is JSONArray -> readStrings(value).joinToString(" ")
         else -> ""
     }
