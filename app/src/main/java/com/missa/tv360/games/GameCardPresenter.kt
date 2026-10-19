@@ -22,7 +22,7 @@ class GameCardPresenter : Presenter() {
             isFocusableInTouchMode = true
             // Match the legacy game-card image size; source fallback PNGs are 1280×720.
             setMainImageAdjustViewBounds(false)
-            setMainImageDimensions(320, 180)
+            setMainImageDimensions(240, 240)
             setMainImageScaleType(android.widget.ImageView.ScaleType.CENTER_CROP)
             setBackgroundResource(R.drawable.card_focus_state)
         }

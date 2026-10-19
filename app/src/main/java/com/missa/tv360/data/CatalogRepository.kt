@@ -55,7 +55,7 @@ object CatalogRepository {
         try {
             val type = object : TypeToken<PagesCatalogDto>() {}.type
             val dto: PagesCatalogDto? =
-                PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, CATALOG_PATH, type)
+                PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, CATALOG_PATH, type, 4000)
             val rows = dto?.toRows().orEmpty()
             if (rows.isNotEmpty()) return@withContext rows
         } catch (_: Exception) {

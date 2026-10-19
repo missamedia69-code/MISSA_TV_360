@@ -18,6 +18,7 @@ class PlayerActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_URL = "extra_url"
+        const val EXTRA_VIDEO_ID = "extra_video_id"
         const val EXTRA_TITLE = "extra_title"
         const val EXTRA_LIVE = "extra_live"
         const val EXTRA_AUDIO_ONLY = "extra_audio_only"
@@ -47,6 +48,13 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        val p = player
+        val id = intent.getStringExtra(EXTRA_VIDEO_ID)
+        if (p != null && !id.isNullOrBlank()) {
+            com.missa.tv360.data.WatchProgressStore.save(
+                this, id, p.currentPosition, p.duration.coerceAtLeast(0L)
+            )
+        }
         super.onPause()
         releasePlayer()
     }

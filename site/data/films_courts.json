@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.151526+00:00",
+  "generated_at": "2026-10-19T22:16:19.983955+00:00",
   "rows": [
     {
       "id": "films_courts",
@@ -10,7 +10,7 @@
           "title": "Big Buck Bunny",
           "kind": "short",
           "description": "Court métrage Blender (2008), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -34,7 +34,7 @@
           "title": "Sintel",
           "kind": "short",
           "description": "Court métrage Blender (2010), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
             "format": "mp4",

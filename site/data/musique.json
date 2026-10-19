@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.185305+00:00",
+  "generated_at": "2026-10-19T22:16:20.017388+00:00",
   "rows": [
     {
       "id": "musique",
@@ -10,7 +10,7 @@
           "title": "Musique · Emplacement 1",
           "kind": "music",
           "description": "Emplacement réservé musique.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Musique+·+Emplacement+1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
             "format": "mp4",

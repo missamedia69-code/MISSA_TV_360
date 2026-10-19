@@ -101,6 +101,22 @@ def parse_archive_item(identifier: str, payload: dict[str, Any]) -> Item | None:
     if not isinstance(metadata, dict) or not isinstance(files, list):
         return None
 
+    # Filtre les droits : on ne conserve que les contenus dont la licence est
+    # explicitement libre (domaine public / Creative Commons). Les items sans
+    # indication de licence sont conservés (cas historique du catalogue).
+    rights = (
+        metadata.get("rights")
+        or metadata.get("license")
+        or metadata.get("licenseurl")
+        or metadata.get("license_url")
+    )
+    if isinstance(rights, str) and rights.strip():
+        low = rights.lower()
+        if not any(token in low for token in (
+            "public domain", "creative commons", "cc0", "cc by", "cc-by", "cc0 1.0",
+        )):
+            return None
+
     playable: list[dict[str, Any]] = []
     for media_file in files:
         if not isinstance(media_file, dict):

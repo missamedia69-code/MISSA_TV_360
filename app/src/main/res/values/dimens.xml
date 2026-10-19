@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_margin">48dp</dimen>
+    <dimen name="topbar_height">40dp</dimen>
+    <dimen name="card16_w">136dp</dimen><dimen name="card16_h">76dp</dimen>
+    <dimen name="poster_w">84dp</dimen><dimen name="poster_h">126dp</dimen>
+    <dimen name="square">90dp</dimen>
+    <dimen name="card_gap">12dp</dimen>
+    <dimen name="card_radius">8dp</dimen>
+    <dimen name="focus_stroke">3dp</dimen>
+    <dimen name="progress_h">3dp</dimen>
+</resources>

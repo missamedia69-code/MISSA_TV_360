@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.193642+00:00",
+  "generated_at": "2026-10-19T22:16:20.037694+00:00",
   "rows": [
     {
       "id": "tv_direct",
@@ -10,7 +10,7 @@
           "title": "NASA TV Public",
           "kind": "live_tv",
           "description": "Chaîne publique de la NASA en flux HLS continu.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=NASA+TV+Public",
           "stream": {
             "url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8",
             "format": "hls",
@@ -34,7 +34,7 @@
           "title": "BipBop Advanced",
           "kind": "live_tv",
           "description": "Flux HLS de test d'Apple (multi-débit).",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=BipBop+Advanced",
           "stream": {
             "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
             "format": "hls",
@@ -64,7 +64,7 @@
           "title": "Sport · Emplacement 1",
           "kind": "sport",
           "description": "Emplacement réservé pour vos droits sport en direct.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sport+·+Emplacement+1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "format": "mp4",
@@ -91,10 +91,10 @@
       "items": [
         {
           "id": "film-phantom",
-          "title": "Phantom of the Opera",
+          "title": "The Phantom of the Opera (1929)",
           "kind": "movie",
-          "description": "Film muet fantastique (1929), domaine public.",
-          "thumbnail_url": null,
+          "description": "This is the most commonly available version of The Phantom of the Opera. It is a re-edit of the 1925 version and originally had a synchronized sound score. It is a DVD rip from the milestone edition, with the man with lantern sequence edited in. It is the best available print of the film from the UCLA film and television archives. The soundtrack is Symphony No. 8 in B minor, best known as the \"Unfinished Symphony\". It is not the best soundtrack for the film, but I was unsure whether or not the 1929 soundtrack is in the public domain. Staring Lon Chaney, Mary Philbin and Norman Kerry. Directed ",
+          "thumbnail_url": "https://archive.org/services/img/ThePhantomOfTheOpera1929",
           "stream": {
             "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
             "format": "mp4",
@@ -117,8 +117,8 @@
           "id": "film-scarlet",
           "title": "Scarlet Street",
           "kind": "movie",
-          "description": "Film noir de Fritz Lang (1945), domaine public.",
-          "thumbnail_url": null,
+          "description": "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
+          "thumbnail_url": "https://archive.org/services/img/scarlet-street-1945-restored-movie-720p-hd",
           "stream": {
             "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
             "format": "mp4",
@@ -141,10 +141,82 @@
           "id": "film-gaslight",
           "title": "Gaslight",
           "kind": "movie",
-          "description": "Mystère psychologique (1940), restauré.",
-          "thumbnail_url": null,
+          "description": "Mystère psychologique de George Cukor (1940), restauré et colorisé.",
+          "thumbnail_url": "https://archive.org/services/img/gaslight-1940-colorized-movie-576p-sd",
           "stream": {
             "url": "https://archive.org/download/gaslight-1940-colorized-movie-576p-sd/gaslight-1940-colorized%20movie-576p-sd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-mrx",
+          "title": "The Amazing Mr. X",
+          "kind": "movie",
+          "description": "Film noir mystérieux de Harold Schuster (1948), restauré.",
+          "thumbnail_url": "https://archive.org/services/img/the-amazing-mr.-x-1948-restored-movie-720p-hd",
+          "stream": {
+            "url": "https://archive.org/download/the-amazing-mr.-x-1948-restored-movie-720p-hd/The%20Amazing%20Mr.%20X-1948-restored%20movie-720p-hd.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-sanfran",
+          "title": "Old San Francisco",
+          "kind": "movie",
+          "description": "Drame mélodramatique d'Alan Crosland (1927), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/old-san-francisco-1927-dvd-mkv",
+          "stream": {
+            "url": "https://archive.org/download/old-san-francisco-1927-dvd-mkv/Old%20San%20Francisco%20(1927)%20%7Btmdb-104433%7D%20%5BDVD%5D%5BAC3%202.0%5D%5BMPEG2%5D.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null
+        },
+        {
+          "id": "film-hometown",
+          "title": "Home Town Story",
+          "kind": "movie",
+          "description": "Drame familial américain d'Arthur Lubin (1951), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/home-town-story-1951-classic-family-drama",
+          "stream": {
+            "url": "https://archive.org/download/home-town-story-1951-classic-family-drama/Home%20Town%20Story%20(1951)%20%2B%2B%2B%2B%2B%20Classic%20Family%20Drama).mp4",
             "format": "mp4",
             "live": false
           },
@@ -172,7 +244,7 @@
           "title": "Les Grandes Escapades — É1",
           "kind": "series",
           "description": "Épisode 1.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             "format": "mp4",
@@ -196,7 +268,7 @@
           "title": "Les Grandes Escapades — É2",
           "kind": "series",
           "description": "Épisode 2.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É2",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
             "format": "mp4",
@@ -226,7 +298,7 @@
           "title": "Big Buck Bunny",
           "kind": "short",
           "description": "Court métrage Blender (2008), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -250,7 +322,7 @@
           "title": "Sintel",
           "kind": "short",
           "description": "Court métrage Blender (2010), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
             "format": "mp4",
@@ -280,7 +352,7 @@
           "title": "Groove Salad",
           "kind": "radio",
           "description": "Webradio ambient — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Groove+Salad",
           "stream": {
             "url": "https://ice1.somafm.com/groovesalad-128-mp3",
             "format": "mp3",
@@ -304,7 +376,7 @@
           "title": "Lush",
           "kind": "radio",
           "description": "Webradio voix féminines — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Lush",
           "stream": {
             "url": "https://ice1.somafm.com/lush-128-mp3",
             "format": "mp3",
@@ -328,7 +400,7 @@
           "title": "Drone Zone",
           "kind": "radio",
           "description": "Webradio ambient spatial — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Drone+Zone",
           "stream": {
             "url": "https://ice1.somafm.com/dronezone-128-mp3",
             "format": "mp3",
@@ -358,7 +430,7 @@
           "title": "Podcast · Emplacement 1",
           "kind": "podcast",
           "description": "Emplacement réservé podcasts.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Podcast+·+Emplacement+1",
           "stream": {
             "url": "https://ice1.somafm.com/spacestation-128-mp3",
             "format": "mp3",
@@ -388,7 +460,7 @@
           "title": "Musique · Emplacement 1",
           "kind": "music",
           "description": "Emplacement réservé musique.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Musique+·+Emplacement+1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
             "format": "mp4",
@@ -418,7 +490,7 @@
           "title": "Big Buck Bunny",
           "kind": "kids",
           "description": "Animation douce, Blender CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -448,7 +520,7 @@
           "title": "Simon Tatham's Puzzles",
           "kind": "game",
           "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Simon+Tatham's+Puzzles",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -468,7 +540,7 @@
           "title": "DroidFish (échecs)",
           "kind": "game",
           "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=DroidFish+(échecs)",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -488,7 +560,7 @@
           "title": "Shattered Pixel Dungeon",
           "kind": "game",
           "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Shattered+Pixel+Dungeon",
           "stream": null,
           "series_title": null,
           "season_number": null,

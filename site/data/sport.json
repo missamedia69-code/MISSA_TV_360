@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.190293+00:00",
+  "generated_at": "2026-10-19T22:16:20.029826+00:00",
   "rows": [
     {
       "id": "sport",
@@ -10,7 +10,7 @@
           "title": "Sport · Emplacement 1",
           "kind": "sport",
           "description": "Emplacement réservé pour vos droits sport en direct.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sport+·+Emplacement+1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "format": "mp4",

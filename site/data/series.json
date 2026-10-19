@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.188862+00:00",
+  "generated_at": "2026-10-19T22:16:20.026321+00:00",
   "rows": [
     {
       "id": "series",
@@ -10,7 +10,7 @@
           "title": "Les Grandes Escapades — É1",
           "kind": "series",
           "description": "Épisode 1.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             "format": "mp4",
@@ -34,7 +34,7 @@
           "title": "Les Grandes Escapades — É2",
           "kind": "series",
           "description": "Épisode 2.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É2",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
             "format": "mp4",

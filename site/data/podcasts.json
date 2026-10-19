@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.186467+00:00",
+  "generated_at": "2026-10-19T22:16:20.020353+00:00",
   "rows": [
     {
       "id": "podcasts",
@@ -10,7 +10,7 @@
           "title": "Podcast · Emplacement 1",
           "kind": "podcast",
           "description": "Emplacement réservé podcasts.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Podcast+·+Emplacement+1",
           "stream": {
             "url": "https://ice1.somafm.com/spacestation-128-mp3",
             "format": "mp3",

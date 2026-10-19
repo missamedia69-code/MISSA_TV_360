@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.183964+00:00",
+  "generated_at": "2026-10-19T22:16:20.014309+00:00",
   "rows": [
     {
       "id": "jeux",
@@ -10,7 +10,7 @@
           "title": "Simon Tatham's Puzzles",
           "kind": "game",
           "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Simon+Tatham's+Puzzles",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -30,7 +30,7 @@
           "title": "DroidFish (échecs)",
           "kind": "game",
           "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=DroidFish+(échecs)",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -50,7 +50,7 @@
           "title": "Shattered Pixel Dungeon",
           "kind": "game",
           "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Shattered+Pixel+Dungeon",
           "stream": null,
           "series_title": null,
           "season_number": null,

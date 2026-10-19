@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T15:34:48.187642+00:00",
+  "generated_at": "2026-10-19T22:16:20.023322+00:00",
   "rows": [
     {
       "id": "radio",
@@ -10,7 +10,7 @@
           "title": "Groove Salad",
           "kind": "radio",
           "description": "Webradio ambient — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Groove+Salad",
           "stream": {
             "url": "https://ice1.somafm.com/groovesalad-128-mp3",
             "format": "mp3",
@@ -34,7 +34,7 @@
           "title": "Lush",
           "kind": "radio",
           "description": "Webradio voix féminines — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Lush",
           "stream": {
             "url": "https://ice1.somafm.com/lush-128-mp3",
             "format": "mp3",
@@ -58,7 +58,7 @@
           "title": "Drone Zone",
           "kind": "radio",
           "description": "Webradio ambient spatial — SomaFM.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Drone+Zone",
           "stream": {
             "url": "https://ice1.somafm.com/dronezone-128-mp3",
             "format": "mp3",

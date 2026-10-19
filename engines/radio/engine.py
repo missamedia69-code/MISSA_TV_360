@@ -17,6 +17,7 @@ def build_rows():
             id=iid, title=title, kind='radio', description=desc,
             stream=Stream(url=url, format=fmt, live=live),
             audio_only=(fmt == "mp3"),
+            thumbnail_url=f"https://placehold.co/320x180/1a237e/ffd600?text={title.replace(" ", "+")}",
         ))
     return [Row(id='radio', title='Radio', items=items)]
 

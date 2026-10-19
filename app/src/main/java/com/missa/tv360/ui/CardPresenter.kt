@@ -41,9 +41,11 @@ class CardPresenter : Presenter() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
-        val video = item as Video
+    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
+        val video = item as? Video ?: return
         val card = viewHolder.view as ImageCardView
+        val (width, height) = dimensionsFor(video.kind.name)
+        card.setMainImageDimensions(width, height)
         card.titleText = if (video.isSeries) video.seriesTitle else video.title
         card.contentText = video.subtitle()
         BrandCardFocus.apply(card, card.hasFocus())
@@ -65,6 +67,13 @@ class CardPresenter : Presenter() {
         } else {
             card.tag = null
         }
+    }
+
+    private fun dimensionsFor(kind: String): Pair<Int, Int> = when (kind.lowercase()) {
+        "live_tv", "sport", "short", "kids" -> 320 to 180   // 16:9
+        "movie", "series" -> 213 to 320                     // 2:3
+        "radio", "podcast", "music", "game" -> 240 to 240   // 1:1
+        else -> 320 to 180
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {

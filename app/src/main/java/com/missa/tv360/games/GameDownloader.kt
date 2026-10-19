@@ -29,13 +29,12 @@ class GameDownloader(private val context: Context) {
     /** Etat d'un telechargement, expose a l'UI. */
     data class DownloadState(
         val gameId: String,
-    ) {
-        var progress: Int = 0        // 0..100
-        var running: Boolean = false
-        var done: Boolean = false
-        var failed: String? = null
-        var installed: Boolean = false
-    }
+        var progress: Int = 0,        // 0..100
+        var running: Boolean = false,
+        var done: Boolean = false,
+        var failed: String? = null,
+        var installed: Boolean = false,
+    )
 
     private val _state = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val state: StateFlow<Map<String, DownloadState>> = _state

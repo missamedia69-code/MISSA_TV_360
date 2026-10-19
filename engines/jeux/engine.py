@@ -54,7 +54,7 @@ def build_rows() -> list[Row]:
             title=e["title"],
             kind="game",
             description=e.get("description", ""),
-            thumbnail_url=e.get("thumbnail_url"),
+            thumbnail_url=e.get("thumbnail_url") or f"https://placehold.co/320x180/1a237e/ffd600?text={e['title'].replace(' ', '+')}",
             download_url=e.get("download_url"),
             size_bytes=e.get("size_bytes"),
             sha256=e.get("sha256"),

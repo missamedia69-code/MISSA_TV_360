@@ -167,6 +167,7 @@ class DetailsFragment : DetailsSupportFragment() {
         startActivity(
             Intent(requireContext(), PlayerActivity::class.java).apply {
                 putExtra(PlayerActivity.EXTRA_URL, video.streamUrl)
+                putExtra(PlayerActivity.EXTRA_VIDEO_ID, video.id)
                 putExtra(PlayerActivity.EXTRA_TITLE, video.title)
                 putExtra(PlayerActivity.EXTRA_LIVE, video.isLive)
                 putExtra(PlayerActivity.EXTRA_AUDIO_ONLY, video.isAudioOnly)

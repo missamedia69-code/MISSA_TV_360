@@ -33,6 +33,7 @@ object FilmEngineRepository {
                 BuildConfig.BFF_BASE_URL,
                 MANIFEST_PATH,
                 manifestType,
+                4000,
             )
             val remoteConfig = remote?.toRuntimeConfig()
             if (remoteConfig != null) {

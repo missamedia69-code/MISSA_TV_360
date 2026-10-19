@@ -9,9 +9,14 @@
     <color name="missa_white">#FFFFFF</color>
 
     <!-- Dérivés sombres pour l'interface TV (thème dark) -->
+    <color name="missa_bg_top">#0A1633</color>
+    <color name="missa_bg_bottom">#060E22</color>
     <color name="missa_navy">#0A1633</color>
     <color name="missa_navy_deep">#060E22</color>
     <color name="missa_card_bg">#12214A</color>
+    <color name="missa_text">#E8EDFA</color>
+    <color name="missa_text_secondary">#C7D1EA</color>
+    <color name="missa_on_yellow">#0A1633</color>
 
     <!-- Texte -->
     <color name="text_primary">#FFFFFF</color>

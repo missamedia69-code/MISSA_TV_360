@@ -11,7 +11,13 @@ android {
         applicationId = "com.missa.tv360"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
+        versionCode = runCatching {
+            val proc = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+                .directory(rootDir)
+                .redirectErrorStream(true)
+                .start()
+            proc.inputStream.bufferedReader().readText().trim().toInt()
+        }.getOrDefault(1).coerceAtLeast(1)
         versionName = "1.0.0"
 
         // URL du catalogue (clean-room) — le dépôt GitHub / GitHub Pages en
@@ -69,6 +75,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     // AndroidX de base
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
