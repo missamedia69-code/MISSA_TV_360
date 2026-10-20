@@ -74,7 +74,8 @@ class FilmSearchFragment : SearchSupportFragment(), SearchResultProvider {
                     return@launch
                 }
 
-                val cards = ArrayObjectAdapter(CardPresenter()).apply {
+                // Même famille visuelle que l'accueil (§8) : cartes MISSA.
+                val cards = ArrayObjectAdapter(MissaCardPresenter()).apply {
                     results.forEach { add(it) }
                 }
                 rowsAdapter.add(

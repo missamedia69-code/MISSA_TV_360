@@ -19,4 +19,26 @@
         android:layout_height="match_parent"
         android:keepScreenOn="true" />
 
+    <!-- Titre réel du contenu, visible quelques secondes puis estompé
+         (ne masque jamais durablement la vidéo ni les contrôles). -->
+    <TextView
+        android:id="@+id/player_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginLeft="48dp"
+        android:layout_marginTop="24dp"
+        android:maxWidth="760dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:background="@drawable/bg_player_title"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/missa_white"
+        android:visibility="gone" />
+
 </FrameLayout>

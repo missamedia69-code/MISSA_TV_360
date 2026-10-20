@@ -15,6 +15,8 @@
             android:id="@+id/card_image"
             android:layout_width="@dimen/card16_w"
             android:layout_height="@dimen/card16_h"
+            android:background="@drawable/bg_card_image"
+            android:clipToOutline="true"
             android:scaleType="centerCrop" />
 
         <TextView
@@ -24,7 +26,7 @@
             android:layout_margin="6dp"
             android:background="@drawable/bg_badge_live"
             android:text="LIVE"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/missa_white"
             android:textSize="12sp"
             android:textStyle="bold"
             android:paddingHorizontal="6dp"

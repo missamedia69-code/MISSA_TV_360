@@ -63,6 +63,16 @@
                     android:clickable="true"
                     android:contentDescription="@string/details_back" />
 
+                <!-- Icône du pack d'icônes : catégorie (cachée si inconnue). -->
+                <ImageView
+                    android:id="@+id/details_category_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginRight="6dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone"
+                    android:importantForAccessibility="no" />
+
                 <TextView
                     android:id="@+id/details_category"
                     android:layout_width="wrap_content"
@@ -215,10 +225,12 @@
                         android:textColor="@color/missa_white" />
                 </LinearLayout>
 
+                <!-- 240dp : carte affiche 177dp + titre sur 2 lignes + marge
+                     pour le zoom 1,05 au focus (sinon la rangée est rognée). -->
                 <androidx.leanback.widget.HorizontalGridView
                     android:id="@+id/details_similar_grid"
                     android:layout_width="match_parent"
-                    android:layout_height="130dp"
+                    android:layout_height="240dp"
                     android:layout_marginTop="10dp"
                     android:focusable="true" />
             </LinearLayout>

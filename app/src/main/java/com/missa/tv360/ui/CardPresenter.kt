@@ -28,13 +28,14 @@ class CardPresenter : Presenter() {
         // Leanback can wrap the card in ShadowOverlayContainer; style the captured
         // ImageCardView rather than casting the callback's wrapper view.
         card.setOnFocusChangeListener { view, focused ->
+            // Zoom « actif » 1,05 / 160 ms (§5) : pas d'élévation au focus,
+            // une ombre portée reste une grande ombre à éviter (§12).
             view.animate().cancel()
             view.animate()
-                .scaleX(if (focused) 1.07f else 1f)
-                .scaleY(if (focused) 1.07f else 1f)
-                .setDuration(150)
+                .scaleX(if (focused) 1.05f else 1f)
+                .scaleY(if (focused) 1.05f else 1f)
+                .setDuration(160)
                 .start()
-            view.elevation = if (focused) 12f * card.resources.displayMetrics.density else 2f
             BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)

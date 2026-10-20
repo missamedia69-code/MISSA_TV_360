@@ -1,6 +1,8 @@
 package com.missa.tv360.playback
 
 import android.os.Bundle
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
@@ -27,6 +29,8 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private var player: ExoPlayer? = null
+    private var titleOverlay: TextView? = null
+    private var titleFade: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +44,24 @@ class PlayerActivity : AppCompatActivity() {
         }
         title = intent.getStringExtra(EXTRA_TITLE)
         setupCover()
+        setupTitleOverlay()
+    }
+
+    /**
+     * Titre réel du contenu affiché en haut à gauche puis estompé (§9) :
+     * le panneau reste « subtil » et ne masque jamais durablement la vidéo.
+     */
+    private fun setupTitleOverlay() {
+        val label = intent.getStringExtra(EXTRA_TITLE)?.trim()
+        if (label.isNullOrEmpty()) return
+        val overlay = findViewById<TextView>(R.id.player_title)
+        overlay.text = label
+        overlay.visibility = View.VISIBLE
+        overlay.alpha = 1f
+        val fade = Runnable { overlay.animate().alpha(0f).setDuration(300L).start() }
+        titleOverlay = overlay
+        titleFade = fade
+        overlay.postDelayed(fade, 4_000L)
     }
 
     override fun onResume() {
@@ -103,7 +125,15 @@ class PlayerActivity : AppCompatActivity() {
             )
         }
 
-        exo.setMediaItem(mediaItemBuilder.build())
+        // Reprise de la progression enregistrée (§9) : jamais sur un direct.
+        val videoId = intent.getStringExtra(EXTRA_VIDEO_ID)
+        val resumeMs = if (isLive || videoId.isNullOrBlank()) {
+            0L
+        } else {
+            com.missa.tv360.data.WatchProgressStore.position(this, videoId) ?: 0L
+        }
+
+        exo.setMediaItem(mediaItemBuilder.build(), resumeMs)
         exo.playWhenReady = true
         exo.prepare()
 
@@ -121,5 +151,12 @@ class PlayerActivity : AppCompatActivity() {
     private fun releasePlayer() {
         player?.release()
         player = null
+    }
+
+    override fun onDestroy() {
+        titleFade?.let { fade -> titleOverlay?.removeCallbacks(fade) }
+        titleFade = null
+        titleOverlay = null
+        super.onDestroy()
     }
 }

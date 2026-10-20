@@ -9,5 +9,5 @@
     <corners android:radius="@dimen/card_radius" />
     <stroke
         android:width="@dimen/focus_stroke"
-        android:color="@color/missa_yellow" />
+        android:color="@color/missa_yellow_focus" />
 </shape>

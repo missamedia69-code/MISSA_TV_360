@@ -1,32 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Palette extraite du logo MISSA TV 360 -->
+<!-- Palette MISSA TV 360 : bleu nuit + jaune de marque (cahier des charges design).
+     Valeurs alignées sur le document d'amélioration de design ; les noms existants
+     sont conservés (valeurs ajustées) pour ne pas créer de doublons. -->
 <resources>
-    <!-- Couleurs principales du logo -->
-    <color name="missa_yellow">#FAE504</color>
-    <color name="missa_blue">#0142AB</color>
-    <color name="missa_green">#00A030</color>
+    <!-- Couleurs principales de la marque -->
+    <color name="missa_yellow">#FFD400</color>
+    <color name="missa_yellow_focus">#FFE45C</color>
+    <color name="missa_blue">#2787F5</color>
+    <color name="missa_green">#35D07F</color>
     <color name="missa_green_deep">#123D2B</color>
     <color name="missa_white">#FFFFFF</color>
 
-    <!-- Dérivés sombres pour l'interface TV (thème dark) -->
-    <color name="missa_bg_top">#0A1633</color>
+    <!-- Fonds / surfaces -->
+    <color name="missa_bg_top">#07111F</color>
     <color name="missa_bg_bottom">#060E22</color>
-    <color name="missa_navy">#0A1633</color>
+    <color name="missa_navy">#07111F</color>
     <color name="missa_navy_deep">#060E22</color>
-    <color name="missa_card_bg">#12214A</color>
-    <color name="missa_text">#E8EDFA</color>
-    <color name="missa_text_secondary">#C7D1EA</color>
-    <color name="missa_on_yellow">#0A1633</color>
+    <color name="missa_surface">#0D1B2A</color>
+    <color name="missa_surface_elevated">#182B40</color>
+    <color name="missa_card_bg">#122338</color>
+    <color name="missa_border">#263A50</color>
+    <color name="missa_on_yellow">#07111F</color>
 
     <!-- Texte -->
+    <color name="missa_text">#FFFFFF</color>
+    <color name="missa_text_secondary">#B8C5D6</color>
+    <color name="missa_text_muted">#718096</color>
     <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B8C4E0</color>
-    <color name="text_on_yellow">#0A1633</color>
+    <color name="text_secondary">#B8C5D6</color>
+    <color name="text_on_yellow">#07111F</color>
 
-    <!-- Focus / sélection -->
-    <color name="focus_highlight">#FAE504</color>
-    <color name="badge_live">#E02020</color>
-    <color name="missa_live">#E02020</color>
+    <!-- Focus / sélection / états -->
+    <color name="focus_highlight">#FFD400</color>
+    <color name="badge_live">#FF3B4F</color>
+    <color name="missa_live">#FF3B4F</color>
+    <color name="missa_error">#FF5C69</color>
+    <color name="player_title_bg">#B307111F</color>
 
     <!-- Contours / transparences (fiches, badges) -->
     <color name="chip_stroke">#59FFFFFF</color>

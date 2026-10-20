@@ -23,6 +23,14 @@ object WatchProgressStore {
         return f
     }
 
+    /** Position de reprise du lecteur (null si progression absente ou hors zone utile). */
+    fun position(ctx: Context, id: String): Long? {
+        if (fraction(ctx, id) == null) return null
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getLong("${id}_pos", -1L)
+            .takeIf { it > 0 }
+    }
+
     fun recent(ctx: Context, limit: Int = 10): List<String> {
         val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val all = p.all.keys.filter { it.endsWith("_updated") }.map { it.removeSuffix("_updated") }

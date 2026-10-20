@@ -31,14 +31,18 @@ fun primaryLabelRes(kind: ContentKind): Int = when {
 fun primaryLabel(kind: ContentKind, ctx: Context): String =
     ctx.getString(primaryLabelRes(kind))
 
-/** Présente les boutons d'action de la fiche : zoom 1,05 au focus, 120 ms. */
+/** Présente les boutons d'action de la fiche : zoom « actif » 1,05 / 160 ms. */
 class MissaActionPresenter : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         val b = LayoutInflater.from(parent.context).inflate(R.layout.action_button, parent, false)
         b.setOnFocusChangeListener { v, focused ->
-            v.animate().scaleX(if (focused) 1.05f else 1f)
-                .scaleY(if (focused) 1.05f else 1f).setDuration(120).start()
+            v.animate().cancel()
+            v.animate()
+                .scaleX(if (focused) 1.05f else 1f)
+                .scaleY(if (focused) 1.05f else 1f)
+                .setDuration(160)
+                .start()
         }
         return ViewHolder(b)
     }

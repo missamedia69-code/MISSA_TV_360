@@ -6,9 +6,9 @@
     android:viewportWidth="48"
     android:viewportHeight="24">
     <path
-        android:fillColor="#E02020"
+        android:fillColor="@color/missa_live"
         android:pathData="M4,0 h40 a4,4 0 0 1 4,4 v16 a4,4 0 0 1 -4,4 h-40 a4,4 0 0 1 -4,-4 v-16 a4,4 0 0 1 4,-4 z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="@color/missa_white"
         android:pathData="M10,7 h5 v10 h-5 z M18,7 h5 v10 h-5 z M26,7 h5 v10 h-5 z M34,7 h4 v10 h-4 z" />
 </vector>

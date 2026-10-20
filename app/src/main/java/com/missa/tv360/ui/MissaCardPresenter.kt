@@ -20,14 +20,18 @@ class MissaCardPresenter : Presenter() {
         v.isFocusable = true
         v.isFocusableInTouchMode = true
         v.setOnFocusChangeListener { view, focused ->
-            view.animate().scaleX(if (focused) 1.07f else 1f)
-                .scaleY(if (focused) 1.07f else 1f).setDuration(120).start()
-            // Pas d'élévation au focus : une vue élevée sans fond a quand même
-            // un outline plein rectangle (View.getOutline) qui projetait une
-            // ombre noire derrière le titre jaune. Anneau + zoom 1,07 suffisent.
+            // Zoom « actif » (cahier des charges §5) : 1,05 sur 160 ms, sans
+            // élévation (une vue élevée sans fond a un outline plein rectangle
+            // qui projetait une ombre noire derrière le titre jaune).
+            view.animate().cancel()
+            view.animate()
+                .scaleX(if (focused) 1.05f else 1f)
+                .scaleY(if (focused) 1.05f else 1f)
+                .setDuration(160L)
+                .start()
             view.findViewById<TextView>(R.id.card_title)
                 .setTextColor(ContextCompat.getColor(view.context,
-                    if (focused) R.color.missa_yellow else R.color.missa_text_secondary))
+                    if (focused) R.color.missa_yellow_focus else R.color.missa_text_secondary))
             // Anneau de focus : fond posé/retiré explicitement (aucun selector
             // d'état : leanback propage activated/selecté à toute la rangée).
             val ring = view.findViewById<View>(R.id.card_focus_ring)
@@ -56,6 +60,9 @@ class MissaCardPresenter : Presenter() {
         ring.background = null // carte recyclée : pas d'anneau tant que non focalisée
         v.findViewById<TextView>(R.id.card_title).apply {
             text = video.title
+            // Carte recyclée : le titre repasse en couleur de repos, même si elle
+            // a été défocus-débindée dans un état « focalisé » (§5 recyclage).
+            setTextColor(ContextCompat.getColor(context, R.color.missa_text_secondary))
             layoutParams = layoutParams.apply { width = w }
         }
         v.findViewById<TextView>(R.id.badge_live).isVisible = video.kind.isLive

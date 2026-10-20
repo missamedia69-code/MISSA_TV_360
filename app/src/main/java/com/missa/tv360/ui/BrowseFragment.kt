@@ -4,7 +4,13 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -45,6 +51,7 @@ class BrowseFragment : BrowseSupportFragment() {
     private val rowsAdapter = ArrayObjectAdapter(rowPresenter)
     private var filmListAdapter: ArrayObjectAdapter? = null
     private var engineConfig: FilmEngineConfig? = null
+    private var headerIconObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -55,6 +62,7 @@ class BrowseFragment : BrowseSupportFragment() {
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
         adapter = rowsAdapter
         setOnSearchClickedListener { openFilmSearch() }
+        installHeaderIcons(view)
 
         onItemViewClickedListener = OnItemViewClickedListener { _: Presenter.ViewHolder, item: Any,
                                                                 _: RowPresenter.ViewHolder, _: Row ->
@@ -123,6 +131,83 @@ class BrowseFragment : BrowseSupportFragment() {
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
+    // ------------------------------------------------------------------
+    // Icônes de catégorie du pack d'icônes (panneau latéral + en-têtes)
+    // ------------------------------------------------------------------
+
+    /**
+     * Branche les icônes du pack sur les en-têtes de rangée. RowHeaderPresenter
+     * ne relie que le texte : on observe donc l'arbre de vues (le panneau est un
+     * fragment enfant, créé après le nôtre) et on couple chaque [TextView] portant
+     * l'id `row_header` à l'ImageView frère `row_header_icon` de nos surcharges
+     * lb_header / lb_row_header.
+     */
+    private fun installHeaderIcons(root: View) {
+        val observer = ViewTreeObserver.OnGlobalLayoutListener { hookHeaderIcons(root) }
+        root.viewTreeObserver.addOnGlobalLayoutListener(observer)
+        headerIconObserver = observer
+        hookHeaderIcons(root)
+    }
+
+    override fun onDestroyView() {
+        headerIconObserver?.let { observer ->
+            view?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(observer)
+        }
+        headerIconObserver = null
+        super.onDestroyView()
+    }
+
+    private fun hookHeaderIcons(view: View) {
+        if (view is TextView && view.id == R.id.row_header) hookHeaderIcon(view)
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) hookHeaderIcons(view.getChildAt(i))
+        }
+    }
+
+    /** Un seul branchement par icône ; le TextWatcher couvre les rebindings. */
+    private fun hookHeaderIcon(title: TextView) {
+        val parent = title.parent as? ViewGroup ?: return
+        val icon = parent.findViewById<ImageView>(R.id.row_header_icon) ?: return
+        if (icon.tag != null) return
+        icon.tag = true
+        applyHeaderIcon(icon, title.text)
+        title.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = applyHeaderIcon(icon, title.text)
+        })
+    }
+
+    private fun applyHeaderIcon(icon: ImageView, label: CharSequence?) {
+        val res = headerIconRes(label)
+        icon.setImageResource(res)
+        icon.visibility = if (res != 0) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * Icône du pack correspondant au libellé de la rangée. Le pack ne fournit
+     * pas d'icône dédiée pour Sport Direct / Podcasts / Musique : ils réutilisent
+     * l'icône la plus proche ; tout libellé inconnu n'affiche simplement rien.
+     */
+    private fun headerIconRes(label: CharSequence?): Int {
+        val text = label?.toString()?.trim().orEmpty()
+        if (text.isEmpty()) return 0
+        return listOf(
+            getString(R.string.row_resume) to R.drawable.ic_reprendre,
+            getString(R.string.row_hero) to R.drawable.ic_a_la_une,
+            getString(R.string.row_live_tv) to R.drawable.ic_tv_direct,
+            getString(R.string.row_sport) to R.drawable.ic_tv_direct,
+            getString(R.string.row_films) to R.drawable.ic_films,
+            getString(R.string.row_series) to R.drawable.ic_series,
+            getString(R.string.row_shorts) to R.drawable.ic_films_courts,
+            getString(R.string.row_radio) to R.drawable.ic_radio,
+            getString(R.string.row_podcast) to R.drawable.ic_radio,
+            getString(R.string.row_music) to R.drawable.ic_radio,
+            getString(R.string.row_kids) to R.drawable.ic_jeunesse,
+            getString(R.string.row_games) to R.drawable.ic_jeux_video,
+        ).firstOrNull { it.first.equals(text, ignoreCase = true) }?.second ?: 0
+    }
+
     private fun addResumeRow(catalog: List<VideoRow>) {
         val recentIds = WatchProgressStore.recent(requireContext())
         if (recentIds.isEmpty()) return
@@ -131,7 +216,7 @@ class BrowseFragment : BrowseSupportFragment() {
         if (resumeVideos.isEmpty()) return
         // Évite les doublons : retire une éventuelle ligne « Reprendre » existante.
         val existing = (0 until rowsAdapter.size()).mapNotNull { rowsAdapter.get(it) as? ListRow }
-            .firstOrNull { (it.headerItem as? HeaderItem)?.name == getString(R.string.row_resume) }
+            .firstOrNull { it.headerItem?.name == getString(R.string.row_resume) }
         existing?.let { rowsAdapter.remove(it) }
         val adapter = ArrayObjectAdapter(MissaCardPresenter()).apply { resumeVideos.forEach { add(it) } }
         rowsAdapter.add(0, ListRow(HeaderItem(999L, getString(R.string.row_resume)), adapter))

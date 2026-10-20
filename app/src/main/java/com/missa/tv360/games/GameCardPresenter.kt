@@ -28,13 +28,14 @@ class GameCardPresenter : Presenter() {
         }
         // Leanback may pass its ShadowOverlayContainer wrapper to the listener.
         card.setOnFocusChangeListener { view, focused ->
+            // Zoom « actif » 1,05 / 160 ms (§10) : aucune élévation (§12 évite
+            // les grandes ombres et garde une famille de focus cohérente).
             view.animate().cancel()
             view.animate()
-                .scaleX(if (focused) 1.07f else 1f)
-                .scaleY(if (focused) 1.07f else 1f)
-                .setDuration(150)
+                .scaleX(if (focused) 1.05f else 1f)
+                .scaleY(if (focused) 1.05f else 1f)
+                .setDuration(160)
                 .start()
-            view.elevation = if (focused) 12f * card.resources.displayMetrics.density else 2f
             BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)

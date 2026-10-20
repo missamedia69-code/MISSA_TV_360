@@ -21,6 +21,17 @@
         android:layout_marginStart="8dp"
         android:orientation="vertical">
 
+        <!-- Icône de catégorie (même couplage que lb_header : frère du titre). -->
+        <ImageView
+            android:id="@+id/row_header_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginBottom="2dp"
+            android:layout_gravity="start"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+
         <androidx.leanback.widget.RowHeaderView
             android:id="@+id/row_header"
             android:importantForAccessibility="no"

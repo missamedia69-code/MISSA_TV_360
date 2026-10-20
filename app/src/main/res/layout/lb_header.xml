@@ -18,6 +18,18 @@
         android:background="@color/missa_yellow"
         android:importantForAccessibility="no" />
 
+    <!-- Icône de la catégorie (pack d'icônes MISSA) : posée par
+         BrowseFragment selon le libellé de la rangée ; sans correspondance
+         (Sport, Podcasts, Musique : pas d'icône fournie) elle reste masquée. -->
+    <ImageView
+        android:id="@+id/row_header_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="6dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
+
     <androidx.leanback.widget.RowHeaderView
         android:id="@+id/row_header"
         android:layout_width="wrap_content"

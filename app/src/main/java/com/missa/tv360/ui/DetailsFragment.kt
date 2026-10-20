@@ -89,6 +89,15 @@ class DetailsFragment : Fragment() {
 
     private fun bindBreadcrumb(view: View) {
         view.findViewById<TextView>(R.id.details_category).text = video.kind.label
+        // Icône du pack d'icônes posée devant la catégorie (cachée si inconnue).
+        view.findViewById<ImageView>(R.id.details_category_icon).apply {
+            val icon = categoryIcon(video.kind)
+            isVisible = icon != 0
+            if (icon != 0) setImageResource(icon)
+        }
+        // Retour explicite (libellé visible, spec 7 : bouton facile à repérer).
+        view.findViewById<TextView>(R.id.details_back).text =
+            "‹ ${getString(R.string.details_back)}"
         view.findViewById<TextView>(R.id.details_crumb_title).text = buildString {
             append(" › ")
             append(
@@ -102,6 +111,17 @@ class DetailsFragment : Fragment() {
         view.findViewById<View>(R.id.details_back).setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+    }
+
+    /** Icône du pack correspondant à la catégorie (le plus proche sinon 0). */
+    private fun categoryIcon(kind: ContentKind): Int = when (kind) {
+        ContentKind.LIVE_TV, ContentKind.LIVE_SPORT -> R.drawable.ic_tv_direct
+        ContentKind.MOVIE -> R.drawable.ic_films
+        ContentKind.SERIES -> R.drawable.ic_series
+        ContentKind.SHORT -> R.drawable.ic_films_courts
+        ContentKind.RADIO, ContentKind.PODCAST, ContentKind.MUSIC -> R.drawable.ic_radio
+        ContentKind.KIDS -> R.drawable.ic_jeunesse
+        ContentKind.GAME -> R.drawable.ic_jeux_video
     }
 
     /** Fond plein écran (visuel du contenu) + dégradés marine, jamais de zone vide. */
