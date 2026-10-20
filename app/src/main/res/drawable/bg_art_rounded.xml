@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cadre de l'illustration de la fiche : sert d'outline pour clipToOutline. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/missa_card_bg" />
+    <corners android:radius="@dimen/details_art_radius" />
+</shape>

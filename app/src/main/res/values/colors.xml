@@ -26,4 +26,11 @@
     <!-- Focus / sélection -->
     <color name="focus_highlight">#FAE504</color>
     <color name="badge_live">#E02020</color>
+    <color name="missa_live">#E02020</color>
+
+    <!-- Contours / transparences (fiches, badges) -->
+    <color name="chip_stroke">#59FFFFFF</color>
+    <color name="btn_secondary_bg">#1AFFFFFF</color>
+    <color name="btn_secondary_bg_focused">#33FFFFFF</color>
+    <color name="btn_secondary_stroke">#59FFFFFF</color>
 </resources>

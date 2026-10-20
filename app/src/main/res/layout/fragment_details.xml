@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fiche détail MISSA TV 360 — maquette « Fiche détail » (1280×720, dp = px × 0,75). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/missa_navy_deep">
+
+    <!-- Fond plein écran : visuel du contenu + dégradés marine -->
+    <ImageView
+        android:id="@+id/details_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no" />
+
+    <View
+        android:id="@+id/details_scrim_h"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim_horizontal" />
+
+    <View
+        android:id="@+id/details_scrim_v"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim_vertical" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="48dp"
+            android:paddingRight="48dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
+
+            <!-- Fil d'Ariane : retour + Catégorie › Titre -->
+            <LinearLayout
+                android:id="@+id/details_breadcrumb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/details_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="10dp"
+                    android:text="‹"
+                    android:textSize="22sp"
+                    android:textColor="@color/missa_text"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:contentDescription="@string/details_back" />
+
+                <TextView
+                    android:id="@+id/details_category"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/missa_text_secondary" />
+
+                <TextView
+                    android:id="@+id/details_crumb_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:maxWidth="520dp"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/missa_white" />
+            </LinearLayout>
+
+            <!-- Bloc principal : illustration à gauche, métadonnées à droite -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="19dp">
+
+                <FrameLayout
+                    android:layout_width="@dimen/details_art_w"
+                    android:layout_height="@dimen/details_art_h"
+                    android:layout_marginRight="@dimen/details_art_gap">
+
+                    <ImageView
+                        android:id="@+id/details_art"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/bg_art_rounded"
+                        android:clipToOutline="true"
+                        android:contentDescription="@string/details_play" />
+
+                    <TextView
+                        android:id="@+id/details_play"
+                        android:layout_width="@dimen/details_play_size"
+                        android:layout_height="@dimen/details_play_size"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_play_circle"
+                        android:gravity="center"
+                        android:text="▶"
+                        android:textSize="16sp"
+                        android:textColor="@color/missa_on_yellow"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:contentDescription="@string/details_play" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <!-- Badges : EN DIRECT, catégorie, HD, licence -->
+                    <LinearLayout
+                        android:id="@+id/details_badges"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+
+                    <TextView
+                        android:id="@+id/details_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:textSize="34sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/missa_white" />
+
+                    <TextView
+                        android:id="@+id/details_desc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:maxWidth="@dimen/details_desc_width"
+                        android:maxLines="3"
+                        android:ellipsize="end"
+                        android:textSize="16sp"
+                        android:lineSpacingExtra="3dp"
+                        android:textColor="@color/missa_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/details_source"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:maxLines="2"
+                        android:textSize="13sp"
+                        android:textColor="@color/missa_text_secondary" />
+
+                    <!-- Actions : principal + Ma liste + Signaler -->
+                    <LinearLayout
+                        android:id="@+id/details_actions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Contenus similaires -->
+            <LinearLayout
+                android:id="@+id/details_similar_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="18dp"
+                        android:background="@color/missa_yellow" />
+
+                    <TextView
+                        android:id="@+id/details_similar_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/missa_white" />
+                </LinearLayout>
+
+                <androidx.leanback.widget.HorizontalGridView
+                    android:id="@+id/details_similar_grid"
+                    android:layout_width="match_parent"
+                    android:layout_height="130dp"
+                    android:layout_marginTop="10dp"
+                    android:focusable="true" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

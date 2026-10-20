@@ -11,6 +11,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.util.Locale
 
 /** Adaptateur natif de la première source brute du moteur Films : Internet Archive. */
 object InternetArchiveFilmSource : FilmSource {
@@ -135,6 +136,12 @@ object InternetArchiveFilmSource : FilmSource {
                 tags = subjects,
                 creator = creator,
                 releaseYear = year,
+                source = "Internet Archive",
+                license = normalizeLicense(
+                    readText(metadata.opt("licenseurl")).ifBlank {
+                        readText(metadata.opt("rights"))
+                    },
+                ),
             )
         }
 
@@ -186,8 +193,29 @@ object InternetArchiveFilmSource : FilmSource {
                 tags = subjects,
                 creator = creator,
                 releaseYear = year,
+                source = "Internet Archive",
             )
         }.distinctBy(Video::id)
+    }
+
+    /**
+     * Ramène une URL ou une mention de licence d'Internet Archive vers un libellé
+     * court affichable sur la fiche détail. Retourne null si rien n'est exploitable
+     * (la fiche n'affichera alors aucun badge de licence).
+     */
+    private fun normalizeLicense(raw: String): String? {
+        val value = raw.trim().take(120)
+        if (value.isEmpty()) return null
+        val lower = value.lowercase(Locale.ROOT)
+        return when {
+            lower.contains("cc0") -> "CC0"
+            lower.contains("publicdomain") || lower.contains("public domain") -> "Domaine public"
+            lower.contains("by-nc-sa") -> "CC BY-NC-SA"
+            lower.contains("by-nc") -> "CC BY-NC"
+            lower.contains("by-sa") -> "CC BY-SA"
+            lower.contains("creative commons") || lower.contains("cc by") -> "CC BY"
+            else -> value
+        }
     }
 
     private fun request(url: String): String {

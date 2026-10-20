@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Motifs proposés par l'écran « Signaler un problème » -->
+    <string-array name="report_reasons">
+        <item>Flux coupé ou illisible</item>
+        <item>Mauvais contenu / titre incorrect</item>
+        <item>Problème de droits</item>
+        <item>Autre</item>
+    </string-array>
+</resources>

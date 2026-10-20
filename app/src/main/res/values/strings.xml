@@ -24,12 +24,18 @@
     <string name="action_watch">Regarder</string>
     <string name="action_watch_live">Regarder en direct</string>
     <string name="action_listen">Écouter</string>
-    <string name="details_description">Aucune description disponible.</string>
-    <string name="details_source">Source : %1$s</string>
-    <string name="details_similar">Contenus similaires</string>
     <string name="action_my_list_add">+ Ma liste</string>
     <string name="action_my_list_remove">✓ Dans ma liste</string>
     <string name="action_report">Signaler un problème</string>
+    <string name="details_description">Aucune description disponible.</string>
+    <string name="details_similar">Chaînes similaires</string>
+    <string name="details_source">Source : %1$s</string>
+    <string name="details_back">Retour</string>
+    <string name="details_play">Lire</string>
+    <string name="badge_live">EN DIRECT</string>
+    <string name="badge_hd">HD</string>
+    <string name="report_send">Envoyer</string>
+    <string name="report_done">Signalement enregistré. Merci.</string>
 
     <!-- Lecteur -->
     <string name="player_error">Impossible de lire ce contenu.</string>

@@ -3,10 +3,14 @@ package com.missa.tv360.ui
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
+import android.content.Context
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
@@ -46,6 +50,27 @@ object ThumbnailLoader {
         pool.execute {
             val bitmap = fetch(url) ?: return@execute
             mainHandler.post { onLoaded(bitmap) }
+        }
+    }
+
+    /**
+     * Livre un Drawable pour un écran plein (fiche détail, lecteur).
+     * Le repli [fallbackRes] est livré immédiatement — jamais de zone vide si le
+     * réseau est coupé ou si [url] est absent — puis remplacé par l'image distante
+     * si elle finit par arriver. L'appelant doit ignorer la réponse tardive si sa
+     * vue a été recréée entre-temps.
+     */
+    fun loadDrawable(
+        context: Context,
+        url: String?,
+        @DrawableRes fallbackRes: Int,
+        onLoaded: (Drawable) -> Unit,
+    ) {
+        val fallback = ContextCompat.getDrawable(context, fallbackRes)
+        if (fallback != null) onLoaded(fallback)
+        if (url.isNullOrBlank()) return
+        loadArtwork(url) { bitmap ->
+            onLoaded(BitmapDrawable(context.resources, bitmap))
         }
     }
 

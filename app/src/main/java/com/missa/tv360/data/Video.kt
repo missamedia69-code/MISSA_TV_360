@@ -67,9 +67,9 @@ data class Video(
     val tags: List<String> = emptyList(),
     val creator: String? = null,
     val releaseYear: String? = null,
-    /** Source d'origine (ex. "NASA") pour la fiche détail. */
+    /** Origine du contenu affichée sur la fiche (« Internet Archive », « NASA »…). */
     val source: String? = null,
-    /** Licence (ex. "Domaine public") pour la fiche détail. */
+    /** Licence du contenu (« Domaine public », « CC BY »…) — null si inconnue. */
     val license: String? = null,
 ) : Serializable {
 

@@ -53,6 +53,8 @@ data class PagesItemDto(
     @SerializedName("version_name") val versionName: String? = null,
     @SerializedName("version_code") val versionCode: Int? = null,
     @SerializedName("genre") val genre: String? = null,
+    @SerializedName("source") val source: String? = null,
+    @SerializedName("license") val license: String? = null,
 ) {
     /** Convertit un item distant en Video, ou null si illisible (pas d'id/titre). */
     fun toVideo(): Video? {
@@ -72,6 +74,8 @@ data class PagesItemDto(
             durationSec = durationSec,
             format = stream?.format ?: if (audioOnly) "mp3" else "mp4",
             cardUrl = thumbnailUrl,
+            source = source,
+            license = license,
         )
     }
 

@@ -9,4 +9,14 @@
     <dimen name="card_radius">8dp</dimen>
     <dimen name="focus_stroke">3dp</dimen>
     <dimen name="progress_h">3dp</dimen>
+
+    <!-- Fiche détail (valeurs maquette 1280×720, dp = px × 0,75) -->
+    <dimen name="details_art_w">264dp</dimen>
+    <dimen name="details_art_h">148dp</dimen>
+    <dimen name="details_art_radius">12dp</dimen>
+    <dimen name="details_art_gap">27dp</dimen>
+    <dimen name="details_desc_width">450dp</dimen>
+    <dimen name="details_play_size">36dp</dimen>
+    <dimen name="details_similar_card_w">136dp</dimen>
+    <dimen name="details_similar_card_h">76dp</dimen>
 </resources>
