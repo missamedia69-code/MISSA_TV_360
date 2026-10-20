@@ -12,7 +12,9 @@ import com.missa.tv360.data.GamesRow
  * (groupes publies par l'engine « jeux » du depot) en lignes Leanback,
  * chaque carte etant rendue par [GameCardPresenter].
  */
-class GamesRowsAdapter : ArrayObjectAdapter(ListRowPresenter()) {
+class GamesRowsAdapter : ArrayObjectAdapter(
+    ListRowPresenter().apply { shadowEnabled = false }
+) {
 
     fun bind(rows: List<GamesRow>) {
         clear()

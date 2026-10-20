@@ -47,7 +47,12 @@ import kotlinx.coroutines.withTimeout
  */
 class BrowseFragment : BrowseSupportFragment() {
 
-    private val rowPresenter = ListRowPresenter().apply { selectEffectEnabled = false }
+    private val rowPresenter = ListRowPresenter().apply {
+        selectEffectEnabled = false
+        // Pas d'ombre Leanback autour des cartes focalisées : elle dessine un
+        // cadre noir flou (ShadowOverlayContainer / Z-shadow) sur le fond marine.
+        shadowEnabled = false
+    }
     private val rowsAdapter = ArrayObjectAdapter(rowPresenter)
     private var filmListAdapter: ArrayObjectAdapter? = null
     private var engineConfig: FilmEngineConfig? = null

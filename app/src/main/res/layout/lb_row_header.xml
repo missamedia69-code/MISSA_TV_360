@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Surcharge de lb_row_header (leanback) : titre de rangée avec barre jaune
-     4dp x 18dp, alignée sur la marge des cartes (les IDs row_header et
-     row_header_description sont requis par RowHeaderPresenter). -->
+<!-- Surcharge de lb_row_header (leanback) : titre de rangée (icône de
+     catégorie optionnelle + libellé, sans barre d'accent). Les IDs
+     row_header et row_header_description sont requis par RowHeaderPresenter. -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
@@ -9,16 +9,9 @@
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
-    <View
-        android:layout_width="4dp"
-        android:layout_height="18dp"
-        android:background="@color/missa_yellow"
-        android:importantForAccessibility="no" />
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:orientation="vertical">
 
         <!-- Icône de catégorie (même couplage que lb_header : frère du titre). -->

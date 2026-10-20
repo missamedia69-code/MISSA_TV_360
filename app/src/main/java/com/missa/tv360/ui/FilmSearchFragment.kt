@@ -27,7 +27,9 @@ import kotlinx.coroutines.launch
 /** Recherche Films Leanback : clavier TV, saisie vocale et résultats navigables. */
 class FilmSearchFragment : SearchSupportFragment(), SearchResultProvider {
 
-    private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter())
+    private val rowsAdapter = ArrayObjectAdapter(
+        ListRowPresenter().apply { shadowEnabled = false }
+    )
     private var engineConfig: FilmEngineConfig? = null
     private var searchJob: Job? = null
     private var requestVersion = 0L

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Surcharge de lb_header (leanback) : titre de rangée du panneau de
-     navigation avec barre jaune 4dp x 18dp, alignée sur la marge des cartes.
-     Le focus doit rester sur la racine (listener de focus posé par
-     ItemBridgeAdapter sur la vue du presenter) ; l'ID row_header est requis
-     par RowHeaderPresenter. -->
+     navigation (icône de catégorie optionnelle + libellé, sans barre
+     d'accent). Le focus doit rester sur la racine (listener de focus posé
+     par ItemBridgeAdapter sur la vue du presenter) ; l'ID row_header est
+     requis par RowHeaderPresenter. -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
@@ -12,12 +12,6 @@
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-    <View
-        android:layout_width="4dp"
-        android:layout_height="18dp"
-        android:background="@color/missa_yellow"
-        android:importantForAccessibility="no" />
-
     <!-- Icône de la catégorie (pack d'icônes MISSA) : posée par
          BrowseFragment selon le libellé de la rangée ; sans correspondance
          (Sport, Podcasts, Musique : pas d'icône fournie) elle reste masquée. -->
@@ -25,7 +19,6 @@
         android:id="@+id/row_header_icon"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:layout_marginStart="6dp"
         android:scaleType="fitCenter"
         android:visibility="gone"
         android:importantForAccessibility="no" />
