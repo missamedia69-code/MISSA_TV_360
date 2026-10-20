@@ -22,7 +22,9 @@ class MissaCardPresenter : Presenter() {
         v.setOnFocusChangeListener { view, focused ->
             view.animate().scaleX(if (focused) 1.07f else 1f)
                 .scaleY(if (focused) 1.07f else 1f).setDuration(120).start()
-            view.elevation = if (focused) 8f * view.resources.displayMetrics.density else 0f
+            // Pas d'élévation au focus : une vue élevée sans fond a quand même
+            // un outline plein rectangle (View.getOutline) qui projetait une
+            // ombre noire derrière le titre jaune. Anneau + zoom 1,07 suffisent.
             view.findViewById<TextView>(R.id.card_title)
                 .setTextColor(ContextCompat.getColor(view.context,
                     if (focused) R.color.missa_yellow else R.color.missa_text_secondary))
