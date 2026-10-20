@@ -145,14 +145,13 @@ class BrowseFragment : BrowseSupportFragment() {
             val listAdapter = ArrayObjectAdapter(cardPresenter)
             row.videos.filter { !it.title.contains("Emplacement", ignoreCase = true) }
                 .forEach { listAdapter.add(it) }
+            // Pas de zone vide : une rangée dont tous les contenus sont des
+            // placeholders (« Emplacement ») n'est pas ajoutée.
+            if (listAdapter.size() == 0) return@forEachIndexed
             val isFilms = row.rowId == "films" || row.headerRes == R.string.row_films ||
                 row.headerTitle.equals("Films", ignoreCase = true)
-            val header = if (isFilms) {
-                getString(R.string.row_films_trending)
-            } else {
-                row.headerTitle
-                    ?: if (row.headerRes != 0) getString(row.headerRes) else ""
-            }
+            val header = row.headerTitle
+                ?: if (row.headerRes != 0) getString(row.headerRes) else ""
             if (isFilms) filmListAdapter = listAdapter
             rowsAdapter.add(ListRow(HeaderItem(index.toLong(), header), listAdapter))
         }
@@ -175,7 +174,7 @@ class BrowseFragment : BrowseSupportFragment() {
             rowsAdapter.add(
                 0,
                 ListRow(
-                    HeaderItem(rowsAdapter.size().toLong(), getString(R.string.row_films_trending)),
+                    HeaderItem(rowsAdapter.size().toLong(), getString(R.string.row_films)),
                     newAdapter,
                 ),
             )

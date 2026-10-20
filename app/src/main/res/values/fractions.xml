@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Titres de rangées plus lisibles à 10 pieds : alpha inactif 85% au lieu
+         des 50% par défaut de leanback (texte blanc et barre jaune atténués). -->
+    <item name="lb_browse_header_unselect_alpha" type="fraction">85%</item>
+</resources>

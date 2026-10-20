@@ -36,6 +36,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:paddingLeft="48dp"
             android:paddingRight="48dp"
             android:paddingTop="20dp"
@@ -85,6 +87,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:layout_marginTop="19dp">
 
                 <FrameLayout
@@ -120,7 +124,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
                     <!-- Badges : EN DIRECT, catégorie, HD, licence -->
                     <LinearLayout
@@ -163,14 +169,19 @@
                         android:textSize="13sp"
                         android:textColor="@color/missa_text_secondary" />
 
-                    <!-- Actions : principal + Ma liste + Signaler -->
+                    <!-- Actions : principal + Ma liste + Signaler.
+                         clipChildren=false : le zoom 1,05 au focus déborde de
+                         ~6px, sinon le coin arrondi et la bordure blanche du
+                         bouton principal sont rognés à gauche. -->
                     <LinearLayout
                         android:id="@+id/details_actions"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical" />
+                        android:gravity="center_vertical"
+                        android:clipChildren="false"
+                        android:clipToPadding="false" />
                 </LinearLayout>
             </LinearLayout>
 

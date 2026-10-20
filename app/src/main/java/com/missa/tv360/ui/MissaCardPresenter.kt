@@ -1,6 +1,7 @@
 package com.missa.tv360.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -25,6 +26,14 @@ class MissaCardPresenter : Presenter() {
             view.findViewById<TextView>(R.id.card_title)
                 .setTextColor(ContextCompat.getColor(view.context,
                     if (focused) R.color.missa_yellow else R.color.missa_text_secondary))
+            // Anneau de focus : fond posé/retiré explicitement (aucun selector
+            // d'état : leanback propage activated/selecté à toute la rangée).
+            val ring = view.findViewById<View>(R.id.card_focus_ring)
+            if (focused) {
+                ring.setBackgroundResource(R.drawable.bg_card_focus_ring)
+            } else {
+                ring.background = null
+            }
         }
         return ViewHolder(v)
     }
@@ -37,6 +46,12 @@ class MissaCardPresenter : Presenter() {
         val w = v.resources.getDimensionPixelSize(shape.widthRes)
         val h = v.resources.getDimensionPixelSize(shape.heightRes)
         image.layoutParams = image.layoutParams.apply { width = w; height = h }
+        // L'anneau prend les mêmes dimensions que le visuel : la chaîne de mesure
+        // des rangées résout mal match_parent (0x0 observé), comme pour les autres
+        // enfants de la carte dont la taille est fixée en code.
+        val ring = v.findViewById<View>(R.id.card_focus_ring)
+        ring.layoutParams = ring.layoutParams.apply { width = w; height = h }
+        ring.background = null // carte recyclée : pas d'anneau tant que non focalisée
         v.findViewById<TextView>(R.id.card_title).apply {
             text = video.title
             layoutParams = layoutParams.apply { width = w }

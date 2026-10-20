@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Anneau de focus : tracé au-dessus du visuel de la carte. Le fond est posé/
+     retiré explicitement par MissaCardPresenter au changement de focus (aucun
+     selector d'état : leanback propage activated/selecté à tout le bloc de
+     rangée, ce qui corromprait l'état de l'anneau). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+    <corners android:radius="@dimen/card_radius" />
+    <stroke
+        android:width="@dimen/focus_stroke"
+        android:color="@color/missa_yellow" />
+</shape>
