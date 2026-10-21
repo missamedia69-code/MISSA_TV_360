@@ -29,7 +29,9 @@
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.MissaTv"
+        tools:targetApi="33"
         tools:ignore="MissingApplicationIcon">
 
         <!-- FileProvider : installe les APK telecharges depuis le cache prive -->

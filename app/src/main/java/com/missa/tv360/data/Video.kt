@@ -59,6 +59,11 @@ data class Video(
     val format: String = "mp4", // mp4 | hls | mp3
     /** true si cette carte ouvre l'écran des jeux téléchargeables. */
     val isGamesLauncher: Boolean = false,
+    /**
+     * Carte « Tout voir » : identifiant de la rangée dont ce bouton ouvre la
+     * grille complète. Null pour un contenu normal.
+     */
+    val moreTargetRowId: String? = null,
     /** Vignette distante (catalogue du dépôt). Si présente, remplace cardRes. */
     val cardUrl: String? = null,
     /** Source brute à résoudre au clic (ex. recherche Internet Archive). */

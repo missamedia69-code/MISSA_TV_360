@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T22:16:20.037694+00:00",
+  "generated_at": "2026-10-20T09:00:00.000000+00:00",
   "rows": [
     {
       "id": "tv_direct",
@@ -27,7 +27,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "NASA",
+          "license": "Usage public"
         },
         {
           "id": "live-bipbop",
@@ -51,7 +53,61 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Apple",
+          "license": "Usage de démonstration"
+        },
+        {
+          "id": "live-nasa-iss",
+          "title": "ISS — Vue de la Terre",
+          "kind": "live_tv",
+          "description": "Caméra de la Station spatiale internationale en continu.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=ISS+Live",
+          "stream": {
+            "url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8",
+            "format": "hls",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "NASA",
+          "license": "Usage public"
+        },
+        {
+          "id": "live-mux-demo",
+          "title": "Chaîne de démonstration HLS",
+          "kind": "live_tv",
+          "description": "Flux HLS continu de référence (Mux).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Demo+HLS",
+          "stream": {
+            "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+            "format": "hls",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Mux",
+          "license": "Usage de démonstration"
         }
       ]
     },
@@ -60,11 +116,11 @@
       "title": "Sport Direct",
       "items": [
         {
-          "id": "sport-demo-1",
-          "title": "Sport · Emplacement 1",
+          "id": "sport-1",
+          "title": "Subaru — Sur route et terre",
           "kind": "sport",
-          "description": "Emplacement réservé pour vos droits sport en direct.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sport+·+Emplacement+1",
+          "description": "Essai tout-terrain : démonstration de conduite sportive.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Subaru+Sport",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "format": "mp4",
@@ -81,7 +137,87 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "sport-2",
+          "title": "Volkswagen GTI — Essai",
+          "kind": "sport",
+          "description": "Essai routier d'une berline sportive.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=GTI+Essai",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "sport-3",
+          "title": "Grand Prix — Tour de piste",
+          "kind": "sport",
+          "description": "Démonstration de pilotage sur circuit.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Grand+Prix",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "sport-4",
+          "title": "Moteurs — Plein régime",
+          "kind": "sport",
+          "description": "Séquence mécanique et sport automobile.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Moteurs",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
         }
       ]
     },
@@ -93,7 +229,7 @@
           "id": "film-phantom",
           "title": "The Phantom of the Opera (1929)",
           "kind": "movie",
-          "description": "This is the most commonly available version of The Phantom of the Opera. It is a re-edit of the 1925 version and originally had a synchronized sound score. It is a DVD rip from the milestone edition, with the man with lantern sequence edited in. It is the best available print of the film from the UCLA film and television archives. The soundtrack is Symphony No. 8 in B minor, best known as the \"Unfinished Symphony\". It is not the best soundtrack for the film, but I was unsure whether or not the 1929 soundtrack is in the public domain. Staring Lon Chaney, Mary Philbin and Norman Kerry. Directed ",
+          "description": "Film muet fantastique de Rupert Julian (1929), domaine public. Avec Lon Chaney.",
           "thumbnail_url": "https://archive.org/services/img/ThePhantomOfTheOpera1929",
           "stream": {
             "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
@@ -111,13 +247,15 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-scarlet",
           "title": "Scarlet Street",
           "kind": "movie",
-          "description": "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
+          "description": "Film noir de Fritz Lang (1945), restauré, domaine public.",
           "thumbnail_url": "https://archive.org/services/img/scarlet-street-1945-restored-movie-720p-hd",
           "stream": {
             "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
@@ -135,7 +273,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-gaslight",
@@ -159,7 +299,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-mrx",
@@ -183,7 +325,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-sanfran",
@@ -207,7 +351,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-hometown",
@@ -231,7 +377,139 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-nosferatu",
+          "title": "Nosferatu (1922)",
+          "kind": "movie",
+          "description": "Chef-d'œuvre expressionniste de F. W. Murnau (1922), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/nosferatu",
+          "stream": {
+            "url": "https://archive.org/download/nosferatu/nosferatu_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-night-of-living-dead",
+          "title": "Night of the Living Dead (1968)",
+          "kind": "movie",
+          "description": "Film fondateur de George A. Romero (1968), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/night_of_the_living_dead",
+          "stream": {
+            "url": "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-detour",
+          "title": "Detour (1945)",
+          "kind": "movie",
+          "description": "Road movie noir d'Edgar G. Ulmer (1945), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/Detour_1945",
+          "stream": {
+            "url": "https://archive.org/download/Detour_1945/Detour_1945_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-the-general",
+          "title": "The General (1926)",
+          "kind": "movie",
+          "description": "Comédie burlesque de Buster Keaton (1926), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/TheGeneral",
+          "stream": {
+            "url": "https://archive.org/download/TheGeneral/The_General_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-his-girl-friday",
+          "title": "His Girl Friday (1940)",
+          "kind": "movie",
+          "description": "Comédie de Howard Hawks (1940), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/his_girl_friday",
+          "stream": {
+            "url": "https://archive.org/download/his_girl_friday/his_girl_friday_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         }
       ]
     },
@@ -243,16 +521,16 @@
           "id": "ser-a-e1",
           "title": "Les Grandes Escapades — É1",
           "kind": "series",
-          "description": "Épisode 1.",
+          "description": "Épisode 1 — les grandes vacances prennent un tour inattendu.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             "format": "mp4",
             "live": false
           },
-          "series_title": null,
-          "season_number": null,
-          "episode_number": null,
+          "series_title": "Les Grandes Escapades",
+          "season_number": 1,
+          "episode_number": 1,
           "duration_sec": null,
           "audio_only": false,
           "download_url": null,
@@ -261,22 +539,24 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
         },
         {
           "id": "ser-a-e2",
           "title": "Les Grandes Escapades — É2",
           "kind": "series",
-          "description": "Épisode 2.",
+          "description": "Épisode 2 — direction la montagne.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É2",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
             "format": "mp4",
             "live": false
           },
-          "series_title": null,
-          "season_number": null,
-          "episode_number": null,
+          "series_title": "Les Grandes Escapades",
+          "season_number": 1,
+          "episode_number": 2,
           "duration_sec": null,
           "audio_only": false,
           "download_url": null,
@@ -285,7 +565,165 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-a-e3",
+          "title": "Les Grandes Escapades — É3",
+          "kind": "series",
+          "description": "Épisode 3 — le grand jeu.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É3",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Les Grandes Escapades",
+          "season_number": 1,
+          "episode_number": 3,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-a-e4",
+          "title": "Les Grandes Escapades — É4",
+          "kind": "series",
+          "description": "Épisode 4 — l'orage.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É4",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Les Grandes Escapades",
+          "season_number": 1,
+          "episode_number": 4,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-a-e5",
+          "title": "Les Grandes Escapades — É5",
+          "kind": "series",
+          "description": "Épisode 5 — le retour.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É5",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Les Grandes Escapades",
+          "season_number": 1,
+          "episode_number": 5,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-b-e1",
+          "title": "Mission Boréale — É1",
+          "kind": "series",
+          "description": "Épisode 1 — au-delà du cercle polaire.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Mission+Boréale+—+É1",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Mission Boréale",
+          "season_number": 1,
+          "episode_number": 1,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-b-e2",
+          "title": "Mission Boréale — É2",
+          "kind": "series",
+          "description": "Épisode 2 — la tempête.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Mission+Boréale+—+É2",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Mission Boréale",
+          "season_number": 1,
+          "episode_number": 2,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "ser-b-e3",
+          "title": "Mission Boréale — É3",
+          "kind": "series",
+          "description": "Épisode 3 — l'aurore.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Mission+Boréale+—+É3",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": "Mission Boréale",
+          "season_number": 1,
+          "episode_number": 3,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
         }
       ]
     },
@@ -297,7 +735,7 @@
           "id": "short-bbb",
           "title": "Big Buck Bunny",
           "kind": "short",
-          "description": "Court métrage Blender (2008), CC BY.",
+          "description": "Court métrage d'animation de la Blender Foundation (2008), CC BY.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
@@ -315,13 +753,41 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "short-ed",
+          "title": "Elephants Dream",
+          "kind": "short",
+          "description": "Premier film entièrement libre de la Blender Foundation (2006), CC BY.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Elephants+Dream",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
         },
         {
           "id": "short-sintel",
           "title": "Sintel",
           "kind": "short",
-          "description": "Court métrage Blender (2010), CC BY.",
+          "description": "Court métrage de la Blender Institute (2010), CC BY.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
@@ -339,7 +805,275 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "short-tos",
+          "title": "Tears of Steel",
+          "kind": "short",
+          "description": "Court métrage sci-fi de la Blender Foundation (2012), CC BY.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Tears+of+Steel",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "short-for-bigger-blazes",
+          "title": "For Bigger Blazes",
+          "kind": "short",
+          "description": "Clip court de démonstration (Google).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Bigger+Blazes",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "short-for-bigger-escapes",
+          "title": "For Bigger Escapes",
+          "kind": "short",
+          "description": "Clip court de démonstration (Google).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Bigger+Escapes",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "short-for-bigger-joyrides",
+          "title": "For Bigger Joyrides",
+          "kind": "short",
+          "description": "Clip court de démonstration (Google).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Bigger+Joyrides",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "short-for-bigger-meltdowns",
+          "title": "For Bigger Meltdowns",
+          "kind": "short",
+          "description": "Clip court de démonstration (Google).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Bigger+Meltdowns",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        }
+      ]
+    },
+    {
+      "id": "musique",
+      "title": "Musique",
+      "items": [
+        {
+          "id": "music-clip-1",
+          "title": "Clip — Plein cadre",
+          "kind": "music",
+          "description": "Clip musical de démonstration.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Clip+1",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "music-clip-2",
+          "title": "Clip — Nuit électrique",
+          "kind": "music",
+          "description": "Clip musical de démonstration.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Clip+2",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "music-clip-3",
+          "title": "Clip — Route infinie",
+          "kind": "music",
+          "description": "Clip musical de démonstration.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Clip+3",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "music-radio-poptron",
+          "title": "PopTron — Webradio",
+          "kind": "music",
+          "description": "Webradio indie pop / electro — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=PopTron",
+          "stream": {
+            "url": "https://ice1.somafm.com/poptron-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "music-radio-boot",
+          "title": "Boot Liquor — Webradio",
+          "kind": "music",
+          "description": "Webradio americana / country — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Boot+Liquor",
+          "stream": {
+            "url": "https://ice1.somafm.com/bootliquor-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
         }
       ]
     },
@@ -351,7 +1085,7 @@
           "id": "radio-groove",
           "title": "Groove Salad",
           "kind": "radio",
-          "description": "Webradio ambient — SomaFM.",
+          "description": "Webradio ambient / downtempo — SomaFM.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Groove+Salad",
           "stream": {
             "url": "https://ice1.somafm.com/groovesalad-128-mp3",
@@ -369,13 +1103,15 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
         },
         {
           "id": "radio-lush",
           "title": "Lush",
           "kind": "radio",
-          "description": "Webradio voix féminines — SomaFM.",
+          "description": "Webradio voix féminines / electronica — SomaFM.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Lush",
           "stream": {
             "url": "https://ice1.somafm.com/lush-128-mp3",
@@ -393,7 +1129,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
         },
         {
           "id": "radio-drone",
@@ -417,7 +1155,87 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "radio-secret-agent",
+          "title": "Secret Agent",
+          "kind": "radio",
+          "description": "Webradio cinématographique / espionnage — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Secret+Agent",
+          "stream": {
+            "url": "https://ice1.somafm.com/secretagent-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "radio-indie-pop",
+          "title": "Indie Pop Rocks",
+          "kind": "radio",
+          "description": "Webradio indie pop — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Indie+Pop",
+          "stream": {
+            "url": "https://ice1.somafm.com/indiepop-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "radio-metal",
+          "title": "Metal Detector",
+          "kind": "radio",
+          "description": "Webradio metal / heavy — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Metal+Detector",
+          "stream": {
+            "url": "https://ice1.somafm.com/metal-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
         }
       ]
     },
@@ -426,11 +1244,11 @@
       "title": "Podcasts",
       "items": [
         {
-          "id": "pod-demo-1",
-          "title": "Podcast · Emplacement 1",
+          "id": "pod-space-station",
+          "title": "Space Station — Ambient",
           "kind": "podcast",
-          "description": "Emplacement réservé podcasts.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Podcast+·+Emplacement+1",
+          "description": "Longue session ambient, idéale en podcast d'ambiance — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Space+Station",
           "stream": {
             "url": "https://ice1.somafm.com/spacestation-128-mp3",
             "format": "mp3",
@@ -447,37 +1265,87 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
-        }
-      ]
-    },
-    {
-      "id": "musique",
-      "title": "Musique",
-      "items": [
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
         {
-          "id": "music-demo-1",
-          "title": "Musique · Emplacement 1",
-          "kind": "music",
-          "description": "Emplacement réservé musique.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Musique+·+Emplacement+1",
+          "id": "pod-defcon",
+          "title": "DEF CON Radio",
+          "kind": "podcast",
+          "description": "Sélection électronique — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=DEF+CON+Radio",
           "stream": {
-            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
-            "format": "mp4",
-            "live": false
+            "url": "https://ice1.somafm.com/defcon-128-mp3",
+            "format": "mp3",
+            "live": true
           },
           "series_title": null,
           "season_number": null,
           "episode_number": null,
           "duration_sec": null,
-          "audio_only": false,
+          "audio_only": true,
           "download_url": null,
           "size_bytes": null,
           "sha256": null,
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "pod-fluid",
+          "title": "Fluid — Instrumental Hip-Hop",
+          "kind": "podcast",
+          "description": "Instrumental hip-hop — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Fluid",
+          "stream": {
+            "url": "https://ice1.somafm.com/fluid-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
+        },
+        {
+          "id": "pod-groove-salad",
+          "title": "Groove Salad Classic",
+          "kind": "podcast",
+          "description": "Downtempo classique — SomaFM.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Groove+Classic",
+          "stream": {
+            "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+            "format": "mp3",
+            "live": true
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": true,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "SomaFM",
+          "license": "Écoute libre"
         }
       ]
     },
@@ -489,7 +1357,7 @@
           "id": "kids-bbb",
           "title": "Big Buck Bunny",
           "kind": "kids",
-          "description": "Animation douce, Blender CC BY.",
+          "description": "Le lapin géant et ses petits amis — animation douce, Blender CC BY.",
           "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
@@ -507,7 +1375,113 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "kids-ed",
+          "title": "Elephants Dream",
+          "kind": "kids",
+          "description": "Aventure onirique en machine — Blender CC BY.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Elephants+Dream",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "kids-sintel",
+          "title": "Sintel",
+          "kind": "kids",
+          "description": "Conte animé de la Blender Institute — CC BY.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
+        },
+        {
+          "id": "kids-fun",
+          "title": "For Bigger Fun",
+          "kind": "kids",
+          "description": "Clip court ludique — démonstration Google.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=For+Bigger+Fun",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Google",
+          "license": "Creative Commons"
+        },
+        {
+          "id": "kids-tos",
+          "title": "Tears of Steel",
+          "kind": "kids",
+          "description": "Court métrage sci-fi (ados et plus) — Blender CC BY.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Tears+of+Steel",
+          "stream": {
+            "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Blender Foundation",
+          "license": "CC BY"
         }
       ]
     },

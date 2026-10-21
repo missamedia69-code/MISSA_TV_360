@@ -37,9 +37,11 @@
     <color name="missa_error">#FF5C69</color>
     <color name="player_title_bg">#B307111F</color>
 
-    <!-- Contours / transparences (fiches, badges) -->
-    <color name="chip_stroke">#59FFFFFF</color>
+    <!-- Contours / transparences (fiches, badges) -->    <color name="chip_stroke">#59FFFFFF</color>
     <color name="btn_secondary_bg">#1AFFFFFF</color>
     <color name="btn_secondary_bg_focused">#33FFFFFF</color>
     <color name="btn_secondary_stroke">#59FFFFFF</color>
+
+    <!-- Carte « Tout voir » (fin de rangée → grille complète) -->
+    <color name="card_more_bg">#122338</color>
 </resources>

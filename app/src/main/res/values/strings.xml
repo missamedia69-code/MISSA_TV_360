@@ -17,6 +17,10 @@
     <string name="row_podcast">Podcasts</string>
     <string name="row_kids">Jeunesse</string>
     <string name="row_games">Jeux vidéo</string>
+    <!-- Carte « Tout voir » en fin de rangée + grille complète de la catégorie -->
+    <string name="row_more">Tout voir</string>
+    <string name="row_more_description">Tout voir : %1$s</string>
+    <string name="grid_count">%1$d contenus</string>
 
     <!-- Détails -->
     <string name="action_play">Lire</string>

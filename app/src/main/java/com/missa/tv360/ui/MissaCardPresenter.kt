@@ -1,28 +1,41 @@
 package com.missa.tv360.ui
 
+import android.content.res.Resources
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.leanback.widget.Presenter
+import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.WatchProgressStore
 
-class MissaCardPresenter : Presenter() {
+/**
+ * Présentateur des cartes de contenu régularisé par type de contenu.
+ *
+ * @param fixedWidthRes      largeur imposée (0 = taille dynamique selon le type)
+ * @param fixedHeightRes     hauteur imposée (0 = taille dynamique selon le type)
+ * @param useGridDimensions  true pour appliquer les tailles régularisées de grille matrice
+ */
+class MissaCardPresenter(
+    private val fixedWidthRes: Int = 0,
+    private val fixedHeightRes: Int = 0,
+    private val useGridDimensions: Boolean = false,
+) : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
+        // Une seule fois par rangée : désactivation de l'animator par défaut de RecyclerView
+        (parent as? RecyclerView)?.itemAnimator = null
         val v = LayoutInflater.from(parent.context).inflate(R.layout.card_missa, parent, false)
         v.isFocusable = true
         v.isFocusableInTouchMode = true
         v.setOnFocusChangeListener { view, focused ->
-            // Zoom « actif » (cahier des charges §5) : 1,05 sur 160 ms, sans
-            // élévation (une vue élevée sans fond a un outline plein rectangle
-            // qui projetait une ombre noire derrière le titre jaune).
             view.animate().cancel()
             view.animate()
                 .scaleX(if (focused) 1.05f else 1f)
@@ -32,8 +45,6 @@ class MissaCardPresenter : Presenter() {
             view.findViewById<TextView>(R.id.card_title)
                 .setTextColor(ContextCompat.getColor(view.context,
                     if (focused) R.color.missa_yellow_focus else R.color.missa_text_secondary))
-            // Anneau de focus : fond posé/retiré explicitement (aucun selector
-            // d'état : leanback propage activated/selecté à toute la rangée).
             val ring = view.findViewById<View>(R.id.card_focus_ring)
             if (focused) {
                 ring.setBackgroundResource(R.drawable.bg_card_focus_ring)
@@ -47,22 +58,37 @@ class MissaCardPresenter : Presenter() {
     override fun onBindViewHolder(vh: ViewHolder, item: Any?) {
         val video = item as? Video ?: return
         val v = vh.view
+        val linearLayout = v as? LinearLayout ?: return
+        val params = linearLayout.layoutParams as? LinearLayout.LayoutParams ?: return
+        params.setMargins(
+            dpToPx(16),
+            0,
+            dpToPx(16),
+            0
+        )
+        linearLayout.layoutParams = params
+
         val shape = CardShape.forKind(video.kind)
         val image = v.findViewById<ImageView>(R.id.card_image)
-        val w = v.resources.getDimensionPixelSize(shape.widthRes)
-        val h = v.resources.getDimensionPixelSize(shape.heightRes)
+
+        val defaultWRes = if (useGridDimensions) shape.gridWidthRes else shape.widthRes
+        val defaultHRes = if (useGridDimensions) shape.gridHeightRes else shape.heightRes
+
+        val w = v.resources.getDimensionPixelSize(
+            fixedWidthRes.takeIf { it != 0 } ?: defaultWRes)
+        val h = v.resources.getDimensionPixelSize(
+            fixedHeightRes.takeIf { it != 0 } ?: defaultHRes)
+
         image.layoutParams = image.layoutParams.apply { width = w; height = h }
-        // L'anneau prend les mêmes dimensions que le visuel : la chaîne de mesure
-        // des rangées résout mal match_parent (0x0 observé), comme pour les autres
-        // enfants de la carte dont la taille est fixée en code.
+
         val ring = v.findViewById<View>(R.id.card_focus_ring)
         ring.layoutParams = ring.layoutParams.apply { width = w; height = h }
-        ring.background = null // carte recyclée : pas d'anneau tant que non focalisée
+        ring.background = null
+
         v.findViewById<TextView>(R.id.card_title).apply {
             text = video.title
-            // Carte recyclée : le titre repasse en couleur de repos, même si elle
-            // a été défocus-débindée dans un état « focalisé » (§5 recyclage).
             setTextColor(ContextCompat.getColor(context, R.color.missa_text_secondary))
+            isVisible = video.moreTargetRowId == null || video.title.isNotBlank()
             layoutParams = layoutParams.apply { width = w }
         }
         v.findViewById<TextView>(R.id.badge_live).isVisible = video.kind.isLive
@@ -71,15 +97,45 @@ class MissaCardPresenter : Presenter() {
         progress.isVisible = frac != null
         progress.progress = ((frac ?: 0f) * 100).toInt()
         progress.layoutParams = progress.layoutParams.apply { width = w }
-        // Vignette : cardUrl via le chargeur existant, repli sur fond par défaut.
-        if (!video.cardUrl.isNullOrBlank()) {
-            ThumbnailLoader.loadArtwork(video.cardUrl) { bmp -> image.setImageBitmap(bmp) }
+
+        v.tag = video.id
+        val overlayTitle = v.findViewById<TextView>(R.id.card_overlay_title)
+        val scrim = v.findViewById<View>(R.id.card_scrim)
+
+        if (video.moreTargetRowId != null) {
+            image.setImageResource(R.drawable.card_more)
+            image.contentDescription =
+                v.context.getString(R.string.row_more_description, video.title)
+            v.contentDescription = v.context.getString(R.string.row_more_description, video.title)
+            overlayTitle?.isVisible = false
+            scrim?.isVisible = false
+            return
+        }
+        v.contentDescription = video.title
+        overlayTitle?.text = video.title
+        overlayTitle?.isVisible = video.title.isNotBlank()
+        scrim?.isVisible = video.title.isNotBlank()
+
+        // Affichage immédiat de l'illustration locale ou du fond par défaut
+        if (video.cardRes != 0) {
+            image.setImageResource(video.cardRes)
         } else {
-            image.setImageDrawable(ContextCompat.getDrawable(v.context, R.drawable.fallback_card))
+            image.setImageDrawable(ContextCompat.getDrawable(v.context, fondParDefaut(video.kind.name)))
+        }
+
+        // Chargement asynchrone de la vignette distante (si présente)
+        if (!video.cardUrl.isNullOrBlank()) {
+            ThumbnailLoader.loadArtwork(video.cardUrl) { bmp ->
+                if (v.tag == video.id) image.setImageBitmap(bmp)
+            }
         }
     }
 
     override fun onUnbindViewHolder(vh: ViewHolder) {
+        vh.view.tag = null
         vh.view.findViewById<ImageView>(R.id.card_image).setImageDrawable(null)
     }
+
+    private fun dpToPx(dp: Int): Int =
+        (dp * Resources.getSystem().displayMetrics.density).toInt()
 }

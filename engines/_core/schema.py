@@ -84,6 +84,10 @@ class Item:
     version_name: Optional[str] = None
     version_code: Optional[int] = None
     genre: Optional[str] = None
+    # Provenance affichée sur la fiche détails de l'app (« Internet Archive »…).
+    source: Optional[str] = None
+    # Licence affichée sur la fiche détails (« Domaine public », « CC BY »…).
+    license: Optional[str] = None
 
 
 @dataclass

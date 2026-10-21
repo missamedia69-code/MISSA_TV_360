@@ -25,3 +25,10 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Screenshots temporaires et dumps UI
+*.png
+!app/src/main/**/*.png
+win_*.xml
+window*.xml
+tools/

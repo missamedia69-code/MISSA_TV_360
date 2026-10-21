@@ -3,26 +3,44 @@
     <dimen name="screen_margin">48dp</dimen>
     <dimen name="topbar_height">40dp</dimen>
 
-    <!-- Familles de cartes (valeurs du cahier des charges, ajustées en place) -->
-    <dimen name="card16_w">260dp</dimen><dimen name="card16_h">146dp</dimen>
-    <dimen name="poster_w">118dp</dimen><dimen name="poster_h">177dp</dimen>
-    <dimen name="square">142dp</dimen>
+    <!-- Familles de cartes régularisées selon le type de contenu (cahier des charges) -->
+    <!-- 16:9 Paysage (TV Direct, Sport, Films courts, Jeunesse) -->
+    <dimen name="card16_w">260dp</dimen>
+    <dimen name="card16_h">146dp</dimen>
+
+    <!-- 2:3 Affiche verticale (Films, Séries) -->
+    <dimen name="poster_w">130dp</dimen>
+    <dimen name="poster_h">195dp</dimen>
+
+    <!-- 1:1 Carré (Radio, Podcasts, Musique, Jeux vidéo) : hauteur 146dp alignée sur le 16:9 -->
+    <dimen name="square">146dp</dimen>
+
     <dimen name="card_gap">16dp</dimen>
     <dimen name="card_radius">10dp</dimen>
     <dimen name="focus_stroke">3dp</dimen>
     <dimen name="progress_h">3dp</dimen>
 
-    <!-- Espacements normalisés (cahier des charges §12) -->
+    <!-- Espacements normalisés (§12) -->
     <dimen name="missa_space_xs">4dp</dimen>
     <dimen name="missa_space_sm">8dp</dimen>
     <dimen name="missa_space_md">16dp</dimen>
     <dimen name="missa_space_lg">24dp</dimen>
     <dimen name="missa_space_xl">32dp</dimen>
 
-    <!-- Rayons de coin cohérents (secondaire / cartes larges / panneaux) -->
+    <!-- Rayons de coin cohérents -->
     <dimen name="missa_radius_sm">8dp</dimen>
     <dimen name="missa_radius_md">14dp</dimen>
     <dimen name="missa_radius_lg">20dp</dimen>
+
+    <!-- Grille « matrice » : dimensions régularisées par type de contenu -->
+    <dimen name="grid_landscape_w">180dp</dimen>
+    <dimen name="grid_landscape_h">101dp</dimen>
+    <dimen name="grid_poster_w">120dp</dimen>
+    <dimen name="grid_poster_h">180dp</dimen>
+    <dimen name="grid_square_w">140dp</dimen>
+    <dimen name="grid_square_h">140dp</dimen>
+    <dimen name="grid_card_w">148dp</dimen>
+    <dimen name="grid_card_h">83dp</dimen>
 
     <!-- Fiche détail (valeurs maquette 1280×720, dp = px × 0,75) -->
     <dimen name="details_art_w">264dp</dimen>

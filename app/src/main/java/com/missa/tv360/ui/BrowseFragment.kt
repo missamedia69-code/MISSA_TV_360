@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -27,6 +28,7 @@ import androidx.leanback.widget.RowPresenter
 import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogRepository
+import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.WatchProgressStore
 import com.missa.tv360.data.VideoRow
@@ -58,10 +60,19 @@ class BrowseFragment : BrowseSupportFragment() {
     private var engineConfig: FilmEngineConfig? = null
     private var headerIconObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
 
+    override fun onInflateTitleView(
+        inflater: LayoutInflater,
+        parent: ViewGroup,
+        savedInstanceState: Bundle?
+    ): View {
+        return inflater.inflate(R.layout.lb_browse_title, parent, false)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         title = getString(R.string.app_name)
+        badgeDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_app_logo)
         headersState = HEADERS_ENABLED
         isHeadersTransitionOnBackEnabled = true
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
@@ -73,12 +84,16 @@ class BrowseFragment : BrowseSupportFragment() {
                                                                 _: RowPresenter.ViewHolder, _: Row ->
             if (item is Video) {
                 when {
+                    item.moreTargetRowId != null -> openCategoryGrid(item.moreTargetRowId, item.description)
                     item.sourceId != null -> resolveAndOpen(item)
                     item.isGamesLauncher -> openGames()
                     else -> openDetails(item)
                 }
             }
         }
+
+        // Clic sur le TITRE d'une rangée : ouvre la même grille complète.
+        setOnItemViewSelectedListener(null)
 
         onItemViewSelectedListener = object : androidx.leanback.widget.OnItemViewSelectedListener {
             override fun onItemSelected(
@@ -97,8 +112,7 @@ class BrowseFragment : BrowseSupportFragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val appContext = requireContext().applicationContext
             // Affichage immédiat du catalogue embarqué pour ne jamais bloquer l'UI.
-            bindCatalog(CatalogRepository.localCatalog())
-            addResumeRow(CatalogRepository.localCatalog())
+            bindCatalog(CatalogRepository.localCatalog(), first = true)
             requireActivity().findViewById<View>(R.id.catalog_loading)?.visibility = View.GONE
             engineConfig = bundledFilmEngineConfig()
 
@@ -114,8 +128,10 @@ class BrowseFragment : BrowseSupportFragment() {
                 }
                 val remoteCatalog = catalogTask.await()
                 if (!remoteCatalog.isNullOrEmpty()) {
-                    bindCatalog(remoteCatalog)
-                    addResumeRow(remoteCatalog)
+                    // Mise à jour EN PLACE : remplacer l'adaptateur des rangées
+                    // faisait revenir le défilement au début si l'utilisateur
+                    // naviguait pendant le chargement du catalogue distant.
+                    bindCatalog(remoteCatalog, first = false)
                 }
                 val remoteConfig = engineTask.await()
                 if (remoteConfig != null) {
@@ -213,66 +229,122 @@ class BrowseFragment : BrowseSupportFragment() {
         ).firstOrNull { it.first.equals(text, ignoreCase = true) }?.second ?: 0
     }
 
-    private fun addResumeRow(catalog: List<VideoRow>) {
+    private fun addResumeRow(catalog: List<VideoRow>, first: Boolean) {
         val recentIds = WatchProgressStore.recent(requireContext())
         if (recentIds.isEmpty()) return
         val videosById = catalog.flatMap { it.videos }.associateBy { it.id }
         val resumeVideos = recentIds.mapNotNull { videosById[it] }
-        if (resumeVideos.isEmpty()) return
         // Évite les doublons : retire une éventuelle ligne « Reprendre » existante.
-        val existing = (0 until rowsAdapter.size()).mapNotNull { rowsAdapter.get(it) as? ListRow }
-            .firstOrNull { it.headerItem?.name == getString(R.string.row_resume) }
-        existing?.let { rowsAdapter.remove(it) }
+        existingRow(getString(R.string.row_resume))?.let { rowsAdapter.remove(it) }
+        if (resumeVideos.isEmpty()) return
         val adapter = ArrayObjectAdapter(MissaCardPresenter()).apply { resumeVideos.forEach { add(it) } }
-        rowsAdapter.add(0, ListRow(HeaderItem(999L, getString(R.string.row_resume)), adapter))
+        val row = ListRow(HeaderItem(999L, getString(R.string.row_resume)), adapter)
+        // Enrichissement : la ligne revient à sa place (tête de liste) sans
+        // toucher aux autres rangées — l'utilisateur peut avoir navigué.
+        if (first) rowsAdapter.add(0, row) else rowsAdapter.add(0, row)
     }
 
-    private fun bindCatalog(catalog: List<VideoRow>) {
-        rowsAdapter.clear()
-        filmListAdapter = null
+    /** Rangée affichée portant ce libellé d'en-tête (null si absente). */
+    private fun existingRow(header: String): ListRow? =
+        (0 until rowsAdapter.size()).mapNotNull { rowsAdapter.get(it) as? ListRow }
+            .firstOrNull { it.headerItem?.name == header }
+
+    /**
+     * Affiche le catalogue.
+     *
+     * @param first premier affichage (catalogue embarqué) : les rangées sont
+     *              créées, la transition d'en-têtes est lancée et la ligne
+     *              « Reprendre » est posée. Sur un affichage ultérieur
+     *              (catalogue distant), les contenus sont remplacés EN PLACE :
+     *              reconstruire l'adaptateur remettait le défilement au début.
+     */
+    private fun bindCatalog(catalog: List<VideoRow>, first: Boolean) {
         val cardPresenter = MissaCardPresenter()
+        val displayRows = mutableListOf<CatalogStore.DisplayRow>()
+
         catalog.forEachIndexed { index, row ->
-            val listAdapter = ArrayObjectAdapter(cardPresenter)
-            row.videos.filter { !it.title.contains("Emplacement", ignoreCase = true) }
-                .forEach { listAdapter.add(it) }
+            val videos = row.videos.filter { !it.title.contains("Emplacement", ignoreCase = true) }
             // Pas de zone vide : une rangée dont tous les contenus sont des
             // placeholders (« Emplacement ») n'est pas ajoutée.
-            if (listAdapter.size() == 0) return@forEachIndexed
-            val isFilms = row.rowId == "films" || row.headerRes == R.string.row_films ||
-                row.headerTitle.equals("Films", ignoreCase = true)
+            if (videos.isEmpty()) return@forEachIndexed
+
             val header = row.headerTitle
                 ?: if (row.headerRes != 0) getString(row.headerRes) else ""
-            if (isFilms) filmListAdapter = listAdapter
-            rowsAdapter.add(ListRow(HeaderItem(index.toLong(), header), listAdapter))
+            // Identifiant stable : celui du dépôt, sinon l'index de la rangée.
+            val rowKey = row.rowId ?: "row-$index"
+            // La rangée « Jeux vidéo » n'a qu'une carte lanceur : pas de grille.
+            val isGames = row.rowId == "jeux" || row.rowId == "games" ||
+                row.headerRes == R.string.row_games ||
+                header.equals(getString(R.string.row_games), ignoreCase = true)
+            val key = if (row.rowId != null) row.rowId else rowKey
+            displayRows += CatalogStore.DisplayRow(key, header, videos)
+
+            val existing = existingRow(header)
+            if (existing == null) {
+                val listAdapter = ArrayObjectAdapter(cardPresenter)
+                videos.forEach { listAdapter.add(it) }
+                if (!isGames) listAdapter.add(moreCard(key, header))
+                rowsAdapter.add(ListRow(HeaderItem(index.toLong(), header), listAdapter))
+            } else {
+                // Même rangée : on ne remplace que les contenus.
+                @Suppress("UNCHECKED_CAST")
+                val listAdapter = existing.adapter as ArrayObjectAdapter
+                listAdapter.clear()
+                videos.forEach { listAdapter.add(it) }
+                if (!isGames) listAdapter.add(moreCard(key, header))
+            }
         }
+
+        CatalogStore.set(displayRows)
+
         val heroVideos = catalog.flatMap { it.videos }
             .filter { !it.title.contains("Emplacement", ignoreCase = true) }
             .take(6)
-        if (heroVideos.isNotEmpty()) {
+        if (heroVideos.isNotEmpty() && existingRow(getString(R.string.row_hero)) == null) {
             val heroAdapter = ArrayObjectAdapter(MissaCardPresenter()).apply { heroVideos.forEach { add(it) } }
             rowsAdapter.add(0, ListRow(HeaderItem(1000L, getString(R.string.row_hero)), heroAdapter))
         }
-        startHeadersTransition(true)
+
+        if (first) addResumeRow(catalog, first = true)
+        if (first) startHeadersTransition(true)
+    }
+
+    /** Carte de fin de rangée ouvrant la grille complète de la catégorie. */
+    private fun moreCard(rowId: String, header: String): Video = Video(
+        id = "more-$rowId",
+        title = getString(R.string.row_more),
+        description = header,
+        cardRes = R.drawable.card_more,
+        streamUrl = "",
+        kind = com.missa.tv360.data.ContentKind.MOVIE,
+        moreTargetRowId = rowId,
+    )
+
+    /** Ouvre la grille « matrice » de la rangée (tuiles réduites, tous contenus). */
+    private fun openCategoryGrid(rowId: String?, header: String) {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.main_browse_container, CategoryGridFragment.newInstance(rowId, header))
+            .addToBackStack("category-grid")
+            .commit()
     }
 
     private fun updateFilmRow(videos: List<Video>) {
-        val existingAdapter = filmListAdapter
+        val header = getString(R.string.row_films)
+        @Suppress("UNCHECKED_CAST")
+        val existingAdapter = existingRow(header)?.adapter as? ArrayObjectAdapter
         if (existingAdapter == null) {
             val newAdapter = ArrayObjectAdapter(MissaCardPresenter()).apply {
                 videos.forEach { add(it) }
+                add(moreCard("films", header))
             }
-            rowsAdapter.add(
-                0,
-                ListRow(
-                    HeaderItem(rowsAdapter.size().toLong(), getString(R.string.row_films)),
-                    newAdapter,
-                ),
-            )
+            rowsAdapter.add(0, ListRow(HeaderItem(rowsAdapter.size().toLong(), header), newAdapter))
             filmListAdapter = newAdapter
             return
         }
+        filmListAdapter = existingAdapter
         existingAdapter.clear()
         videos.forEach { existingAdapter.add(it) }
+        existingAdapter.add(moreCard("films", header))
     }
 
     /** Le composant Leanback natif fournit le clavier TV et l'entrée vocale. */
