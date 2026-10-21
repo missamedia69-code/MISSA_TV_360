@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-10-19T22:16:20.023322+00:00",
+  "generated_at": "2026-10-21T21:09:05.311837+00:00",
   "rows": [
     {
       "id": "radio",
       "title": "Radio",
       "items": [
         {
-          "id": "radio-groove",
-          "title": "Groove Salad",
+          "id": "radio-fip",
+          "title": "FIP Radio",
           "kind": "radio",
-          "description": "Webradio ambient — SomaFM.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Groove+Salad",
+          "description": "Webradio musicale et éclectique publique.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=FIP+Radio",
           "stream": {
-            "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+            "url": "https://icecast.radiofrance.fr/fip-midfi.mp3",
             "format": "mp3",
             "live": true
           },
@@ -27,16 +27,18 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         },
         {
-          "id": "radio-lush",
-          "title": "Lush",
+          "id": "radio-couleur3",
+          "title": "RTS Couleur 3",
           "kind": "radio",
-          "description": "Webradio voix féminines — SomaFM.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Lush",
+          "description": "Webradio suisse musique et culture.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=RTS+Couleur+3",
           "stream": {
-            "url": "https://ice1.somafm.com/lush-128-mp3",
+            "url": "https://stream.srg-ssr.ch/m/couleur3/mp3_128",
             "format": "mp3",
             "live": true
           },
@@ -51,16 +53,18 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         },
         {
-          "id": "radio-drone",
-          "title": "Drone Zone",
+          "id": "radio-kexp",
+          "title": "KEXP 90.3 FM",
           "kind": "radio",
-          "description": "Webradio ambient spatial — SomaFM.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Drone+Zone",
+          "description": "Radio indépendante musicale de Seattle.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=KEXP+90.3+FM",
           "stream": {
-            "url": "https://ice1.somafm.com/dronezone-128-mp3",
+            "url": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
             "format": "mp3",
             "live": true
           },
@@ -75,7 +79,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         }
       ]
     }

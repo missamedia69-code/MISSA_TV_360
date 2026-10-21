@@ -13,8 +13,8 @@ La CI GitHub Actions exécute tous les moteurs puis déploie site/ via GitHub Pa
 L'application Android lit ensuite https://<compte>.github.io/<depot>/data/<cat>.json.
 
 Ce module fournit :
-  - les dataclasses du schéma (Row / Item / Stream / Game),
-  - la validation (checksums, kinds connus, URLs),
+  - les dataclasses du schéma (Row / Item / Stream),
+  - la validation stricte (checksums, kinds connus, URLs, unicité des identifiants),
   - l'écriture atomique des JSON publiés,
   - un point d'entrée commun `run_engine`.
 """
@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import re
 import hashlib
 import datetime as _dt
 from dataclasses import dataclass, field, asdict
@@ -43,6 +44,12 @@ CANONICAL_ROW_ORDER = [
     "tv_direct", "sport", "films", "series", "films_courts",
     "radio", "podcasts", "musique", "jeunesse", "jeux",
 ]
+
+# Modèles attendus pour les fichiers de catégories canoniques.
+CANONICAL_FILES = [f"{row_id}.json" for row_id in CANONICAL_ROW_ORDER]
+
+URL_PATTERN = re.compile(r"^https?://[^\s/$.?#].[^\s]*$", re.IGNORECASE)
+SHA256_PATTERN = re.compile(r"^[a-fA-F0-9]{64}$")
 
 
 def canonical_index(row_id: str) -> int:
@@ -102,21 +109,43 @@ class Row:
 def validate_row(row: Row) -> list[str]:
     """Retourne la liste des erreurs d'un row (vide si valide)."""
     errs: list[str] = []
-    if not row.id:
+    if not row.id or not row.id.strip():
         errs.append("row.id vide")
+    if not row.title or not row.title.strip():
+        errs.append(f"[{row.id}] row.title vide")
+
+    seen_ids: set[str] = set()
     for it in row.items:
-        if not it.id:
+        if not it.id or not it.id.strip():
             errs.append(f"[{row.title}] item sans id")
+        elif it.id in seen_ids:
+            errs.append(f"[{row.title}] identifiant d'item en doublon : {it.id!r}")
+        else:
+            seen_ids.add(it.id)
+
+        if not it.title or not it.title.strip():
+            errs.append(f"[{row.title}/{it.id}] titre vide")
+
         if it.kind not in KNOWN_KINDS:
             errs.append(f"[{row.title}/{it.id}] kind inconnu : {it.kind!r}")
+
         if it.kind == "game":
             if not it.download_url:
                 errs.append(f"[{row.title}/{it.id}] jeu sans download_url")
+            elif not URL_PATTERN.match(it.download_url):
+                errs.append(f"[{row.title}/{it.id}] URL de téléchargement invalide : {it.download_url!r}")
+
+            if (it.package_type or "apk").lower() == "apk":
+                if not it.sha256 or not SHA256_PATTERN.match(it.sha256):
+                    errs.append(f"[{row.title}/{it.id}] SHA-256 hex 64 caractères obligatoire pour les APK")
         else:
             if not it.stream or not it.stream.url:
                 errs.append(f"[{row.title}/{it.id}] item sans stream.url")
+            elif not URL_PATTERN.match(it.stream.url):
+                errs.append(f"[{row.title}/{it.id}] URL de flux invalide : {it.stream.url!r}")
             elif it.stream.format not in {"mp4", "hls", "mp3"}:
                 errs.append(f"[{row.title}/{it.id}] format inconnu : {it.stream.format!r}")
+
     return errs
 
 
@@ -128,7 +157,7 @@ def _json_default(o):
 
 
 def write_catalog(rows: list[Row], out_dir: str = DATA_DIR, name: str = "catalog") -> str:
-    """Valide puis écrit <out_dir>/<name>.json. Lève SystemExit si invalide."""
+    """Valide puis écrit <out_dir>/<name>.json avec remplacement atomique. Lève SystemExit si invalide."""
     os.makedirs(out_dir, exist_ok=True)
 
     all_errs: list[str] = []
@@ -155,24 +184,37 @@ def write_catalog(rows: list[Row], out_dir: str = DATA_DIR, name: str = "catalog
 
 
 def consolidate(out_dir: str = DATA_DIR) -> str:
-    """Fusionne tous les <cat>.json de site/data/ en un catalog.json unique."""
-    import glob
+    """Fusionne uniquement les 10 catégories canoniques <cat>.json de site/data/ en un catalog.json unique."""
     rows: list[dict] = []
-    for p in sorted(glob.glob(os.path.join(out_dir, "*.json"))):
-        if os.path.basename(p) == "catalog.json":
+    seen_item_ids: set[str] = set()
+
+    for file_name in CANONICAL_FILES:
+        p = os.path.join(out_dir, file_name)
+        if not os.path.isfile(p):
             continue
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
-        rows.extend(data.get("rows", []))
-    # Tri selon l'ordre canonique des 10 catégories (l'app s'attend à cet ordre).
+        for row in data.get("rows", []):
+            # Contrôle de doublons d'items à l'échelle du catalogue consolidé
+            for item in row.get("items", []):
+                iid = item.get("id")
+                if iid:
+                    if iid in seen_item_ids:
+                        print(f"Avertissement consolidation : ID en doublon ignoré [{iid}]", file=sys.stderr)
+                    else:
+                        seen_item_ids.add(iid)
+            rows.append(row)
+
     rows.sort(key=lambda r: canonical_index(r.get("id", "")))
     payload = {
         "generated_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "rows": rows,
     }
     path = os.path.join(out_dir, "catalog.json")
-    with open(path, "w", encoding="utf-8") as f:
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2, default=_json_default)
+    os.replace(tmp, path)
     print(f"Consolidé : {path}  ({len(rows)} lignes)")
     return path
 

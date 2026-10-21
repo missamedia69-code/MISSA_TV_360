@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T22:16:20.014309+00:00",
+  "generated_at": "2026-10-21T21:09:05.302988+00:00",
   "rows": [
     {
       "id": "jeux",
@@ -23,7 +23,9 @@
           "package_type": "apk",
           "version_name": "2025-09-12",
           "version_code": 149,
-          "genre": "Puzzle"
+          "genre": "Puzzle",
+          "source": null,
+          "license": null
         },
         {
           "id": "droidfish",
@@ -43,7 +45,9 @@
           "package_type": "apk",
           "version_name": "1.90",
           "version_code": 100,
-          "genre": "Échecs"
+          "genre": "Échecs",
+          "source": null,
+          "license": null
         },
         {
           "id": "shattered-pixel-dungeon",
@@ -63,7 +67,9 @@
           "package_type": "apk",
           "version_name": "4.0.2",
           "version_code": 922,
-          "genre": "Roguelike"
+          "genre": "Roguelike",
+          "source": null,
+          "license": null
         }
       ]
     }

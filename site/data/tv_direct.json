@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T22:16:20.033520+00:00",
+  "generated_at": "2026-10-21T21:09:05.318904+00:00",
   "rows": [
     {
       "id": "tv_direct",
@@ -27,7 +27,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         },
         {
           "id": "live-bipbop",
@@ -51,7 +53,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     }

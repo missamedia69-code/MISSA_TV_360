@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-10-19T22:16:20.020353+00:00",
+  "generated_at": "2026-10-21T21:09:05.308953+00:00",
   "rows": [
     {
       "id": "podcasts",
       "title": "Podcasts",
       "items": [
         {
-          "id": "pod-demo-1",
-          "title": "Podcast · Emplacement 1",
+          "id": "pod-nasa-1",
+          "title": "NASA — Houston We Have a Podcast",
           "kind": "podcast",
-          "description": "Emplacement réservé podcasts.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Podcast+·+Emplacement+1",
+          "description": "Épisode d'exploration spatiale publique de la NASA.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=NASA+—+Houston+We+Have+a+Podcast",
           "stream": {
-            "url": "https://ice1.somafm.com/spacestation-128-mp3",
+            "url": "https://archive.org/download/spacestation-128-mp3/spacestation-128.mp3",
             "format": "mp3",
-            "live": true
+            "live": false
           },
           "series_title": null,
           "season_number": null,
@@ -27,7 +27,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Domaine Public",
+          "license": "Libre accès"
         }
       ]
     }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T22:16:20.026321+00:00",
+  "generated_at": "2026-10-21T21:09:05.314198+00:00",
   "rows": [
     {
       "id": "series",
@@ -27,7 +27,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         },
         {
           "id": "ser-a-e2",
@@ -51,7 +53,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     }

@@ -60,7 +60,7 @@ class ArchiveEngineTests(unittest.TestCase):
             item.thumbnail_url,
             f"https://archive.org/services/img/{engine.ARCHIVE_IDENTIFIER}",
         )
-        self.assertIn("conservation du flux", stderr.getvalue())
+        self.assertIn("URL de repli conservée", stderr.getvalue())
 
     def test_build_rows_matches_catalog_schema(self):
         sample = {
@@ -71,10 +71,10 @@ class ArchiveEngineTests(unittest.TestCase):
             rows = engine.build_rows()
 
         self.assertEqual(len(rows), 1)
-        self.assertEqual([item.id for item in rows[0].items], [
-            "film-phantom", "film-scarlet", "film-gaslight",
-            "film-mrx", "film-sanfran", "film-hometown",
-        ])
+        self.assertEqual(
+            [item.id for item in rows[0].items],
+            [item_id for item_id, _, _, _, _ in engine.CURATION]
+        )
         self.assertTrue(all(item.thumbnail_url for item in rows[0].items))
         self.assertEqual(validate_row(rows[0]), [])
 

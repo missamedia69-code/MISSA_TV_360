@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-19T22:16:19.981765+00:00",
+  "generated_at": "2026-10-21T21:09:05.187958+00:00",
   "rows": [
     {
       "id": "films",
@@ -9,7 +9,7 @@
           "id": "film-phantom",
           "title": "The Phantom of the Opera (1929)",
           "kind": "movie",
-          "description": "This is the most commonly available version of The Phantom of the Opera. It is a re-edit of the 1925 version and originally had a synchronized sound score. It is a DVD rip from the milestone edition, with the man with lantern sequence edited in. It is the best available print of the film from the UCLA film and television archives. The soundtrack is Symphony No. 8 in B minor, best known as the \"Unfinished Symphony\". It is not the best soundtrack for the film, but I was unsure whether or not the 1929 soundtrack is in the public domain. Staring Lon Chaney, Mary Philbin and Norman Kerry. Directed ",
+          "description": "Film muet fantastique de Rupert Julian (1929), domaine public.",
           "thumbnail_url": "https://archive.org/services/img/ThePhantomOfTheOpera1929",
           "stream": {
             "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
@@ -27,13 +27,15 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-scarlet",
           "title": "Scarlet Street",
           "kind": "movie",
-          "description": "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
+          "description": "Film noir de Fritz Lang (1945), restauré, domaine public.",
           "thumbnail_url": "https://archive.org/services/img/scarlet-street-1945-restored-movie-720p-hd",
           "stream": {
             "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
@@ -51,7 +53,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-gaslight",
@@ -75,7 +79,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-mrx",
@@ -99,7 +105,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-sanfran",
@@ -123,7 +131,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-hometown",
@@ -147,7 +157,139 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-nosferatu",
+          "title": "Nosferatu (1922)",
+          "kind": "movie",
+          "description": "Chef-d'œuvre expressionniste de F. W. Murnau (1922), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/nosferatu",
+          "stream": {
+            "url": "https://archive.org/download/nosferatu/nosferatu_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-night-of-living-dead",
+          "title": "Night of the Living Dead (1968)",
+          "kind": "movie",
+          "description": "Film fondateur de George A. Romero (1968), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/night_of_the_living_dead",
+          "stream": {
+            "url": "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-detour",
+          "title": "Detour (1945)",
+          "kind": "movie",
+          "description": "Road movie noir d'Edgar G. Ulmer (1945), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/Detour_1945",
+          "stream": {
+            "url": "https://archive.org/download/Detour_1945/Detour_1945_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-the-general",
+          "title": "The General (1926)",
+          "kind": "movie",
+          "description": "Comédie burlesque de Buster Keaton (1926), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/TheGeneral",
+          "stream": {
+            "url": "https://archive.org/download/TheGeneral/The_General_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-his-girl-friday",
+          "title": "His Girl Friday (1940)",
+          "kind": "movie",
+          "description": "Comédie de Howard Hawks (1940), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/his_girl_friday",
+          "stream": {
+            "url": "https://archive.org/download/his_girl_friday/his_girl_friday_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         }
       ]
     }
