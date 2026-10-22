@@ -57,6 +57,15 @@
             </intent-filter>
         </activity>
 
+        <!-- Écran Extensions : dépôts + installation des plugins de contenu.
+             Non exporté : seul le parcours interne de l'app y accède. -->
+        <activity
+            android:name=".extensions.ExtensionsActivity"
+            android:exported="false"
+            android:label="@string/extensions_title"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.MissaTv.Extensions" />
+
         <!-- Écran « Jeux vidéo » : catalogue des jeux téléchargeables -->
         <activity
             android:name=".games.GamesActivity"

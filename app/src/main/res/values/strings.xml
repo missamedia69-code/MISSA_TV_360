@@ -54,4 +54,19 @@
     <string name="search_resolving">Récupération des informations du film…</string>
     <string name="search_unplayable">Aucun flux MP4 lisible trouvé pour ce film.</string>
     <string name="settings_title">Paramètres</string>
+    <!-- Extensions (dépôts + plugins téléchargés) -->
+    <string name="extensions_title">Extensions</string>
+    <string name="extensions_card_title">Chaînes &amp; extensions</string>
+    <string name="extensions_card_description">Ajouter un dépôt d\'extensions et installer des sources</string>
+    <string name="extensions_add_repo">Ajouter un dépôt</string>
+    <string name="extensions_refresh">Actualiser</string>
+    <string name="extensions_repo_hint">https://exemple.tld/extensions/repo.json</string>
+    <string name="extensions_add">Ajouter</string>
+    <string name="extensions_remove">Supprimer</string>
+    <string name="extensions_remove_repo">Supprimer ce dépôt ?</string>
+    <string name="extensions_remove_plugin">Supprimer cette extension ?</string>
+    <string name="extensions_busy">Opération en cours…</string>
+    <string name="extensions_summary">%1$d dépôt(s) · %2$d extension(s) installée(s)</string>
+    <string name="extensions_never_refreshed">Aucun rafraîchissement effectué.</string>
+    <string name="extensions_error">Opération impossible.</string>
 </resources>

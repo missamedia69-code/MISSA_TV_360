@@ -1,0 +1,8 @@
+{
+  "name": "MISSA TV 360 — extensions officielles",
+  "description": "Dépôt d'extensions de contenu pour l'application MISSA TV 360.",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/plugins.json"
+  ]
+}

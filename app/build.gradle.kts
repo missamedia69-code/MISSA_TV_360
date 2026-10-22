@@ -26,6 +26,22 @@ android {
         val bffUrl = (project.findProperty("bffBaseUrl") as String?)
             ?: "https://missamedia69-code.github.io/MISSA_TV_360/"
         buildConfigField("String", "BFF_BASE_URL", "\"$bffUrl\"")
+
+        // Dépôt d'extensions interrogé au premier démarrage.
+        //   ./gradlew assembleDebug -PextensionRepoUrl=https://…/extensions/repo.json
+        // Par défaut : le même hôte que le catalogue (GitHub Pages), sous
+        // /extensions/ — le fichier y est publié avec le reste du site.
+        val extensionRepoUrl = (project.findProperty("extensionRepoUrl") as String?)
+            ?: (bffUrl.trimEnd('/') + "/extensions/repo.json")
+        buildConfigField("String", "EXTENSION_REPO_URL", "\"$extensionRepoUrl\"")
+
+        // Miroir de secours, essayé seulement si l'URL principale échoue
+        // (Pages pas encore redéployé, coupure, 404). Même contenu, même
+        // dépôt : `site/extensions/repo.json` est aussi publié comme asset de
+        // la release « extensions » par la CI.
+        val extensionRepoMirrorUrl = (project.findProperty("extensionRepoMirrorUrl") as String?)
+            ?: "https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/repo.json"
+        buildConfigField("String", "EXTENSION_REPO_MIRROR_URL", "\"$extensionRepoMirrorUrl\"")
     }
 
     buildTypes {
@@ -94,4 +110,13 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Extensions : contrat binaire partagé avec les plugins téléchargés.
+    implementation(project(":plugin-api"))
+    // Parsing des manifestes de dépôt (déjà présent via converter-gson, déclaré
+    // explicitement car utilisé directement par le moteur d'extensions).
+    implementation("com.google.code.gson:gson:2.11.0")
+    // Écran Extensions (liste pilotable à la télécommande).
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
 }
