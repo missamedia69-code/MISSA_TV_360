@@ -21,6 +21,7 @@ class PrimaryLabelTest {
     fun primaryLabel_isListenForAudioContent() {
         assertEquals(R.string.action_listen, primaryLabelRes(ContentKind.RADIO))
         assertEquals(R.string.action_listen, primaryLabelRes(ContentKind.PODCAST))
+        assertEquals(R.string.action_listen, primaryLabelRes(ContentKind.MUSIC))
     }
 
     @Test
@@ -28,7 +29,6 @@ class PrimaryLabelTest {
         assertEquals(R.string.action_play, primaryLabelRes(ContentKind.MOVIE))
         assertEquals(R.string.action_play, primaryLabelRes(ContentKind.SERIES))
         assertEquals(R.string.action_play, primaryLabelRes(ContentKind.SHORT))
-        assertEquals(R.string.action_play, primaryLabelRes(ContentKind.MUSIC))
         assertEquals(R.string.action_play, primaryLabelRes(ContentKind.GAME))
     }
 }
