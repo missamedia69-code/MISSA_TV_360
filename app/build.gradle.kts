@@ -34,6 +34,14 @@ android {
         val extensionRepoUrl = (project.findProperty("extensionRepoUrl") as String?)
             ?: (bffUrl.trimEnd('/') + "/extensions/repo.json")
         buildConfigField("String", "EXTENSION_REPO_URL", "\"$extensionRepoUrl\"")
+
+        // Miroir de secours, essayé seulement si l'URL principale échoue
+        // (Pages pas encore redéployé, coupure, 404). Même contenu, même
+        // dépôt : `site/extensions/repo.json` est aussi publié comme asset de
+        // la release « extensions » par la CI.
+        val extensionRepoMirrorUrl = (project.findProperty("extensionRepoMirrorUrl") as String?)
+            ?: "https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/repo.json"
+        buildConfigField("String", "EXTENSION_REPO_MIRROR_URL", "\"$extensionRepoMirrorUrl\"")
     }
 
     buildTypes {

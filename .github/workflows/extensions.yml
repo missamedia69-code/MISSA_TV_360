@@ -110,6 +110,9 @@ jobs:
 
           gh release upload "$TAG" "$RUNNER_TEMP"/builds/*.msa --clobber
           gh release upload "$TAG" "$RUNNER_TEMP/plugins.json" --clobber
+          # Même manifeste que site/extensions/repo.json : sert de miroir à
+          # l'application quand Pages n'est pas (encore) à jour.
+          gh release upload "$TAG" site/extensions/repo.json --clobber
 
           echo "Publié : https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/plugins.json"
 

@@ -50,6 +50,17 @@ Surchargeable au build :
 ./gradlew assembleDebug -PextensionRepoUrl=https://mon-serveur/extensions/repo.json
 ```
 
+Deux URL sont compilées, jamais plus : l'URL configurée et un miroir
+(`-PextensionRepoMirrorUrl=…`, par défaut l'asset `repo.json` de la release
+`extensions`). Ce miroir n'est essayé **que** si l'URL principale échoue — par
+exemple avant que GitHub Pages n'ait redéployé `site/`, ou pendant une panne
+Pages. Une fois le bootstrap réussi, c'est l'URL réellement utilisée qui est
+enregistrée comme dépôt intégré ; les démarrages suivants ne réessaient pas
+l'autre.
+
+> Aucune URL tierce n'est contactée en dehors de ces deux-là et des dépôts
+> ajoutés explicitement par l'utilisateur.
+
 ---
 
 ## 2. Parcours au premier démarrage
@@ -59,7 +70,10 @@ Surchargeable au build :
    1. `ExtensionManager.init(context)` ;
    2. `ExtensionManager.bootstrapIfNeeded()` **sur le dispatcher IO** :
       - si `bootstrap_done` est faux et que le nombre de tentatives est < 5 :
-        - ajoute le dépôt intégré ;
+        - essaie `BuildConfig.EXTENSION_REPO_URL` puis, en cas d'échec,
+          `BuildConfig.EXTENSION_REPO_MIRROR_URL` (asset `repo.json` de la
+          release `extensions`) — le premier manifeste lisible gagne et devient
+          le dépôt intégré ;
         - lit `repo.json` puis chaque `pluginLists` (max 10) ;
         - télécharge au plus 16 extensions (`status != 0`), vérifie le SHA-256,
           installe de façon atomique, charge le DEX ;

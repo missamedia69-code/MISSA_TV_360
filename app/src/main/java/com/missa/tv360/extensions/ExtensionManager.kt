@@ -8,6 +8,7 @@ import com.missa.tv360.BuildConfig
 import com.missa.tv360.api.PluginLog
 import com.missa.tv360.api.PluginRegistry
 import com.missa.tv360.api.Provider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -141,16 +142,46 @@ object ExtensionManager {
         _state.value = _state.value.copy(busy = true, message = null)
 
         try {
+            // Le manifeste est validé AVANT de marquer le bootstrap comme fait.
+            // L'URL principale peut être indisponible (site pas encore
+            // déployé, coupure) : on essaie alors le miroir publié avec la
+            // même release que les archives.
+            var manifest: RepositoryManifest? = null
+            var chosenUrl: String? = null
+            for (candidate in bootstrapCandidates(repoUrl)) {
+                val fetched = try {
+                    fetchManifest(candidate)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w(TAG, "Dépôt injoignable : $candidate", e)
+                    null
+                }
+                if (fetched != null) {
+                    manifest = fetched
+                    chosenUrl = candidate
+                    break
+                }
+            }
+            val activeManifest = manifest
+                ?: throw ExtensionException("Aucun dépôt d'extensions joignable.")
+            val activeUrl = chosenUrl ?: repoUrl
+            if (activeUrl != repoUrl) {
+                Log.i(TAG, "Bootstrap via le miroir : $activeUrl")
+            }
+
             val repos = store.repositories().toMutableList()
-            if (repos.none { it.url == repoUrl }) {
-                repos += RepositoryEntry(url = repoUrl, name = "Dépôt intégré", builtIn = true)
+            if (repos.none { it.url == activeUrl }) {
+                repos += RepositoryEntry(
+                    url = activeUrl,
+                    name = activeManifest.name?.takeIf { it.isNotBlank() } ?: "Dépôt intégré",
+                    builtIn = true,
+                )
                 store.saveRepositories(repos)
             }
-            // Le manifeste est validé AVANT de marquer le bootstrap comme fait.
-            val manifest = fetchManifest(repoUrl)
             store.bootstrapDone = true
 
-            val entries = collectPluginEntries(listOf(repoUrl to manifest), installer)
+            val entries = collectPluginEntries(listOf(activeUrl to activeManifest), installer)
             var installedCount = 0
             entries.take(MAX_AUTO_INSTALL).forEach { remote ->
                 if (remote.entry.isDisabledByAuthor) return@forEach
@@ -396,6 +427,16 @@ object ExtensionManager {
             }
         }
         return out.distinctBy { "${it.repositoryUrl}|${it.entry.normalizedInternalName}" }
+    }
+
+    /**
+     * URL de dépôt à essayer au bootstrap : l'URL configurée d'abord, puis le
+     * miroir de la release si elle est renseignée et différente.
+     */
+    private fun bootstrapCandidates(primary: String): List<String> {
+        val mirror = BuildConfig.EXTENSION_REPO_MIRROR_URL.trim()
+        if (mirror.isEmpty() || mirror == primary) return listOf(primary)
+        return listOf(primary, mirror)
     }
 
     private fun fetchManifest(url: String): RepositoryManifest {
