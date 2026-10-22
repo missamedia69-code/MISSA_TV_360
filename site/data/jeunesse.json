@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:09:05.226745+00:00",
+  "generated_at": "2026-10-22T18:19:23.218334+00:00",
   "rows": [
     {
       "id": "jeunesse",
@@ -9,8 +9,8 @@
           "id": "kids-bbb",
           "title": "Big Buck Bunny",
           "kind": "kids",
-          "description": "Animation douce, Blender CC BY.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
+          "description": "Animation douce, Blender CC BY (droits vérifiés).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600.png?text=Big%20Buck%20Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -28,8 +28,10 @@
           "version_name": null,
           "version_code": null,
           "genre": null,
-          "source": null,
-          "license": null
+          "source": "Blender Foundation",
+          "license": "CC BY 3.0",
+          "demo": false,
+          "rights_checked": true
         }
       ]
     }

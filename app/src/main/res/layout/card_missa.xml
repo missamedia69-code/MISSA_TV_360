@@ -85,4 +85,15 @@
         android:ellipsize="end"
         android:textSize="14sp"
         android:textColor="@color/missa_text_secondary" />
+
+    <TextView
+        android:id="@+id/card_subtitle"
+        android:layout_width="@dimen/card16_w"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textSize="11sp"
+        android:textColor="@color/missa_text_muted"
+        android:visibility="gone" />
 </LinearLayout>

@@ -39,5 +39,18 @@ enum class CardShape(
             ContentKind.RADIO, ContentKind.PODCAST, ContentKind.MUSIC, ContentKind.GAME -> SQUARE
             else -> LANDSCAPE
         }
+
+        /**
+         * Forme effective d'un contenu : l'indication issue du genre d'API
+         * prime sur le kind normalisé (un extrait sportif a un kind MOVIE mais
+         * reste une tuile paysage).
+         */
+        fun forVideo(video: com.missa.tv360.data.Video): CardShape =
+            when (video.shapeHint) {
+                com.missa.tv360.data.CardShapeHint.LANDSCAPE -> LANDSCAPE
+                com.missa.tv360.data.CardShapeHint.POSTER -> POSTER
+                com.missa.tv360.data.CardShapeHint.SQUARE -> SQUARE
+                null -> forKind(video.kind)
+            }
     }
 }

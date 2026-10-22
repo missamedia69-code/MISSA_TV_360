@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:09:05.187958+00:00",
+  "generated_at": "2026-10-22T18:19:23.214515+00:00",
   "rows": [
     {
       "id": "films",
@@ -29,7 +29,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-scarlet",
@@ -55,7 +57,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-gaslight",
@@ -81,7 +85,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-mrx",
@@ -107,7 +113,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-sanfran",
@@ -133,7 +141,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-hometown",
@@ -159,16 +169,18 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-nosferatu",
           "title": "Nosferatu (1922)",
           "kind": "movie",
           "description": "Chef-d'œuvre expressionniste de F. W. Murnau (1922), domaine public.",
-          "thumbnail_url": "https://archive.org/services/img/nosferatu",
+          "thumbnail_url": "https://placehold.co/200x300/1a237e/ffd600.png?text=Nosferatu%20%281922%29",
           "stream": {
-            "url": "https://archive.org/download/nosferatu/nosferatu_512kb.mp4",
+            "url": "https://archive.org/download/nosferatu-1922_202507/Nosferatu%20(1922).mp4",
             "format": "mp4",
             "live": false
           },
@@ -185,16 +197,18 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-night-of-living-dead",
           "title": "Night of the Living Dead (1968)",
           "kind": "movie",
           "description": "Film fondateur de George A. Romero (1968), domaine public.",
-          "thumbnail_url": "https://archive.org/services/img/night_of_the_living_dead",
+          "thumbnail_url": "https://archive.org/services/img/night-of-the-living-dead-extended-version",
           "stream": {
-            "url": "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4",
+            "url": "https://archive.org/download/night-of-the-living-dead-extended-version/Night%20of%20the%20Living%20Dead%20Extended%20Version.ia.mp4",
             "format": "mp4",
             "live": false
           },
@@ -211,7 +225,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-detour",
@@ -237,7 +253,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-the-general",
@@ -263,7 +281,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "film-his-girl-friday",
@@ -289,7 +309,9 @@
           "version_code": null,
           "genre": null,
           "source": "Internet Archive",
-          "license": "Domaine public"
+          "license": "Domaine public",
+          "demo": false,
+          "rights_checked": true
         }
       ]
     }

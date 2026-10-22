@@ -32,3 +32,8 @@ captures/
 win_*.xml
 window*.xml
 tools/
+
+# Logs et sorties de build locales
+.build_*.log
+.build_*.txt
+.thumbs*

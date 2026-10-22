@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -58,17 +57,19 @@ class MissaCardPresenter(
     override fun onBindViewHolder(vh: ViewHolder, item: Any?) {
         val video = item as? Video ?: return
         val v = vh.view
-        val linearLayout = v as? LinearLayout ?: return
-        val params = linearLayout.layoutParams as? LinearLayout.LayoutParams ?: return
-        params.setMargins(
-            dpToPx(16),
-            0,
-            dpToPx(16),
-            0
-        )
-        linearLayout.layoutParams = params
+        // Les marges se posent sur la classe de base commune à tous les
+        // ViewGroup : la carte est inflatée dans le RecyclerView de Leanback,
+        // dont les layoutParams ne sont PAS des LinearLayout.LayoutParams
+        // (un cast vers cette classe faisait échouer tout le binding : ni
+        // image, ni titre, ni description sur les tuiles).
+        val params = v.layoutParams as? ViewGroup.MarginLayoutParams
+        if (params != null) {
+            val gap = dpToPx(16)
+            params.setMargins(gap, 0, gap, 0)
+            v.layoutParams = params
+        }
 
-        val shape = CardShape.forKind(video.kind)
+        val shape = CardShape.forVideo(video)
         val image = v.findViewById<ImageView>(R.id.card_image)
 
         val defaultWRes = if (useGridDimensions) shape.gridWidthRes else shape.widthRes
@@ -91,6 +92,15 @@ class MissaCardPresenter(
             isVisible = video.moreTargetRowId == null || video.title.isNotBlank()
             layoutParams = layoutParams.apply { width = w }
         }
+        // Description courte sous le titre : l'utilisateur voit l'affiche ET
+        // le resume du contenu sans avoir a ouvrir la fiche. [Video.subtitle]
+        // ajoute les badges utiles (saison/episode, DIRECT, audio).
+        v.findViewById<TextView>(R.id.card_subtitle).apply {
+            val subtitle = video.subtitle()
+            text = subtitle
+            isVisible = video.moreTargetRowId == null && subtitle.isNotBlank()
+            layoutParams = layoutParams.apply { width = w }
+        }
         v.findViewById<TextView>(R.id.badge_live).isVisible = video.kind.isLive
         val progress = v.findViewById<ProgressBar>(R.id.card_progress)
         val frac = WatchProgressStore.fraction(v.context, video.id)
@@ -109,6 +119,7 @@ class MissaCardPresenter(
             v.contentDescription = v.context.getString(R.string.row_more_description, video.title)
             overlayTitle?.isVisible = false
             scrim?.isVisible = false
+            v.findViewById<TextView>(R.id.card_subtitle).isVisible = false
             return
         }
         v.contentDescription = video.title
@@ -116,11 +127,12 @@ class MissaCardPresenter(
         overlayTitle?.isVisible = video.title.isNotBlank()
         scrim?.isVisible = video.title.isNotBlank()
 
-        // Affichage immédiat de l'illustration locale ou du fond par défaut
+        // Affichage immédiat de l'illustration locale, sinon de l'affiche de
+        // repli du type de contenu (320×180, format des tuiles).
         if (video.cardRes != 0) {
             image.setImageResource(video.cardRes)
         } else {
-            image.setImageDrawable(ContextCompat.getDrawable(v.context, fondParDefaut(video.kind.name)))
+            image.setImageResource(afficheParDefaut(video.kind))
         }
 
         // Chargement asynchrone de la vignette distante (si présente)

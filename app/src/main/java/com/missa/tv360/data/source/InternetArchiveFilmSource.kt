@@ -20,6 +20,7 @@ object InternetArchiveFilmSource : FilmSource {
     private const val SEARCH_ENDPOINT = "https://archive.org/advancedsearch.php"
     private const val METADATA_ENDPOINT = "https://archive.org/metadata/"
     private const val THUMBNAIL_ENDPOINT = "https://archive.org/services/img/"
+    private const val USER_AGENT = "MISSA-TV-360/1.0 (Android film engine)"
 
     private val tagsPattern = Regex("<[^>]*>")
     private val whitespacePattern = Regex("\\s+")
@@ -76,7 +77,7 @@ object InternetArchiveFilmSource : FilmSource {
             searchArchive(query, config.relatedSort, config.relatedLimit, config)
         }
 
-    override suspend fun resolve(result: Video, config: FilmSourceConfig): Video? =
+    override suspend fun load(result: Video, config: FilmSourceConfig): ResolvedSource? =
         withContext(Dispatchers.IO) {
             if (result.sourceId != config.id || !identifierPattern.matches(result.id)) {
                 return@withContext null
@@ -121,27 +122,38 @@ object InternetArchiveFilmSource : FilmSource {
                 readText(metadata.opt("date"))
             }).trim().take(20).ifBlank { result.releaseYear.orEmpty() }
             val encodedName = Uri.encode(selected.name, "-._~()@:+")
+            val links = playableFiles.map { file ->
+                ExtractorLink(
+                    url = downloadUrl(identifier, Uri.encode(file.name, "-._~()@:+")),
+                    quality = file.height.toInt(),
+                    format = file.format,
+                    headers = ExtractorLink.sanitizeHeaders(mapOf("User-Agent" to USER_AGENT)),
+                )
+            }
 
-            Video(
-                id = identifier,
-                title = title,
-                description = description,
-                cardRes = R.drawable.card_tbd,
-                streamUrl = "https://archive.org/download/" +
-                    "${encodePathSegment(identifier)}/$encodedName",
-                kind = ContentKind.MOVIE,
-                format = selected.format,
-                cardUrl = thumbnailUrl(identifier),
-                sourceId = config.id,
-                tags = subjects,
-                creator = creator,
-                releaseYear = year,
-                source = "Internet Archive",
-                license = normalizeLicense(
-                    readText(metadata.opt("licenseurl")).ifBlank {
-                        readText(metadata.opt("rights"))
-                    },
+            ResolvedSource(
+                video = Video(
+                    id = identifier,
+                    title = title,
+                    description = description,
+                    cardRes = R.drawable.card_tbd,
+                    streamUrl = "https://archive.org/download/" +
+                        "${encodePathSegment(identifier)}/$encodedName",
+                    kind = ContentKind.MOVIE,
+                    format = selected.format,
+                    cardUrl = thumbnailUrl(identifier),
+                    sourceId = config.id,
+                    tags = subjects,
+                    creator = creator,
+                    releaseYear = year,
+                    source = "Internet Archive",
+                    license = normalizeLicense(
+                        readText(metadata.opt("licenseurl")).ifBlank {
+                            readText(metadata.opt("rights"))
+                        },
+                    ),
                 ),
+                links = links,
             )
         }
 
@@ -224,7 +236,7 @@ object InternetArchiveFilmSource : FilmSource {
             readTimeout = 20_000
             instanceFollowRedirects = true
             setRequestProperty("Accept", "application/json")
-            setRequestProperty("User-Agent", "MISSA-TV-360/1.0 (Android film engine)")
+            setRequestProperty("User-Agent", USER_AGENT)
         }
         return try {
             if (connection.responseCode !in 200..299) {
@@ -248,6 +260,10 @@ object InternetArchiveFilmSource : FilmSource {
 
     private fun thumbnailUrl(identifier: String): String =
         "$THUMBNAIL_ENDPOINT${encodePathSegment(identifier)}"
+
+    /** URL de téléchargement d'un fichier d'un item Internet Archive. */
+    private fun downloadUrl(identifier: String, encodedFileName: String): String =
+        "https://archive.org/download/${encodePathSegment(identifier)}/$encodedFileName"
 
     private fun readText(value: Any?): String = when (value) {
         is String -> value

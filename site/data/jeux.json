@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:09:05.302988+00:00",
+  "generated_at": "2026-10-22T18:19:23.247539+00:00",
   "rows": [
     {
       "id": "jeux",
@@ -10,7 +10,7 @@
           "title": "Simon Tatham's Puzzles",
           "kind": "game",
           "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Simon+Tatham's+Puzzles",
+          "thumbnail_url": "https://placehold.co/240x240/1a237e/ffd600.png?text=Simon%20Tatham%27s%20Puzzles",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -24,15 +24,17 @@
           "version_name": "2025-09-12",
           "version_code": 149,
           "genre": "Puzzle",
-          "source": null,
-          "license": null
+          "source": "Dépôt MISSA TV 360",
+          "license": "Logiciel libre (voir manifeste)",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "droidfish",
           "title": "DroidFish (échecs)",
           "kind": "game",
           "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=DroidFish+(échecs)",
+          "thumbnail_url": "https://placehold.co/240x240/1a237e/ffd600.png?text=DroidFish%20%28%C3%A9checs%29",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -46,15 +48,17 @@
           "version_name": "1.90",
           "version_code": 100,
           "genre": "Échecs",
-          "source": null,
-          "license": null
+          "source": "Dépôt MISSA TV 360",
+          "license": "Logiciel libre (voir manifeste)",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "shattered-pixel-dungeon",
           "title": "Shattered Pixel Dungeon",
           "kind": "game",
           "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Shattered+Pixel+Dungeon",
+          "thumbnail_url": "https://placehold.co/240x240/1a237e/ffd600.png?text=Shattered%20Pixel%20Dungeon",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -68,8 +72,10 @@
           "version_name": "4.0.2",
           "version_code": 922,
           "genre": "Roguelike",
-          "source": null,
-          "license": null
+          "source": "Dépôt MISSA TV 360",
+          "license": "Logiciel libre (voir manifeste)",
+          "demo": false,
+          "rights_checked": true
         }
       ]
     }

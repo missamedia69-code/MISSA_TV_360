@@ -5,11 +5,11 @@
 from __future__ import annotations
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "_core"))
-from schema import Item, Row, Stream, run_engine  # noqa: E402
+from schema import Item, placeholder_thumbnail, Row, run_engine, Stream  # noqa: E402
 
-# Podcasts / épisodes VOD audio du domaine public
+# Podcasts / épisodes VOD audio du domaine public (droits vérifiés)
 CONTENU = [
-    ('pod-nasa-1', 'NASA — Houston We Have a Podcast', 'Épisode d\'exploration spatiale publique de la NASA.', 'https://archive.org/download/spacestation-128-mp3/spacestation-128.mp3', 'mp3', False)
+    ('pod-nasa-1', 'NASA — Houston We Have a Podcast', 'Épisode d\'exploration spatiale publique de la NASA.', 'https://archive.org/download/spacestation-128-mp3/spacestation-128.mp3', 'mp3', False),
 ]
 
 
@@ -20,9 +20,11 @@ def build_rows():
             id=iid, title=title, kind='podcast', description=desc,
             stream=Stream(url=url, format=fmt, live=live),
             audio_only=(fmt == "mp3"),
-            thumbnail_url=f"https://placehold.co/320x180/1a237e/ffd600?text={title.replace(' ', '+')}",
+            thumbnail_url=placeholder_thumbnail(title, "podcast"),
             source="Domaine Public",
             license="Libre accès",
+            demo=False,
+            rights_checked=True,
         ))
     return [Row(id='podcasts', title='Podcasts', items=items)]
 

@@ -19,6 +19,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "_core"))
 from schema import consolidate  # noqa: E402
+from sync_asset import sync  # noqa: E402
 
 HERE = os.path.dirname(__file__)
 
@@ -34,6 +35,11 @@ def main() -> int:
         runpy.run_path(path, run_name="__main__")
     print("\n══ Consolidation ══")
     consolidate()
+    print("\n══ Assets Android ══")
+    # Sans cette étape, l'APK embarque un catalogue plus ancien que celui
+    # publié : la version hors ligne diverge silencieusement de la version en
+    # ligne. Le build_all est le seul point qui voit les deux.
+    sync()
     return 0
 
 

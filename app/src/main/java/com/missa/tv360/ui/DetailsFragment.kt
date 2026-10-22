@@ -311,6 +311,10 @@ class DetailsFragment : Fragment() {
                     if (video.cardRes != 0) video.cardRes else fondParDefaut(video.kind.name),
                 )
                 putExtra(PlayerActivity.EXTRA_COVER_URL, video.cardUrl)
+                putExtra(PlayerActivity.EXTRA_FORMAT, video.format)
+                if (video.streamHeaders.isNotEmpty()) {
+                    putExtra(PlayerActivity.EXTRA_HEADERS, HashMap(video.streamHeaders))
+                }
             },
         )
     }

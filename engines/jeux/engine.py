@@ -21,7 +21,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "_core"))
-from schema import Item, Row, run_engine, sha256_file  # noqa: E402
+from schema import Item, placeholder_thumbnail, Row, run_engine, sha256_file  # noqa: E402
 
 MANIFEST = os.path.join(os.path.dirname(__file__), "jeux.yaml")
 
@@ -54,7 +54,7 @@ def build_rows() -> list[Row]:
             title=e["title"],
             kind="game",
             description=e.get("description", ""),
-            thumbnail_url=e.get("thumbnail_url") or f"https://placehold.co/320x180/1a237e/ffd600?text={e['title'].replace(' ', '+')}",
+            thumbnail_url=e.get("thumbnail_url") or placeholder_thumbnail(e["title"], "game"),
             download_url=e.get("download_url"),
             size_bytes=e.get("size_bytes"),
             sha256=e.get("sha256"),
@@ -62,6 +62,10 @@ def build_rows() -> list[Row]:
             version_name=e.get("version_name"),
             version_code=e.get("version_code"),
             genre=e.get("genre"),
+            source="Dépôt MISSA TV 360",
+            license="Logiciel libre (voir manifeste)",
+            demo=False,
+            rights_checked=True,
         ))
     return [Row(id="jeux", title="Jeux vidéo", items=items)]
 

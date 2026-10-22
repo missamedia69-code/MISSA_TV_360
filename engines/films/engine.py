@@ -27,7 +27,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "_core"))
-from schema import Item, Row, Stream, run_engine  # noqa: E402
+from schema import Item, placeholder_thumbnail, Row, run_engine, Stream  # noqa: E402
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
@@ -107,16 +107,20 @@ CURATION: list[tuple[str, str, str, str, str]] = [
         "film-nosferatu",
         "Nosferatu (1922)",
         "Chef-d'œuvre expressionniste de F. W. Murnau (1922), domaine public.",
-        "nosferatu",
-        "https://archive.org/download/nosferatu/nosferatu_512kb.mp4",
+        # L'item « nosferatu » renvoie un 403 sur /services/img/ (pas de
+        # poster) : on cible un item équivalent qui expose poster ET MP4.
+        "nosferatu-1922_202507",
+        "https://archive.org/download/nosferatu-1922_202507/"
+        "Nosferatu%20%281922%29.mp4",
     ),
     (
         "film-night-of-living-dead",
         "Night of the Living Dead (1968)",
         "Film fondateur de George A. Romero (1968), domaine public.",
-        "night_of_the_living_dead",
-        "https://archive.org/download/night_of_the_living_dead/"
-        "night_of_the_living_dead_512kb.mp4",
+        # Idem : « night_of_the_living_dead » n'expose pas de poster.
+        "night-of-the-living-dead-extended-version",
+        "https://archive.org/download/night-of-the-living-dead-extended-version/"
+        "Night%20of%20the%20Living%20Dead%20Extended%20Version.ia.mp4",
     ),
     (
         "film-detour",
@@ -163,6 +167,41 @@ def _clean_description(value: Any) -> str:
 def thumbnail_url(identifier: str) -> str:
     """URL de la vignette servie par Internet Archive pour un identifiant."""
     return f"https://archive.org/services/img/{quote(identifier, safe='-._~')}"
+
+
+def thumbnail_is_reachable(identifier: str) -> bool:
+    """Vrai si la vignette Internet Archive est téléchargeable.
+
+    Certains items du domaine public renvoient un 403 sur ``/services/img/``
+    (poster absent ou accès restreint). Sans cette vérification, la tuile
+    resterait vide côté application : on bascule alors sur une vignette de
+    repli locale et décodable.
+    """
+    if OFFLINE:
+        # Hors ligne, on ne peut pas trancher : on garde l'URL IA (le build
+        # produit toujours un catalogue valide).
+        return True
+    request = Request(
+        thumbnail_url(identifier),
+        headers={"User-Agent": "MISSA-TV-360-catalog-builder/1.0"},
+    )
+    try:
+        with urlopen(request, timeout=HTTP_TIMEOUT) as response:
+            content_type = response.headers.get("Content-Type", "").lower()
+            return response.status == 200 and content_type.startswith("image/")
+    except Exception:
+        return False
+
+
+def resolved_thumbnail(identifier: str, title: str) -> str:
+    """Vignette du film : poster IA s'il est accessible, repli sinon."""
+    if thumbnail_is_reachable(identifier):
+        return thumbnail_url(identifier)
+    print(
+        f"Vignette IA indisponible pour {identifier} ; repli local utilisé.",
+        file=sys.stderr,
+    )
+    return placeholder_thumbnail(title, "movie")
 
 
 def download_url(identifier: str, filename: str) -> str:
@@ -272,7 +311,9 @@ def parse_archive_item(
         kind="movie",
         description=(description if description is not None else ia_description)
             or ARCHIVE_FALLBACK_DESCRIPTION,
-        thumbnail_url=thumbnail_url(identifier),
+        thumbnail_url=resolved_thumbnail(
+            identifier, (title if title is not None else ia_title) or ARCHIVE_FALLBACK_TITLE
+        ),
         stream=Stream(
             url=download_url(identifier, filename),
             format="mp4",
@@ -280,6 +321,8 @@ def parse_archive_item(
         ),
         source=SOURCE_LABEL,
         license=LICENSE_LABEL,
+        demo=False,
+        rights_checked=True,
     )
 
 
@@ -338,10 +381,12 @@ def build_curated_item(
         title=title,
         kind="movie",
         description=description,
-        thumbnail_url=thumbnail_url(identifier),
+        thumbnail_url=resolved_thumbnail(identifier, title),
         stream=Stream(url=fallback_url, format="mp4", live=False),
         source=SOURCE_LABEL,
         license=LICENSE_LABEL,
+        demo=False,
+        rights_checked=True,
     )
 
 

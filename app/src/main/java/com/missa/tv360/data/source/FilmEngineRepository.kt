@@ -29,12 +29,12 @@ object FilmEngineRepository {
         val appContext = context.applicationContext
         val config = withContext(Dispatchers.IO) {
             val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val remote = PagesClient.fetchJson<FilmEngineManifest>(
-                BuildConfig.BFF_BASE_URL,
-                MANIFEST_PATH,
-                manifestType,
-                4000,
-            )
+            val fetchResult: PagesClient.FetchResult<FilmEngineManifest> =
+                PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, MANIFEST_PATH, manifestType, 4000)
+            val remote = when (fetchResult) {
+                is PagesClient.FetchResult.Success<*> -> fetchResult.data as? FilmEngineManifest
+                else -> null
+            }
             val remoteConfig = remote?.toRuntimeConfig()
             if (remoteConfig != null) {
                 prefs.edit().putString(PREF_MANIFEST, gson.toJson(remote)).apply()

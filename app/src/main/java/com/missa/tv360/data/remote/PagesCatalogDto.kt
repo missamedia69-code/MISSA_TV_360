@@ -68,6 +68,9 @@ data class PagesItemDto(
             cardRes = 0, // la vignette distante (thumbnailUrl) prend le relais
             streamUrl = stream?.url.orEmpty(),
             kind = contentKind,
+            // stream.live est la source de vérité pour le statut « direct » :
+            // un item kind « sport » avec stream.live=false n'est pas un direct.
+            forceLive = stream?.live == true,
             seriesTitle = seriesTitle,
             season = seasonNumber,
             episode = episodeNumber,
@@ -76,6 +79,9 @@ data class PagesItemDto(
             cardUrl = thumbnailUrl,
             source = source,
             license = license,
+            // Le genre d'API pilote la forme de la tuile (un extrait sportif
+            // reste paysage, un film reste en affiche 2:3).
+            shapeHint = ContentKind.shapeFromApi(kind),
         )
     }
 

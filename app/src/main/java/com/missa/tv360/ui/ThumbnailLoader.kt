@@ -12,6 +12,7 @@ import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
@@ -38,9 +39,88 @@ object ThumbnailLoader {
         cache.evictAll()
     }
 
+    // ── Cache disque ────────────────────────────────────────────────────────
+    // Les vignettes du catalogue sont stables : sans cache disque, chaque
+    // défilement re-téléchargeait les mêmes images (lent, coûteux en data).
+    // Le dossier est unique par URL, donc deux contenus ne se marchent pas
+    // dessus.
+
+    private const val DISK_CACHE_DIR = "thumbnails"
+    private const val MAX_DISK_BYTES = 24L * 1024 * 1024
+
+    @Volatile
+    private var diskCache: File? = null
+
+    /** Initialise le cache disque (à appeler une fois, au démarrage). */
+    fun initDiskCache(context: Context) {
+        if (diskCache != null) return
+        val dir = File(context.cacheDir, DISK_CACHE_DIR)
+        dir.mkdirs()
+        diskCache = dir
+        trimDiskCache(dir)
+    }
+
+    private fun diskFile(url: String): File? {
+        val dir = diskCache ?: return null
+        val name = Integer.toHexString(url.hashCode()) + "-" +
+            java.security.MessageDigest.getInstance("SHA-256")
+                .digest(url.toByteArray())
+                .take(8)
+                .joinToString("") { "%02x".format(it) }
+        return File(dir, name)
+    }
+
+    private fun readDisk(url: String): Bitmap? {
+        val file = diskFile(url) ?: return null
+        if (!file.isFile || file.length() == 0L) return null
+        return try {
+            BitmapFactory.decodeFile(file.absolutePath)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun writeDisk(url: String, bitmap: Bitmap) {
+        val file = diskFile(url) ?: return
+        try {
+            file.outputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 88, out)
+            }
+        } catch (_: Exception) {
+            // Cache best-effort : un échec d'écriture n'affecte pas l'affichage.
+        }
+    }
+
+    /** Purge les fichiers les plus anciens quand le cache dépasse sa limite. */
+    private fun trimDiskCache(dir: File) {
+        try {
+            val files = dir.listFiles()?.filter { it.isFile } ?: return
+            var total = files.sumOf { it.length() }
+            if (total <= MAX_DISK_BYTES) return
+            files.sortedBy { it.lastModified() }.forEach { file ->
+                if (total <= MAX_DISK_BYTES) return@forEach
+                val size = file.length()
+                if (file.delete()) total -= size
+            }
+        } catch (_: Exception) {
+            // Purge best-effort.
+        }
+    }
+
     private const val TARGET_WIDTH = 320
 
-    fun load(card: ImageCardView, url: String) {
+    /**
+     * Un type MIME est-il potentiellement décodable par BitmapFactory ?
+     * Les types génériques (application/octet-stream, absent) sont laissés
+     * au chance : seule l'absence de bitmap tranchera.
+     */
+    private fun isDecodableType(contentType: String): Boolean =
+        contentType.startsWith("image/") && contentType !in NON_DECODABLE_TYPES
+
+    /** Types d'image servis par les CDN mais non décodables nativement. */
+    private val NON_DECODABLE_TYPES = setOf("image/svg+xml", "image/svg")
+
+    fun load(card: ImageCardView, url: String, drawableFallback: Drawable? = null) {
         val target: ImageView = card.mainImageView ?: return
         val apply = { bitmap: Bitmap ->
             target.setImageBitmap(bitmap)
@@ -48,19 +128,31 @@ object ThumbnailLoader {
         }
         cached(url)?.let { apply(it); return }
         pool.execute {
-            val bitmap = fetch(url) ?: return@execute
-            cache.put(url, bitmap)
+            val bitmap = readDisk(url) ?: fetch(url)?.also { writeDisk(url, it) }
             card.post {
-                if (card.tag == url) apply(bitmap)
+                if (card.tag != url) return@post
+                if (bitmap != null) {
+                    apply(bitmap)
+                } else {
+                    // Aucun bitmap : on restaure le dessin de secours pour éviter une tuile vide.
+                    target.setImageDrawable(drawableFallback)
+                    card.mainImage = drawableFallback
+                }
             }
         }
     }
 
-    /** Charge une image pour les cartes, fiches et le lecteur, puis livre le bitmap sur l'UI thread. */
+    /**
+     * Charge une image pour les cartes, fiches et le lecteur, puis livre le
+     * bitmap sur l'UI thread. Le callback n'est appelé QUE si l'image a pu être
+     * décodée : en cas d'échec (SVG, 404, 403, réseau), l'appelant garde son
+     * repli local.
+     */
     fun loadArtwork(url: String, onLoaded: (Bitmap) -> Unit) {
         cached(url)?.let { onLoaded(it); return }
         pool.execute {
-            val bitmap = fetch(url) ?: return@execute
+            val bitmap = readDisk(url) ?: fetch(url)?.also { writeDisk(url, it) }
+            if (bitmap == null) return@execute
             cache.put(url, bitmap)
             mainHandler.post { onLoaded(bitmap) }
         }
@@ -106,6 +198,14 @@ object ThumbnailLoader {
                     }
                 }
                 if (code != HttpURLConnection.HTTP_OK) return null
+
+                // Les vignettes servies en SVG ne sont pas décodables par
+                // BitmapFactory : inutile de télécharger le corps, on renvoie
+                // null et l'appelant affiche son repli local. Les types
+                // génériques (application/octet-stream) sont acceptés : le
+                // décodage réel décidera.
+                val contentType = conn.contentType?.lowercase()?.substringBefore(';')?.trim()
+                if (contentType != null && !isDecodableType(contentType)) return null
 
                 val bytes = conn.inputStream.use { it.readBytes() }
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

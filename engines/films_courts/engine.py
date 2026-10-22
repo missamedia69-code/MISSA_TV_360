@@ -5,9 +5,9 @@
 from __future__ import annotations
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "_core"))
-from schema import Item, Row, Stream, run_engine  # noqa: E402
+from schema import Item, placeholder_thumbnail, Row, run_engine, Stream  # noqa: E402
 
-CONTENU = [('short-bbb', 'Big Buck Bunny', 'Court métrage Blender (2008), CC BY.', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', 'mp4', False), ('short-sintel', 'Sintel', 'Court métrage Blender (2010), CC BY.', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4', 'mp4', False)]
+CONTENU = [('short-bbb', 'Big Buck Bunny', 'Court métrage Blender (2008), CC BY (droits vérifiés).', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', 'mp4', False), ('short-sintel', 'Sintel', 'Court métrage Blender (2010), CC BY (droits vérifiés).', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4', 'mp4', False)]
 
 
 def build_rows():
@@ -17,7 +17,11 @@ def build_rows():
             id=iid, title=title, kind='short', description=desc,
             stream=Stream(url=url, format=fmt, live=live),
             audio_only=(fmt == "mp3"),
-            thumbnail_url=f"https://placehold.co/320x180/1a237e/ffd600?text={title.replace(" ", "+")}",
+            thumbnail_url=placeholder_thumbnail(title, "short"),
+            source="Blender Foundation",
+            license="CC BY 3.0",
+            demo=False,
+            rights_checked=True,
         ))
     return [Row(id='films_courts', title='Films courts', items=items)]
 

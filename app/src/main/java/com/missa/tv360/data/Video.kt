@@ -32,13 +32,33 @@ enum class ContentKind(val label: String) {
             entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
                 ?: when (value?.lowercase()) {
                     "live", "tv" -> LIVE_TV
-                    "sport" -> LIVE_SPORT
+                    // « sport » est un type de contenu, pas forcément un direct :
+                    // le vrai statut live vient de stream.live via forceLive.
+                    "sport" -> MOVIE
                     "episode" -> SERIES
                     "short", "court" -> SHORT
                     else -> MOVIE
                 }
+
+    /**
+     * Forme de tuile déduite de la valeur d'API : le genre textual (« sport »)
+     * est conservé pour la mise en page, même quand le kind effectif est
+     * normalisé en [MOVIE] (un extrait sportif reste une tuile paysage).
+     */
+        fun shapeFromApi(value: String?): CardShapeHint = when (value?.lowercase()) {
+            "movie", "film" -> CardShapeHint.POSTER
+            "series", "episode" -> CardShapeHint.POSTER
+            "radio", "podcast", "music", "game" -> CardShapeHint.SQUARE
+            else -> CardShapeHint.LANDSCAPE
+        }
     }
 }
+
+/**
+ * Formes de tuiles, alignées sur CardShape.kt (côté mise en page).
+ * Déclaré dans le modèle pour éviter une dépendance ui -> data inversée.
+ */
+enum class CardShapeHint { LANDSCAPE, POSTER, SQUARE }
 
 /**
  * Modèle d'un contenu vidéo/audio. Objet "clean-room" original.
@@ -76,9 +96,22 @@ data class Video(
     val source: String? = null,
     /** Licence du contenu (« Domaine public », « CC BY »…) — null si inconnue. */
     val license: String? = null,
+    val forceLive: Boolean = false,
+    /**
+     * Forme de tuile imposée (issue du genre d'API). Permet de garder une
+     * tuile paysage pour un extrait sportif, dont le kind est normalisé en
+     * [ContentKind.MOVIE]. Null = forme déduite du kind.
+     */
+    val shapeHint: CardShapeHint? = null,
+    /**
+     * En-têtes HTTP à appliquer au flux (Referer, User-Agent…).
+     * Vide pour un flux qui n'en exige aucun. Rempli par le registre de
+     * sources au moment de la résolution, jamais par le catalogue.
+     */
+    val streamHeaders: Map<String, String> = emptyMap(),
 ) : Serializable {
 
-    val isLive: Boolean get() = kind.isLive
+    val isLive: Boolean get() = kind.isLive || forceLive
     val isAudioOnly: Boolean get() = kind.isAudioOnly
     val isSeries: Boolean get() = seriesTitle != null
 

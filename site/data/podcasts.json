@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:09:05.308953+00:00",
+  "generated_at": "2026-10-22T18:20:28.166600+00:00",
   "rows": [
     {
       "id": "podcasts",
@@ -10,7 +10,7 @@
           "title": "NASA — Houston We Have a Podcast",
           "kind": "podcast",
           "description": "Épisode d'exploration spatiale publique de la NASA.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=NASA+—+Houston+We+Have+a+Podcast",
+          "thumbnail_url": "https://placehold.co/240x240/1a237e/ffd600.png?text=NASA%20%E2%80%94%20Houston%20We%20Have%20a%20Podcast",
           "stream": {
             "url": "https://archive.org/download/spacestation-128-mp3/spacestation-128.mp3",
             "format": "mp3",
@@ -29,7 +29,9 @@
           "version_code": null,
           "genre": null,
           "source": "Domaine Public",
-          "license": "Libre accès"
+          "license": "Libre accès",
+          "demo": false,
+          "rights_checked": true
         }
       ]
     }

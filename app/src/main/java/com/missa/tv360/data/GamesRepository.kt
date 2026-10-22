@@ -36,19 +36,19 @@ object GamesRepository {
 
     suspend fun loadGames(): List<GamesRow> = withContext(Dispatchers.IO) {
         // Source 1 : le depot (data/jeux.json, schema standard rows/items).
-        try {
-            val type = object : TypeToken<PagesCatalogDto>() {}.type
-            val dto: PagesCatalogDto? =
-                PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, GAMES_PATH, type)
-            val rows = dto?.rows.orEmpty().mapNotNull { row ->
-                val games = row.items.mapNotNull { it.toGame() }
-                if (games.isEmpty()) null
-                else GamesRow(row.title ?: "Jeux video", games)
-            }
-            if (rows.isNotEmpty()) return@withContext rows
-        } catch (_: Exception) {
-            // on passe au repli local
+        val type = object : TypeToken<PagesCatalogDto>() {}.type
+        val result: PagesClient.FetchResult<PagesCatalogDto> =
+            PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, GAMES_PATH, type)
+        val dto: PagesCatalogDto? = when (result) {
+            is PagesClient.FetchResult.Success<*> -> result.data as? PagesCatalogDto
+            else -> null
         }
+        val rows = dto?.rows.orEmpty().mapNotNull { row ->
+            val games = row.items.mapNotNull { it.toGame() }
+            if (games.isEmpty()) null
+            else GamesRow(row.title ?: "Jeux video", games)
+        }
+        if (rows.isNotEmpty()) return@withContext rows
         // Source 2 : repli local.
         localGames()
     }

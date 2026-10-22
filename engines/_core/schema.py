@@ -51,6 +51,71 @@ CANONICAL_FILES = [f"{row_id}.json" for row_id in CANONICAL_ROW_ORDER]
 URL_PATTERN = re.compile(r"^https?://[^\s/$.?#].[^\s]*$", re.IGNORECASE)
 SHA256_PATTERN = re.compile(r"^[a-fA-F0-9]{64}$")
 
+# Essai de robustesse côté application : produit un catalogue volontairement
+# incomplet (ni licence ni source) pour vérifier le comportement du client
+# face à des métadonnées absentes.
+#
+#   MISSA_ALLOW_MISSING_RIGHTS=1 python engines/build_all.py
+#
+# Désactivé par défaut et jamais défini par la CI : la règle de publication
+# reste donc en vigueur hors essai explicite.
+ALLOW_MISSING_RIGHTS = os.environ.get(
+    "MISSA_ALLOW_MISSING_RIGHTS", ""
+).strip().lower() in {"1", "true", "yes"}
+
+_rights_bypass_warned = False
+
+# Palette MISSA des vignettes de repli (fond bleu, texte jaune).
+PLACEHOLDER_BG = "1a237e"
+PLACEHOLDER_FG = "ffd600"
+
+# Dimensions des vignettes de repli, alignées sur les formes de tuiles
+# définies par CardShape.kt côté Android :
+#   - paysage 16:9  : TV Direct, Sport, Films courts, Jeunesse
+#   - portrait 2:3   : Films, Séries
+#   - carré 1:1      : Radio, Podcasts, Musique, Jeux vidéo
+PLACEHOLDER_SHAPES = {
+    "movie": (200, 300),
+    "series": (200, 300),
+    "radio": (240, 240),
+    "podcast": (240, 240),
+    "music": (240, 240),
+    "game": (240, 240),
+}
+PLACEHOLDER_LANDSCAPE = (320, 180)
+
+
+def placeholder_thumbnail(
+    title: str,
+    kind: str = "",
+    width: int = 0,
+    height: int = 0,
+) -> str:
+    """
+    URL d'une vignette de repli pour un contenu sans illustration propre.
+
+    Trois points importants :
+      - l'extension ``.png`` est obligatoire : sans elle, placehold.co sert du
+        SVG, que le décodeur bitmap d'Android ne sait pas lire (les tuiles
+        resteraient vides) ;
+      - le texte est encodé en percent-encoding : un caractère brut (tiret
+        cadratin, esperluette…) rendrait l'URL invalide ;
+      - les proportions suivent la forme de la tuile (2:3 pour un film, 1:1
+        pour un univers carré) : une image rognée de travers est illisible.
+    """
+    from urllib.parse import quote
+
+    default_w, default_h = PLACEHOLDER_SHAPES.get(
+        (kind or "").strip().lower(), PLACEHOLDER_LANDSCAPE
+    )
+    w = width or default_w
+    h = height or default_h
+    safe = quote(title.strip() or "MISSA TV 360", safe="")
+    return (
+        f"https://placehold.co/{w}x{h}/{PLACEHOLDER_BG}/{PLACEHOLDER_FG}"
+        f".png?text={safe}"
+    )
+
 
 def canonical_index(row_id: str) -> int:
     """Position d'une ligne dans l'ordre canonique (inconnues à la fin)."""
@@ -95,6 +160,10 @@ class Item:
     source: Optional[str] = None
     # Licence affichée sur la fiche détails (« Domaine public », « CC BY »…).
     license: Optional[str] = None
+    # Vrai si le contenu est une démo / emplacement réservé (non production).
+    demo: bool = False
+    # Vrai si les droits de diffusion ont été vérifiés pour cet item.
+    rights_checked: bool = False
 
 
 @dataclass
@@ -129,6 +198,13 @@ def validate_row(row: Row) -> list[str]:
         if it.kind not in KNOWN_KINDS:
             errs.append(f"[{row.title}/{it.id}] kind inconnu : {it.kind!r}")
 
+        # Cohérence live / kind : un direct (live=true) doit être live_tv ou sport.
+        if it.stream and it.stream.live and it.kind not in {"live_tv", "sport"}:
+            errs.append(
+                f"[{row.title}/{it.id}] stream.live=true avec kind={it.kind!r} "
+                "(incohérent — live réservé à live_tv/sport)"
+            )
+
         if it.kind == "game":
             if not it.download_url:
                 errs.append(f"[{row.title}/{it.id}] jeu sans download_url")
@@ -138,6 +214,8 @@ def validate_row(row: Row) -> list[str]:
             if (it.package_type or "apk").lower() == "apk":
                 if not it.sha256 or not SHA256_PATTERN.match(it.sha256):
                     errs.append(f"[{row.title}/{it.id}] SHA-256 hex 64 caractères obligatoire pour les APK")
+                if it.size_bytes is not None and it.size_bytes < 0:
+                    errs.append(f"[{row.title}/{it.id}] size_bytes négatif : {it.size_bytes}")
         else:
             if not it.stream or not it.stream.url:
                 errs.append(f"[{row.title}/{it.id}] item sans stream.url")
@@ -145,6 +223,18 @@ def validate_row(row: Row) -> list[str]:
                 errs.append(f"[{row.title}/{it.id}] URL de flux invalide : {it.stream.url!r}")
             elif it.stream.format not in {"mp4", "hls", "mp3"}:
                 errs.append(f"[{row.title}/{it.id}] format inconnu : {it.stream.format!r}")
+            elif it.stream.url.startswith("http://") and "localhost" not in it.stream.url:
+                errs.append(
+                    f"[{row.title}/{it.id}] URL non-HTTPS (sauf localhost) : {it.stream.url!r}"
+                )
+
+        # Licence et source requises, sauf contenu marqué démo — et sauf essai
+        # explicite de robustesse client (MISSA_ALLOW_MISSING_RIGHTS=1).
+        if not ALLOW_MISSING_RIGHTS:
+            if not it.demo and not it.license:
+                errs.append(f"[{row.title}/{it.id}] licence manquante (contenu non démo)")
+            if not it.demo and not it.source:
+                errs.append(f"[{row.title}/{it.id}] source manquante (contenu non démo)")
 
     return errs
 
@@ -156,9 +246,24 @@ def _json_default(o):
     raise TypeError(f"Non sérialisable : {type(o)}")
 
 
+def _warn_rights_bypass() -> None:
+    """Signale une seule fois que l'exigence licence/source est contournée."""
+    global _rights_bypass_warned
+    if not ALLOW_MISSING_RIGHTS or _rights_bypass_warned:
+        return
+    _rights_bypass_warned = True
+    print(
+        "ATTENTION : exigence licence/source désactivée "
+        "(MISSA_ALLOW_MISSING_RIGHTS=1) — catalogue produit pour un essai, "
+        "à ne pas publier.",
+        file=sys.stderr,
+    )
+
+
 def write_catalog(rows: list[Row], out_dir: str = DATA_DIR, name: str = "catalog") -> str:
     """Valide puis écrit <out_dir>/<name>.json avec remplacement atomique. Lève SystemExit si invalide."""
     os.makedirs(out_dir, exist_ok=True)
+    _warn_rights_bypass()
 
     all_errs: list[str] = []
     for row in rows:
@@ -184,9 +289,14 @@ def write_catalog(rows: list[Row], out_dir: str = DATA_DIR, name: str = "catalog
 
 
 def consolidate(out_dir: str = DATA_DIR) -> str:
-    """Fusionne uniquement les 10 catégories canoniques <cat>.json de site/data/ en un catalog.json unique."""
+    """Fusionne uniquement les 10 catégories canoniques <cat>.json de site/data/ en un catalog.json unique.
+
+    Revalide le catalogue agrégé et vérifie l'unicité des IDs de row et d'items.
+    Écrit de manière atomique (fichier temporaire puis os.replace).
+    """
     rows: list[dict] = []
     seen_item_ids: set[str] = set()
+    seen_row_ids: set[str] = set()
 
     for file_name in CANONICAL_FILES:
         p = os.path.join(out_dir, file_name)
@@ -195,12 +305,19 @@ def consolidate(out_dir: str = DATA_DIR) -> str:
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
         for row in data.get("rows", []):
+            # Contrôle de doublons de row IDs à l'échelle du catalogue consolidé
+            rid = row.get("id")
+            if rid:
+                if rid in seen_row_ids:
+                    print(f"Avertissement consolidation : row ID en doublon ignoré [{rid}]", file=sys.stderr)
+                    continue
+                seen_row_ids.add(rid)
             # Contrôle de doublons d'items à l'échelle du catalogue consolidé
             for item in row.get("items", []):
                 iid = item.get("id")
                 if iid:
                     if iid in seen_item_ids:
-                        print(f"Avertissement consolidation : ID en doublon ignoré [{iid}]", file=sys.stderr)
+                        print(f"Avertissement consolidation : ID d'item en doublon ignoré [{iid}]", file=sys.stderr)
                     else:
                         seen_item_ids.add(iid)
             rows.append(row)

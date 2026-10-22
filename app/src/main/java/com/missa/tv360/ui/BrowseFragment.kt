@@ -119,7 +119,7 @@ class BrowseFragment : BrowseSupportFragment() {
             // Tentative d'enrichissement en arrière-plan (timeout court).
             if (isOnline()) {
                 val catalogTask = async {
-                    try { withTimeout(4000) { CatalogRepository.loadCatalog() } }
+                    try { withTimeout(4000) { CatalogRepository.loadCatalog(appContext) } }
                     catch (_: Exception) { null }
                 }
                 val engineTask = async {

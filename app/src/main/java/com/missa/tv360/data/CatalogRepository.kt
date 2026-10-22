@@ -1,5 +1,7 @@
 package com.missa.tv360.data
 
+import android.content.Context
+import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.missa.tv360.BuildConfig
 import com.missa.tv360.R
@@ -7,6 +9,7 @@ import com.missa.tv360.data.remote.BffApi
 import com.missa.tv360.data.remote.ItemDto
 import com.missa.tv360.data.remote.PagesCatalogDto
 import com.missa.tv360.data.remote.PagesClient
+import com.missa.tv360.ui.afficheParDefaut
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
@@ -21,9 +24,11 @@ import retrofit2.converter.gson.GsonConverterFactory
  *            (produit par les moteurs engines/<cat>/engine.py).
  *            C'est le « serveur » de l'app.
  * Source 2 : BFF distant Retrofit (BuildConfig.BFF_BASE_URL) — alternative.
+ *            (À CONFIRMER : aucun serveur BFF n'est actuellement déployé ;
+ *             ce chemin est conservé pour compatibilité future.)
  * Source 3 : catalogue local de démonstration — uniquement des contenus
- *            libres de droits (domaine public, Creative Commons, webradios
- *            publiques) + emplacements réservés à connecter.
+ *            libres de droits (domaine public, Creative Commons) +
+ *            emplacements réservés à connecter.
  */
 object CatalogRepository {
 
@@ -35,12 +40,18 @@ object CatalogRepository {
 
     private const val CATALOG_PATH = "data/catalog.json"
 
-    // Contenus libres de droits vérifiés
+    /** Catalogue embarqué dans l'APK (source de repli fiable, hors réseau). */
+    private const val ASSET_CATALOG_PATH = "catalog.json"
+
+    /** Nom des préférences où le dernier catalogue distant valide est conservé. */
+    private const val PREFS_NAME = "catalog_cache"
+    private const val PREF_CATALOG = "last_valid_catalog"
+
+    // Contenus libres de droits vérifiés (domaine public / CC BY / webradios publiques)
     private const val NASA_TV = "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8"
     private const val BIPBOP =
         "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8"
     private const val GTV = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/"
-    private const val SOMAFM = "https://ice1.somafm.com/"
 
     private val api: BffApi by lazy {
         Retrofit.Builder()
@@ -50,16 +61,22 @@ object CatalogRepository {
             .create(BffApi::class.java)
     }
 
-    suspend fun loadCatalog(): List<VideoRow> = withContext(Dispatchers.IO) {
+    suspend fun loadCatalog(context: Context): List<VideoRow> = withContext(Dispatchers.IO) {
+        val appContext = context.applicationContext
         // Source 1 : le dépôt GitHub (GitHub Pages) — le « serveur » de l'app.
-        try {
-            val type = object : TypeToken<PagesCatalogDto>() {}.type
-            val dto: PagesCatalogDto? =
-                PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, CATALOG_PATH, type, 4000)
-            val rows = dto?.toRows().orEmpty()
-            if (rows.isNotEmpty()) return@withContext rows
-        } catch (_: Exception) {
-            // on passe à la source suivante
+        val type = object : TypeToken<PagesCatalogDto>() {}.type
+        val result: PagesClient.FetchResult<PagesCatalogDto> =
+            PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, CATALOG_PATH, type, 4000)
+        val dto: PagesCatalogDto? = when (result) {
+            is PagesClient.FetchResult.Success<*> -> result.data as? PagesCatalogDto
+            else -> null
+        }
+        val rows = dto?.toRows().orEmpty()
+        if (rows.isNotEmpty()) {
+            // On garde la dernière version valide : elle sert de repli si le
+            // réseau tombe au prochain lancement.
+            if (dto != null) cacheCatalog(appContext, dto)
+            return@withContext rows
         }
         // Source 2 : BFF Retrofit (alternative, même contrat).
         try {
@@ -75,8 +92,66 @@ object CatalogRepository {
         } catch (_: Exception) {
             // on passe à la source suivante
         }
-        // Source 3 : catalogue local embarqué.
+        // Source 3 : dernier catalogue distant valide (hors réseau).
+        cachedCatalogRows(appContext)?.let { return@withContext it }
+        // Source 4 : catalogue embarqué dans l'APK (fiable, même hors réseau).
+        bundledCatalogRows(appContext)?.let { return@withContext it }
+        // Source 5 : catalogue local de démonstration.
         localCatalog()
+    }
+
+    /**
+     * Catalogue livré dans les assets de l'APK.
+     *
+     * Il est produit par `python engines/build_all.py` puis copié dans
+     * `app/src/main/assets/catalog.json`. Contrairement au catalogue local de
+     * démonstration, il contient les vignettes et les descriptions réelles :
+     * les tuiles ne sont donc jamais vides, même sans réseau.
+     */
+    fun bundledCatalogRows(context: Context): List<VideoRow>? {
+        val appContext = context.applicationContext
+        return try {
+            val json = appContext.assets.open(ASSET_CATALOG_PATH)
+                .bufferedReader().use { it.readText() }
+            parseRows(json)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Catalogue mis en cache lors du dernier chargement réseau réussi.
+     * Évite de retomber sur le catalogue de démonstration après une coupure.
+     */
+    private fun cachedCatalogRows(context: Context): List<VideoRow>? {
+        val appContext = context.applicationContext
+        val json = try {
+            appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(PREF_CATALOG, null)
+        } catch (_: Exception) {
+            null
+        } ?: return null
+        return parseRows(json)
+    }
+
+    /** Conserve le catalogue distant valide pour les prochaines openings. */
+    private fun cacheCatalog(context: Context, dto: PagesCatalogDto) {
+        try {
+            val appContext = context.applicationContext
+            val json = Gson().toJson(dto)
+            appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putString(PREF_CATALOG, json).apply()
+        } catch (_: Exception) {
+            // Le cache est un confort : son échec n'est pas bloquant.
+        }
+    }
+
+    /** Convertit un catalogue JSON (texte) en lignes de contenus. */
+    private fun parseRows(json: String): List<VideoRow>? = try {
+        val dto = Gson().fromJson(json, PagesCatalogDto::class.java)
+        dto.toRows().ifEmpty { null }
+    } catch (_: Exception) {
+        null
     }
 
     /** Mappe le DTO Pages en lignes ordonnées selon l'ordre canonique. */
@@ -95,7 +170,18 @@ object CatalogRepository {
                         isGamesLauncher = true),
                 )
             } else {
-                row.items.mapNotNull { it.toVideo() }
+                row.items.mapNotNull { item ->
+                    item.toVideo()?.let { video ->
+                        // Fallback : si le catalogue distant ne fournit ni drawable local
+                        // ni URL de vignette, on affiche une illustration par défaut
+                        // pour éviter des tuiles vides.
+                        if (video.cardRes == 0 && video.cardUrl.isNullOrBlank()) {
+                            video.copy(cardRes = defaultCardResFor(video.kind))
+                        } else {
+                            video
+                        }
+                    }
+                }
             }
             if (videos.isEmpty()) return@mapNotNull null
             VideoRow(videos = videos, headerTitle = title, rowId = rowId)
@@ -103,6 +189,9 @@ object CatalogRepository {
             val idx = CANONICAL_ORDER.indexOf(row.rowId)
             if (idx >= 0) idx else CANONICAL_ORDER.size
         }
+
+    /** Illustration de secours par kind quand le catalogue distant n'en fournit aucune. */
+    private fun defaultCardResFor(kind: ContentKind): Int = afficheParDefaut(kind)
 
     /** Catalogue local de démonstration (10 lignes). */
     fun localCatalog(): List<VideoRow> = listOf(
@@ -125,24 +214,25 @@ object CatalogRepository {
                 kind = ContentKind.LIVE_TV, format = "hls"),
         )),
 
-        // ── 2. SPORT DIRECT ──────────────────────────────────────────
+        // ── 2. SPORT ─────────────────────────────────────────────────
+        // Extraits de démonstration (non directs) — kind MOVIE, forceLive=false.
         VideoRow(R.string.row_sport, listOf(
             Video("sport-1", "Subaru — Sur route et terre",
                 "Essai tout-terrain : démonstration de conduite sportive.",
                 R.drawable.card_sport, GTV + "SubaruOutbackOnStreetAndDirt.mp4",
-                kind = ContentKind.LIVE_SPORT),
+                kind = ContentKind.MOVIE),
             Video("sport-2", "Volkswagen GTI — Essai",
                 "Essai routier d'une berline sportive.",
                 R.drawable.card_sport, GTV + "VolkswagenGTIReview.mp4",
-                kind = ContentKind.LIVE_SPORT),
+                kind = ContentKind.MOVIE),
             Video("sport-3", "Grand Prix — Tour de piste",
                 "Démonstration de pilotage sur circuit.",
                 R.drawable.card_sport, GTV + "WeAreGoingOnBullrun.mp4",
-                kind = ContentKind.LIVE_SPORT),
+                kind = ContentKind.MOVIE),
             Video("sport-4", "Moteurs — Plein régime",
                 "Séquence mécanique et sport automobile.",
                 R.drawable.card_sport, GTV + "WhatCarCanYouGetForAGrand.mp4",
-                kind = ContentKind.LIVE_SPORT),
+                kind = ContentKind.MOVIE),
         )),
 
         // ── 3. FILMS (domaine public, archive.org) ───────────────────
@@ -285,79 +375,37 @@ object CatalogRepository {
         )),
 
         // ── 6. MUSIQUE ───────────────────────────────────────────────
+        // Données de démonstration uniquement — à remplacer par des sources
+        // audio dont les conditions autorisent l'intégration en application tierce.
         VideoRow(R.string.row_music, listOf(
             Video("music-clip-1", "Clip — Plein cadre",
-                "Clip musical de demonstration.",
+                "Clip musical de demonstration (Google, usage de test).",
                 R.drawable.card_music, GTV + "ForBiggerBlazes.mp4",
                 kind = ContentKind.MUSIC),
             Video("music-clip-2", "Clip — Nuit electrique",
-                "Clip musical de demonstration.",
+                "Clip musical de demonstration (Google, usage de test).",
                 R.drawable.card_music, GTV + "ForBiggerFun.mp4",
                 kind = ContentKind.MUSIC),
             Video("music-clip-3", "Clip — Route infinie",
-                "Clip musical de demonstration.",
+                "Clip musical de demonstration (Google, usage de test).",
                 R.drawable.card_music, GTV + "ForBiggerJoyrides.mp4",
                 kind = ContentKind.MUSIC),
-            Video("music-poptron", "PopTron — Webradio",
-                "Webradio indie pop / electro — SomaFM (ecoute libre).",
-                R.drawable.card_music, SOMAFM + "poptron-128-mp3",
-                kind = ContentKind.MUSIC, format = "mp3"),
-            Video("music-bootliquor", "Boot Liquor — Webradio",
-                "Webradio americana / country — SomaFM (ecoute libre).",
-                R.drawable.card_music, SOMAFM + "bootliquor-128-mp3",
-                kind = ContentKind.MUSIC, format = "mp3"),
         )),
 
-        // ── 7. RADIO (webradios publiques SomaFM — flux MP3 libres) ──
-        VideoRow(R.string.row_radio, listOf(
-            Video("radio-groove", "Groove Salad",
-                "Webradio ambient / downtempo — SomaFM (ecoute libre, flou donation).",
-                R.drawable.card_radio, SOMAFM + "groovesalad-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-lush", "Lush",
-                "Webradio voix feminines / electronica — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "lush-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-drone", "Drone Zone",
-                "Webradio ambient spatial — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "dronezone-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-poptron", "PopTron",
-                "Webradio indie pop / electro — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "poptron-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-secretagent", "Secret Agent",
-                "Webradio cinematographique / espionnage — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "secretagent-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-indiepop", "Indie Pop Rocks",
-                "Webradio indie pop — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "indiepop-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-            Video("radio-metal", "Metal Detector",
-                "Webradio metal / heavy — SomaFM.",
-                R.drawable.card_radio, SOMAFM + "metal-128-mp3",
-                kind = ContentKind.RADIO, format = "mp3"),
-        )),
+        // ── 7. RADIO ─────────────────────────────────────────────────
+        // ATTENTION conformité : les flux SomaFM nécessitent une autorisation
+        // écrite préalable avant intégration en application tierce.
+        // Ligne conservée vide en attendant une source audio autorisée.
+        VideoRow(R.string.row_radio, emptyList()),
 
         // ── 8. PODCASTS ──────────────────────────────────────────────
+        // Données de démonstration uniquement — à remplacer par des podcasts
+        // dont les conditions autorisent l'intégration en application tierce.
         VideoRow(R.string.row_podcast, listOf(
-            Video("pod-spacestation", "Space Station — Ambient",
-                "Longue session ambient, ideale en podcast d'ambiance — SomaFM.",
-                R.drawable.card_podcast, SOMAFM + "spacestation-128-mp3",
-                kind = ContentKind.PODCAST, format = "mp3"),
-            Video("pod-defcon", "DEF CON Radio",
-                "Selection electronique — SomaFM.",
-                R.drawable.card_podcast, SOMAFM + "defcon-128-mp3",
-                kind = ContentKind.PODCAST, format = "mp3"),
-            Video("pod-fluid", "Fluid — Instrumental Hip-Hop",
-                "Instrumental hip-hop — SomaFM.",
-                R.drawable.card_podcast, SOMAFM + "fluid-128-mp3",
-                kind = ContentKind.PODCAST, format = "mp3"),
-            Video("pod-groove", "Groove Salad Classic",
-                "Downtempo classique — SomaFM.",
-                R.drawable.card_podcast, SOMAFM + "groovesalad-128-mp3",
-                kind = ContentKind.PODCAST, format = "mp3"),
+            Video("pod-demo-1", "Podcast · Emplacement 1",
+                "Emplacement réservé pour un futur podcast autorisé.",
+                R.drawable.card_podcast, "",
+                kind = ContentKind.PODCAST),
         )),
 
         // ── 9. JEUNESSE (Blender CC, tous publics) ───────────────────

@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-10-21T21:09:05.316566+00:00",
+  "generated_at": "2026-10-22T18:20:33.106287+00:00",
   "rows": [
     {
       "id": "sport",
-      "title": "Sport Direct",
+      "title": "Sport",
       "items": [
         {
           "id": "sport-demo-1",
           "title": "Sport · Extrait d'essai",
           "kind": "sport",
-          "description": "Extrait vidéo de démonstration sportive.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sport+·+Extrait+d'essai",
+          "description": "Extrait vidéo de démonstration sportive (non direct).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600.png?text=Sport%20%C2%B7%20Extrait%20d%27essai",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "format": "mp4",
@@ -29,7 +29,9 @@
           "version_code": null,
           "genre": null,
           "source": "Extrait Démo",
-          "license": "Libre accès"
+          "license": "Libre accès",
+          "demo": true,
+          "rights_checked": false
         }
       ]
     }

@@ -5,9 +5,9 @@
 from __future__ import annotations
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "_core"))
-from schema import Item, Row, Stream, run_engine  # noqa: E402
+from schema import Item, placeholder_thumbnail, Row, run_engine, Stream  # noqa: E402
 
-CONTENU = [('ser-a-e1', 'Les Grandes Escapades — É1', 'Épisode 1.', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', 'mp4', False), ('ser-a-e2', 'Les Grandes Escapades — É2', 'Épisode 2.', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', 'mp4', False)]
+CONTENU = [('ser-a-e1', 'Les Grandes Escapades — É1', 'Épisode 1 (démonstration — contenu de test).', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', 'mp4', False), ('ser-a-e2', 'Les Grandes Escapades — É2', 'Épisode 2 (démonstration — contenu de test).', 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', 'mp4', False)]
 
 
 def build_rows():
@@ -17,7 +17,11 @@ def build_rows():
             id=iid, title=title, kind='series', description=desc,
             stream=Stream(url=url, format=fmt, live=live),
             audio_only=(fmt == "mp3"),
-            thumbnail_url=f"https://placehold.co/320x180/1a237e/ffd600?text={title.replace(" ", "+")}",
+            thumbnail_url=placeholder_thumbnail(title, "series"),
+            source="Démonstration",
+            license="Libre accès (test)",
+            demo=True,
+            rights_checked=False,
         ))
     return [Row(id='series', title='Séries', items=items)]
 

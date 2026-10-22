@@ -58,13 +58,16 @@ class CardPresenter : Presenter() {
         card.badgeImage = if (video.isLive) {
             ContextCompat.getDrawable(card.context, R.drawable.ic_live_badge)
         } else null
-        // The type-specific fallback stays visible while loading and when the URL is blank or fails.
-        ContextCompat.getDrawable(card.context, fondParDefaut(video.kind.name))
-            ?.let { card.mainImageView.setImageDrawable(it) }
+        // Dessin de secours immédiat (évite les tuiles vides pendant le chargement distant).
+        val fallback = ContextCompat.getDrawable(card.context, fondParDefaut(video.kind.name))
+        card.mainImageView?.let {
+            it.setImageDrawable(fallback)
+            card.mainImage = fallback
+        }
         val remote = video.cardUrl
         if (!remote.isNullOrBlank()) {
             card.tag = remote
-            ThumbnailLoader.load(card, remote)
+            ThumbnailLoader.load(card, remote, fallback)
         } else {
             card.tag = null
         }

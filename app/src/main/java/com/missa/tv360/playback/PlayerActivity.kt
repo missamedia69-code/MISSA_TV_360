@@ -6,9 +6,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.missa.tv360.R
 
@@ -26,6 +29,17 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_AUDIO_ONLY = "extra_audio_only"
         const val EXTRA_COVER_RES = "extra_cover_res"
         const val EXTRA_COVER_URL = "extra_cover_url"
+
+        /**
+         * En-têtes HTTP exigés par le flux (Referer, User-Agent…), transmis en
+         * `HashMap<String, String>` sérialisable. Vide pour un flux public.
+         */
+        const val EXTRA_HEADERS = "extra_headers"
+
+        /** Format annoncé par la source : mp4 | hls | mp3. */
+        const val EXTRA_FORMAT = "extra_format"
+
+        private const val USER_AGENT = "MISSA-TV-360/1.0 (Android player)"
     }
 
     private var player: ExoPlayer? = null
@@ -110,11 +124,15 @@ class PlayerActivity : AppCompatActivity() {
         val isLive = intent.getBooleanExtra(EXTRA_LIVE, false)
 
         val exo = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setSeekBackIncrementMs(10_000)
             .setSeekForwardIncrementMs(10_000)
             .build()
 
         val mediaItemBuilder = MediaItem.Builder().setUri(url)
+        // Le type MIME est imposé par la source plutôt que deviné depuis
+        // l'extension : un manifeste HLS peut arriver sans « .m3u8 ».
+        mimeTypeFor(intent.getStringExtra(EXTRA_FORMAT))?.let(mediaItemBuilder::setMimeType)
         if (isLive) {
             mediaItemBuilder.setLiveConfiguration(
                 MediaItem.LiveConfiguration.Builder()
@@ -146,6 +164,38 @@ class PlayerActivity : AppCompatActivity() {
 
         findViewById<PlayerView>(R.id.player_view).player = exo
         player = exo
+    }
+
+    /** Type MIME explicite pour les formats que le lecteur doit forcer. */
+    private fun mimeTypeFor(format: String?): String? = when (format?.lowercase()) {
+        "hls" -> MimeTypes.APPLICATION_M3U8
+        "mp4" -> MimeTypes.VIDEO_MP4
+        "mp3" -> MimeTypes.AUDIO_MPEG
+        else -> null
+    }
+
+    /**
+     * Source HTTP du lecteur, avec les en-têtes résolus par la source de
+     * contenu. Certains CDN refusent une requête sans `Referer` ou `Origin`.
+     */
+    private fun createDataSourceFactory(): DefaultHttpDataSource.Factory {
+        val headers = readHeadersExtra()
+        return DefaultHttpDataSource.Factory()
+            .setUserAgent(USER_AGENT)
+            .setAllowCrossProtocolRedirects(true)
+            .setDefaultRequestProperties(headers)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun readHeadersExtra(): Map<String, String> {
+        val raw = intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<Any?, Any?> ?: return emptyMap()
+        val headers = LinkedHashMap<String, String>()
+        raw.forEach { (key, value) ->
+            val name = key?.toString()?.trim().orEmpty()
+            val content = value?.toString()?.trim().orEmpty()
+            if (name.isNotEmpty() && content.isNotEmpty()) headers[name] = content
+        }
+        return headers
     }
 
     private fun releasePlayer() {

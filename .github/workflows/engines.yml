@@ -34,6 +34,10 @@ jobs:
         run: pip install pyyaml
 
       - name: Run all engines & consolidate catalog
+        env:
+          # Clé gratuite Jamendo (catalogue Creative Commons). Absente = source
+          # ignorée, le build reste vert et garde son contenu de repli.
+          JAMENDO_CLIENT_ID: ${{ secrets.JAMENDO_CLIENT_ID }}
         run: python engines/build_all.py
 
       # Paquet déclaratif consommé par le moteur Films intégré à l'application.

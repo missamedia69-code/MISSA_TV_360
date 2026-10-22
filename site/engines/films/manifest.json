@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "engine_id": "films",
+  "version": 2,
+  "updated_at": "2026-10-22",
+  "sources": [
+    {
+      "id": "internet_archive",
+      "adapter": "internet_archive",
+      "enabled": true,
+      "media_type": "movies",
+      "tv_types": ["movies"],
+      "trending_query": "mediatype:movies",
+      "trending_sort": "downloads desc",
+      "trending_limit": 20,
+      "search_limit": 40,
+      "search_fields": ["title", "creator", "subject"],
+      "search_sort": "downloads desc",
+      "playable_formats": ["mp4"],
+      "quality_order": "height_then_size",
+      "related_limit": 12,
+      "related_sort": "downloads desc",
+      "related_fields": ["subject", "creator", "title"]
+    },
+    {
+      "id": "dailymotion",
+      "adapter": "dailymotion",
+      "enabled": true,
+      "media_type": "movies",
+      "tv_types": ["movies", "others"],
+      "trending_sort": "trending",
+      "trending_limit": 20,
+      "search_limit": 40,
+      "search_sort": "relevance",
+      "playable_formats": ["hls", "mp4"],
+      "quality_order": "height_then_size",
+      "related_limit": 12,
+      "related_sort": "relevance"
+    }
+  ]
+}

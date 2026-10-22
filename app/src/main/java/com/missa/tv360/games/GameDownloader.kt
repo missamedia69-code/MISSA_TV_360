@@ -12,19 +12,39 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.MalformedURLException
 import java.net.URL
 import java.security.MessageDigest
+import java.util.regex.Pattern
 
 /**
  * Telecharge un fichier de jeu (APK / asset) dans le cache prive de l'app,
  * verifie la somme de controle SHA-256, puis propose l'installation.
  *
- * Securite : on n'installe jamais un fichier dont le checksum ne correspond
- * pas a celui publie dans le catalogue. L'installation d'APK externe passe
- * par le FileProvider + Intent d'installation systeme (permission
- * REQUEST_INSTALL_APPS geree par l'app).
+ * Securite :
+ *  - SHA-256 OBLIGATOIRE : aucun jeu sans empreinte n'est installe.
+ *  - Plafonnement de taille : refuse les fichiers au-dessus de la limite.
+ *  - Hotes autorisés : seuls les domaines de la liste sont acceptes.
+ *  - Verification du checksum avant toute installation.
+ * L'installation d'APK externe passe par le FileProvider + Intent d'installation
+ * systeme (permission REQUEST_INSTALL_APPS geree par l'app).
  */
 class GameDownloader(private val context: Context) {
+
+    companion object {
+        /** Taille maximale autorisee pour un telechargement de jeu (500 Mo). */
+        private const val MAX_DOWNLOAD_SIZE_BYTES: Long = 500L * 1024 * 1024
+    }
+
+    /** Hotes autorises pour le telechargement de jeux (protection contre exfiltration). */
+    private val ALLOWED_HOSTS = setOf(
+        "f-droid.org",
+        "github.com",
+        "releases.github.com",
+        "github.io",
+    )
+
+    private val SHA256_PATTERN = Pattern.compile("^[a-fA-F0-9]{64}$")
 
     /** Etat d'un telechargement, expose a l'UI. */
     data class DownloadState(
@@ -46,31 +66,47 @@ class GameDownloader(private val context: Context) {
         _state.value = _state.value + (gameId to copy)
     }
 
+    /** Vérifie que l'hôte de l'URL est dans la liste autorisée. */
+    private fun isHostAllowed(rawUrl: String): Boolean {
+        return try {
+            val host = URL(rawUrl).host ?: ""
+            ALLOWED_HOSTS.any { host.equals(it, ignoreCase = true) || host.endsWith(".${it.lowercase()}") }
+        } catch (_: MalformedURLException) {
+            false
+        }
+    }
+
     /**
-     * Telecharge le jeu puis lance l'installation si c'est un APK.
-     * Retourne null en cas de succes, ou un message d'erreur lisible.
+     * Télécharge le jeu puis lance l'installation si c'est un APK.
+     * Retourne null en cas de succès, ou un message d'erreur lisible.
      */
     suspend fun downloadAndInstall(game: Game): String? = withContext(Dispatchers.IO) {
         if (game.downloadUrl.isBlank()) {
-            return@withContext "Aucun fichier configure pour ce jeu (emplacement reserve)."
+            return@withContext "Aucun fichier configuré pour ce jeu (emplacement réservé)."
+        }
+        // SHA-256 obligatoire : on n'installe jamais sans empreinte.
+        if (game.sha256.isNullOrBlank() || !SHA256_PATTERN.matcher(game.sha256!!).matches()) {
+            return@withContext "Checksum SHA-256 manquant ou invalide — installation bloquée."
+        }
+        // Hôte autorisé uniquement.
+        if (!isHostAllowed(game.downloadUrl)) {
+            return@withContext "Hôte non autorisé pour le téléchargement : ${game.downloadUrl}"
         }
         update(game.id) { it.running = true; it.progress = 0; it.failed = null; it.done = false }
         try {
             val dest = File(context.cacheDir, "games").apply { mkdirs() }
             val file = File(dest, "${game.id}.${game.packageType}")
 
-            val ok = downloadToFile(game.downloadUrl, file) { pct ->
+            val ok = downloadToFile(game.downloadUrl, file, MAX_DOWNLOAD_SIZE_BYTES) { pct ->
                 update(game.id) { it.progress = pct }
             }
-            if (!ok) throw Exception("Telechargement interrompu.")
+            if (!ok) throw Exception("Téléchargement interrompu ou taille dépasse la limite.")
 
-            // Verification du checksum si le catalogue en fournit un.
-            if (!game.sha256.isNullOrBlank()) {
-                val actual = sha256Of(file)
-                if (!actual.equals(game.sha256, ignoreCase = true)) {
-                    file.delete()
-                    throw Exception("Checksum incorrect (fichier rejete).")
-                }
+            // Vérification du checksum obligatoire.
+            val actual = sha256Of(file)
+            if (!actual.equals(game.sha256, ignoreCase = true)) {
+                file.delete()
+                throw Exception("Checksum incorrect (fichier rejeté).")
             }
 
             update(game.id) { it.progress = 100; it.running = false; it.done = true }
@@ -85,7 +121,7 @@ class GameDownloader(private val context: Context) {
         }
     }
 
-    private fun downloadToFile(rawUrl: String, dest: File, onProgress: (Int) -> Unit): Boolean {
+    private fun downloadToFile(rawUrl: String, dest: File, maxSizeBytes: Long, onProgress: (Int) -> Unit): Boolean {
         var conn: HttpURLConnection? = null
         return try {
             conn = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
@@ -93,7 +129,11 @@ class GameDownloader(private val context: Context) {
                 readTimeout = 60_000
                 instanceFollowRedirects = true
             }
-            val total = conn.contentLength.toLong().takeIf { it > 0 } ?: -1L
+            // Vérification de la taille déclarée avant téléchargement.
+            val declaredSize = conn.contentLength.toLong()
+            if (declaredSize > 0 && declaredSize > maxSizeBytes) {
+                return false
+            }
             conn.inputStream.use { input: InputStream ->
                 dest.outputStream().use { out ->
                     val buf = ByteArray(64 * 1024)
@@ -101,10 +141,13 @@ class GameDownloader(private val context: Context) {
                     var acc = 0L
                     var lastPct = -1
                     while (input.read(buf).also { read = it } != -1) {
-                        out.write(buf, 0, read)
                         acc += read
-                        if (total > 0) {
-                            val pct = ((acc * 100) / total).toInt().coerceIn(0, 100)
+                        if (acc > maxSizeBytes) {
+                            return@use false // taille réelle dépasse la limite
+                        }
+                        out.write(buf, 0, read)
+                        if (declaredSize > 0) {
+                            val pct = ((acc * 100) / declaredSize).toInt().coerceIn(0, 100)
                             if (pct != lastPct) { lastPct = pct; onProgress(pct) }
                         }
                     }
@@ -130,7 +173,7 @@ class GameDownloader(private val context: Context) {
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    /** Lance l'installation systeme d'un APK via le mecanisme Android standard. */
+    /** Lance l'installation système d'un APK via le mécanisme Android standard. */
     private fun installApk(file: File, gameId: String) {
         val uri: Uri = FileProvider.getUriForFile(
             context, "${context.packageName}.fileprovider", file

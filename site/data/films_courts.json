@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:09:05.224025+00:00",
+  "generated_at": "2026-10-22T18:19:23.216698+00:00",
   "rows": [
     {
       "id": "films_courts",
@@ -9,8 +9,8 @@
           "id": "short-bbb",
           "title": "Big Buck Bunny",
           "kind": "short",
-          "description": "Court métrage Blender (2008), CC BY.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
+          "description": "Court métrage Blender (2008), CC BY (droits vérifiés).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600.png?text=Big%20Buck%20Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -28,15 +28,17 @@
           "version_name": null,
           "version_code": null,
           "genre": null,
-          "source": null,
-          "license": null
+          "source": "Blender Foundation",
+          "license": "CC BY 3.0",
+          "demo": false,
+          "rights_checked": true
         },
         {
           "id": "short-sintel",
           "title": "Sintel",
           "kind": "short",
-          "description": "Court métrage Blender (2010), CC BY.",
-          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
+          "description": "Court métrage Blender (2010), CC BY (droits vérifiés).",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600.png?text=Sintel",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
             "format": "mp4",
@@ -54,8 +56,10 @@
           "version_name": null,
           "version_code": null,
           "genre": null,
-          "source": null,
-          "license": null
+          "source": "Blender Foundation",
+          "license": "CC BY 3.0",
+          "demo": false,
+          "rights_checked": true
         }
       ]
     }

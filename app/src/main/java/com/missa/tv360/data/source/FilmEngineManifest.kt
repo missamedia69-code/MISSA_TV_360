@@ -34,23 +34,34 @@ data class FilmSourceManifest(
     @SerializedName("related_limit") val relatedLimit: Int? = null,
     @SerializedName("related_sort") val relatedSort: String? = null,
     @SerializedName("related_fields") val relatedFields: List<String>? = null,
+    /** Types de contenu servis par la source (même vocabulaire que les dépôts CloudStream). */
+    @SerializedName("tv_types") val tvTypes: List<String>? = null,
 ) {
     fun toRuntimeConfig(): FilmSourceConfig? {
         if (enabled != true) return null
         val safeId = id?.trim()?.takeIf { it.matches(Regex("[a-z0-9_-]{1,48}")) } ?: return null
         val safeAdapter = adapter?.trim()?.takeIf { it.matches(Regex("[a-z0-9_-]{1,48}")) }
             ?: return null
-        // Ce premier moteur est strictement Films. Aucun endpoint/URL arbitraire
-        // provenant du manifeste n'est exécuté par l'application.
-        val safeMediaType = mediaType?.takeIf { it == "movies" } ?: return null
+        // Le manifeste ne transporte que des paramètres : jamais d'endpoint,
+        // d'URL de flux ni d'en-tête. Chaque adaptateur ignore ce qu'il
+        // n'utilise pas, et l'app reste seule à décider où elle appelle.
+        val safeMediaType = mediaType?.trim()?.lowercase()
+            ?.takeIf { it in MEDIA_TYPES } ?: return null
         val safeTrendingQuery = trendingQuery?.trim()
-            ?.takeIf { it == "mediatype:movies" } ?: return null
-        val safeSorts = setOf("downloads desc", "date desc", "title asc")
+            ?.takeIf { it.isNotEmpty() && it.length <= 160 && it.none(Char::isISOControl) }
+            ?: DEFAULT_TRENDING_QUERY.getValue(safeMediaType)
+        val safeSorts = setOf("downloads desc", "date desc", "title asc", "relevance", "recent", "trending")
         val safePlayableFormats = playableFormats.orEmpty()
-            .map { it.lowercase() }
-            .filter { it == "mp4" }
+            .map { it.trim().lowercase() }
+            .filter { it in PLAYABLE_FORMATS }
             .distinct()
             .ifEmpty { listOf("mp4") }
+        val safeTvTypes = tvTypes.orEmpty()
+            .map { it.trim().lowercase() }
+            .filter { it in TV_TYPES }
+            .distinct()
+            .take(4)
+            .ifEmpty { listOf("movies") }
         val safeSearchFields = searchFields.orEmpty()
             .filter { it in setOf("title", "creator", "subject", "description") }
             .distinct()
@@ -75,6 +86,25 @@ data class FilmSourceManifest(
             relatedLimit = (relatedLimit ?: 12).coerceIn(1, 30),
             relatedSort = relatedSort?.takeIf { it in safeSorts } ?: "downloads desc",
             relatedFields = safeRelatedFields.ifEmpty { listOf("subject", "creator", "title") },
+            tvTypes = safeTvTypes,
+        )
+    }
+
+    companion object {
+        /** Types de médias acceptés dans un manifeste distant. */
+        private val MEDIA_TYPES = setOf("movies", "series", "music", "games")
+
+        /** Formats que le lecteur sait ouvrir (media3 + ExoPlayer HLS). */
+        private val PLAYABLE_FORMATS = setOf("mp4", "hls", "mp3")
+
+        /** Taxonomie déclarative, alignée sur les dépôts d'extensions. */
+        private val TV_TYPES = setOf("live", "movies", "series", "others")
+
+        private val DEFAULT_TRENDING_QUERY = mapOf(
+            "movies" to "mediatype:movies",
+            "series" to "mediatype:movies",
+            "music" to "mediatype:audio",
+            "games" to "mediatype:software",
         )
     }
 }
@@ -99,6 +129,8 @@ data class FilmSourceConfig(
     val relatedLimit: Int,
     val relatedSort: String,
     val relatedFields: List<String>,
+    /** Types de contenu servis (live, movies, series, others). */
+    val tvTypes: List<String> = listOf("movies"),
 ) {
     companion object {
         fun bundledDefault() = FilmSourceConfig(
@@ -116,6 +148,7 @@ data class FilmSourceConfig(
             relatedLimit = 12,
             relatedSort = "downloads desc",
             relatedFields = listOf("subject", "creator", "title"),
+            tvTypes = listOf("movies"),
         )
     }
 }
