@@ -370,9 +370,9 @@ object ExtensionManager {
                 )
                 extension.copy(enabled = false, status = PluginEntry.STATUS_DOWN)
             } else if (!entry.isDisabledByAuthor && extension.status == PluginEntry.STATUS_DOWN) {
-                extension.copy(enabled = true, status = entry.status)
+                extension.copy(enabled = true, status = entry.statusInt)
             } else {
-                extension.copy(status = entry.status)
+                extension.copy(status = entry.statusInt)
             }
         }
         store.saveInstalled(updated)

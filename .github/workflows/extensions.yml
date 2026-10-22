@@ -47,8 +47,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Set up Android SDK (d8)
-        uses: android-actions/setup-android@v3
+      - name: Vérifier la présence de d8
+        run: |
+          set -euo pipefail
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          echo "SDK Android : ${sdk:-absent}"
+          test -n "$sdk" || { echo "::error::ANDROID_HOME absent : d8 est requis"; exit 1; }
+          ls "$sdk/build-tools" || true
 
       - name: Tests de l'outil de publication
         run: python3 -m unittest discover -s extension-tools -v
