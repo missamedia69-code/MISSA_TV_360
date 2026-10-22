@@ -9,7 +9,7 @@
           "title": "NASA TV Public",
           "kind": "live_tv",
           "description": "Chaîne publique de la NASA en flux HLS continu.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=NASA+TV+Public",
           "stream": {
             "url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-NTV1-HLS/master.m3u8",
             "format": "hls",
@@ -26,14 +26,16 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         },
         {
           "id": "live-bipbop",
           "title": "BipBop Advanced",
           "kind": "live_tv",
           "description": "Flux HLS de test d'Apple (multi-débit).",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=BipBop+Advanced",
           "stream": {
             "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
             "format": "hls",
@@ -50,7 +52,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     },
@@ -60,10 +64,10 @@
       "items": [
         {
           "id": "sport-demo-1",
-          "title": "Sport · Emplacement 1",
+          "title": "Sport · Extrait d'essai",
           "kind": "sport",
-          "description": "Emplacement réservé pour vos droits sport en direct.",
-          "thumbnail_url": null,
+          "description": "Extrait vidéo de démonstration sportive.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sport+·+Extrait+d'essai",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
             "format": "mp4",
@@ -80,7 +84,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Extrait Démo",
+          "license": "Libre accès"
         }
       ]
     },
@@ -92,7 +98,7 @@
           "id": "preview-archive-test",
           "title": "TEST IA — The Phantom of the Opera (1929)",
           "kind": "movie",
-          "description": "This is the most commonly available version of The Phantom of the Opera. It is a re-edit of the 1925 version and originally had a synchronized sound score. It is a DVD rip from the milestone edition, with the man with lantern sequence edited in. It is the best available print of the film from the UCLA film and television archives. The soundtrack is Symphony No. 8 in B minor, best known as the \"Unfinished Symphony\". It is not the best soundtrack for the film, but I was unsure whether or not the 1929 soundtrack is in the public domain. Staring Lon Chaney, Mary Philbin and Norman Kerry. Directed ",
+          "description": "Film muet fantastique de Rupert Julian (1929), domaine public.",
           "thumbnail_url": "https://archive.org/services/img/ThePhantomOfTheOpera1929",
           "stream": {
             "url": "https://archive.org/download/ThePhantomOfTheOpera1929/thepaantomoftheopera1929_512kb.mp4",
@@ -110,13 +116,15 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-scarlet",
           "title": "Scarlet Street",
           "kind": "movie",
-          "description": "Film noir de Fritz Lang (1945), restauré, domaine public. Note IMDB 7.8.",
+          "description": "Film noir de Fritz Lang (1945), restauré, domaine public.",
           "thumbnail_url": "https://archive.org/services/img/scarlet-street-1945-restored-movie-720p-hd",
           "stream": {
             "url": "https://archive.org/download/scarlet-street-1945-restored-movie-720p-hd/scarlet%20street-1945-restored%20movie-720p-hd.mp4",
@@ -134,7 +142,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-gaslight",
@@ -158,7 +168,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-mrx",
@@ -182,7 +194,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-sanfran",
@@ -206,7 +220,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         },
         {
           "id": "film-hometown",
@@ -230,7 +246,139 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-nosferatu",
+          "title": "Nosferatu (1922)",
+          "kind": "movie",
+          "description": "Chef-d'œuvre expressionniste de F. W. Murnau (1922), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/nosferatu",
+          "stream": {
+            "url": "https://archive.org/download/nosferatu/nosferatu_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-night-of-living-dead",
+          "title": "Night of the Living Dead (1968)",
+          "kind": "movie",
+          "description": "Film fondateur de George A. Romero (1968), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/night_of_the_living_dead",
+          "stream": {
+            "url": "https://archive.org/download/night_of_the_living_dead/night_of_the_living_dead_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-detour",
+          "title": "Detour (1945)",
+          "kind": "movie",
+          "description": "Road movie noir d'Edgar G. Ulmer (1945), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/Detour_1945",
+          "stream": {
+            "url": "https://archive.org/download/Detour_1945/Detour_1945_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-the-general",
+          "title": "The General (1926)",
+          "kind": "movie",
+          "description": "Comédie burlesque de Buster Keaton (1926), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/TheGeneral",
+          "stream": {
+            "url": "https://archive.org/download/TheGeneral/The_General_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
+        },
+        {
+          "id": "film-his-girl-friday",
+          "title": "His Girl Friday (1940)",
+          "kind": "movie",
+          "description": "Comédie de Howard Hawks (1940), domaine public.",
+          "thumbnail_url": "https://archive.org/services/img/his_girl_friday",
+          "stream": {
+            "url": "https://archive.org/download/his_girl_friday/his_girl_friday_512kb.mp4",
+            "format": "mp4",
+            "live": false
+          },
+          "series_title": null,
+          "season_number": null,
+          "episode_number": null,
+          "duration_sec": null,
+          "audio_only": false,
+          "download_url": null,
+          "size_bytes": null,
+          "sha256": null,
+          "package_type": null,
+          "version_name": null,
+          "version_code": null,
+          "genre": null,
+          "source": "Internet Archive",
+          "license": "Domaine public"
         }
       ]
     },
@@ -243,7 +391,7 @@
           "title": "Les Grandes Escapades — É1",
           "kind": "series",
           "description": "Épisode 1.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             "format": "mp4",
@@ -260,14 +408,16 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         },
         {
           "id": "ser-a-e2",
           "title": "Les Grandes Escapades — É2",
           "kind": "series",
           "description": "Épisode 2.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Les+Grandes+Escapades+—+É2",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
             "format": "mp4",
@@ -284,7 +434,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     },
@@ -297,7 +449,7 @@
           "title": "Big Buck Bunny",
           "kind": "short",
           "description": "Court métrage Blender (2008), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -314,14 +466,16 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         },
         {
           "id": "short-sintel",
           "title": "Sintel",
           "kind": "short",
           "description": "Court métrage Blender (2010), CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Sintel",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
             "format": "mp4",
@@ -338,7 +492,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     },
@@ -347,13 +503,13 @@
       "title": "Radio",
       "items": [
         {
-          "id": "radio-groove",
-          "title": "Groove Salad",
+          "id": "radio-fip",
+          "title": "FIP Radio",
           "kind": "radio",
-          "description": "Webradio ambient — SomaFM.",
-          "thumbnail_url": null,
+          "description": "Webradio musicale et éclectique publique.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=FIP+Radio",
           "stream": {
-            "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+            "url": "https://icecast.radiofrance.fr/fip-midfi.mp3",
             "format": "mp3",
             "live": true
           },
@@ -368,16 +524,18 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         },
         {
-          "id": "radio-lush",
-          "title": "Lush",
+          "id": "radio-couleur3",
+          "title": "RTS Couleur 3",
           "kind": "radio",
-          "description": "Webradio voix féminines — SomaFM.",
-          "thumbnail_url": null,
+          "description": "Webradio suisse musique et culture.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=RTS+Couleur+3",
           "stream": {
-            "url": "https://ice1.somafm.com/lush-128-mp3",
+            "url": "https://stream.srg-ssr.ch/m/couleur3/mp3_128",
             "format": "mp3",
             "live": true
           },
@@ -392,16 +550,18 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         },
         {
-          "id": "radio-drone",
-          "title": "Drone Zone",
+          "id": "radio-kexp",
+          "title": "KEXP 90.3 FM",
           "kind": "radio",
-          "description": "Webradio ambient spatial — SomaFM.",
-          "thumbnail_url": null,
+          "description": "Radio indépendante musicale de Seattle.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=KEXP+90.3+FM",
           "stream": {
-            "url": "https://ice1.somafm.com/dronezone-128-mp3",
+            "url": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
             "format": "mp3",
             "live": true
           },
@@ -416,7 +576,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Webradio Publique",
+          "license": "Diffusion publique libre"
         }
       ]
     },
@@ -425,15 +587,15 @@
       "title": "Podcasts",
       "items": [
         {
-          "id": "pod-demo-1",
-          "title": "Podcast · Emplacement 1",
+          "id": "pod-nasa-1",
+          "title": "NASA — Houston We Have a Podcast",
           "kind": "podcast",
-          "description": "Emplacement réservé podcasts.",
-          "thumbnail_url": null,
+          "description": "Épisode d'exploration spatiale publique de la NASA.",
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=NASA+—+Houston+We+Have+a+Podcast",
           "stream": {
-            "url": "https://ice1.somafm.com/spacestation-128-mp3",
+            "url": "https://archive.org/download/spacestation-128-mp3/spacestation-128.mp3",
             "format": "mp3",
-            "live": true
+            "live": false
           },
           "series_title": null,
           "season_number": null,
@@ -446,7 +608,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": "Domaine Public",
+          "license": "Libre accès"
         }
       ]
     },
@@ -459,7 +623,7 @@
           "title": "Musique · Emplacement 1",
           "kind": "music",
           "description": "Emplacement réservé musique.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Musique+·+Emplacement+1",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
             "format": "mp4",
@@ -476,7 +640,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     },
@@ -489,7 +655,7 @@
           "title": "Big Buck Bunny",
           "kind": "kids",
           "description": "Animation douce, Blender CC BY.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Big+Buck+Bunny",
           "stream": {
             "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
             "format": "mp4",
@@ -506,7 +672,9 @@
           "package_type": null,
           "version_name": null,
           "version_code": null,
-          "genre": null
+          "genre": null,
+          "source": null,
+          "license": null
         }
       ]
     },
@@ -519,7 +687,7 @@
           "title": "Simon Tatham's Puzzles",
           "kind": "game",
           "description": "Plus de 40 casse-têtes (Slant, Loopy, Net, Tents…). Logiciel libre — licence MIT. Source : F-Droid, dépôt officiel de l'auteur.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Simon+Tatham's+Puzzles",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -532,14 +700,16 @@
           "package_type": "apk",
           "version_name": "2025-09-12",
           "version_code": 149,
-          "genre": "Puzzle"
+          "genre": "Puzzle",
+          "source": null,
+          "license": null
         },
         {
           "id": "droidfish",
           "title": "DroidFish (échecs)",
           "kind": "game",
           "description": "Échiquier complet avec moteurs Stockfish et Cuckoo, parties et analyse. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=DroidFish+(échecs)",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -552,14 +722,16 @@
           "package_type": "apk",
           "version_name": "1.90",
           "version_code": 100,
-          "genre": "Échecs"
+          "genre": "Échecs",
+          "source": null,
+          "license": null
         },
         {
           "id": "shattered-pixel-dungeon",
           "title": "Shattered Pixel Dungeon",
           "kind": "game",
           "description": "Roguelike au tour par tour, donjons générés aléatoirement. Logiciel libre — licence GPL-3.0. Source : F-Droid.",
-          "thumbnail_url": null,
+          "thumbnail_url": "https://placehold.co/320x180/1a237e/ffd600?text=Shattered+Pixel+Dungeon",
           "stream": null,
           "series_title": null,
           "season_number": null,
@@ -572,7 +744,9 @@
           "package_type": "apk",
           "version_name": "4.0.2",
           "version_code": 922,
-          "genre": "Roguelike"
+          "genre": "Roguelike",
+          "source": null,
+          "license": null
         }
       ]
     }
