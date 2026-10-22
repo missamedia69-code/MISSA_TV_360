@@ -112,6 +112,10 @@ class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.Search
     }
 
     private fun openSearchResult(result: Video) {
+        if (result.isGamesLauncher) {
+            startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
+            return
+        }
         if (result.streamUrl.isNotBlank() || result.sourceId == null) {
             openDetails(result)
             return

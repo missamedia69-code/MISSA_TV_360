@@ -18,6 +18,7 @@ class SearchStatusPresenter : Presenter() {
             text = status.text
             isFocusable = status.retry
             isFocusableInTouchMode = status.retry
+            isClickable = status.retry
             contentDescription = if (status.retry) "$text. Activer pour réessayer." else text
         }
     }

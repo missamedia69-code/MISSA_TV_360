@@ -14,7 +14,7 @@ object ReportStore {
 
     fun save(ctx: Context, videoId: String, reason: String) {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val current = prefs.getStringSet(KEY, emptySet())!!.toMutableSet()
+        val current = prefs.getStringSet(KEY, emptySet()).orEmpty().toMutableSet()
         current.add("$videoId|${System.currentTimeMillis()}|$reason")
         prefs.edit().putStringSet(KEY, current).apply()
     }
@@ -22,5 +22,5 @@ object ReportStore {
     /** Nombre de signalements en attente d'envoi (utile pour la synchronisation). */
     fun pendingCount(ctx: Context): Int =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY, emptySet())!!.size
+            .getStringSet(KEY, emptySet()).orEmpty().size
 }

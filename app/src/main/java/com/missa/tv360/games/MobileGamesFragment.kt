@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
@@ -40,7 +41,11 @@ class MobileGamesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         adapter = MobileGamesAdapter(::onGameAction)
         view.findViewById<RecyclerView>(R.id.mobile_games_list).apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = if (resources.getBoolean(R.bool.is_compact_layout)) {
+                LinearLayoutManager(requireContext())
+            } else {
+                GridLayoutManager(requireContext(), 2)
+            }
             adapter = this@MobileGamesFragment.adapter
         }
         activity?.findViewById<Button>(R.id.games_cancel)?.setOnClickListener {
@@ -113,7 +118,7 @@ class MobileGamesFragment : Fragment() {
     }
 
     private fun startDownload(game: Game) {
-        if (activeGameId?.let { downloader.state.value[it]?.running } == true) {
+        if (downloadJob?.isActive == true || activeGameId?.let { downloader.state.value[it]?.running } == true) {
             showStatus(getString(R.string.games_already_downloading), running = true)
             return
         }
@@ -132,8 +137,9 @@ class MobileGamesFragment : Fragment() {
         val state = states[id] ?: return
         when {
             state.running -> showStatus(getString(R.string.games_downloading, state.progress), running = true, progress = state.progress)
-            !state.failed.isNullOrBlank() -> showStatus(state.failed!!, retry = true)
+            !state.failed.isNullOrBlank() -> showStatus(state.failed.orEmpty(), retry = true)
             state.done -> showStatus(getString(R.string.games_verified))
+            else -> showStatus(getString(R.string.games_cancelled))
         }
     }
 

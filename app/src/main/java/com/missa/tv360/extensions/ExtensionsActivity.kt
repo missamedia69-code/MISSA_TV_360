@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.DeviceForm
 import com.missa.tv360.R
+import com.missa.tv360.ui.SystemBarInsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,6 +39,7 @@ class ExtensionsActivity : FragmentActivity() {
         setTheme(if (DeviceForm.isTelevision(this)) R.style.Theme_MissaTv_Extensions else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_extensions)
+        SystemBarInsets.apply(findViewById(R.id.extensions_root))
         findViewById<Button>(R.id.extensions_back).setOnClickListener { finish() }
         ExtensionManager.init(this)
 
@@ -120,6 +122,7 @@ class ExtensionsActivity : FragmentActivity() {
     private fun showAddDialog() {
         val input = EditText(this).apply {
             hint = getString(R.string.extensions_repo_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_URI
             setSingleLine()
             setText(clipboardCandidate())
             setSelection(text.length)

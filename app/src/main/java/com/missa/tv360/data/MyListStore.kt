@@ -12,16 +12,16 @@ object MyListStore {
 
     private fun ids(ctx: Context): MutableSet<String> =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY, emptySet())!!.toMutableSet()
+            .getStringSet(KEY, emptySet()).orEmpty().toMutableSet()
 
     fun contains(ctx: Context, id: String): Boolean =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY, emptySet())!!.contains(id)
+            .getStringSet(KEY, emptySet()).orEmpty().contains(id)
 
     /** Copie défensive : aucune vue ne modifie directement l'ensemble persisté. */
     fun idsSnapshot(ctx: Context): Set<String> =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getStringSet(KEY, emptySet())!!.toSet()
+            .getStringSet(KEY, emptySet()).orEmpty().toSet()
 
     /** Ajoute le contenu s'il n'y est pas ; @return true si la liste a changé. */
     fun add(ctx: Context, id: String): Boolean {

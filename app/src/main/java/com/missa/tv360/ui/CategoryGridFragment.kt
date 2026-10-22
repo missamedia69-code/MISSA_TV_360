@@ -11,7 +11,6 @@ import androidx.leanback.widget.VerticalGridPresenter
 import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
-import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.source.FilmEngineRepository
 import com.missa.tv360.data.source.FilmSourceRegistry
@@ -38,8 +37,8 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
     }
 
     fun bind(row: CatalogStore.DisplayRow?) {
-        val kind = row?.videos?.firstOrNull()?.kind ?: ContentKind.MOVIE
-        (gridPresenter as? VerticalGridPresenter)?.numberOfColumns = CardShape.forKind(kind).gridColumns
+        val shape = row?.videos?.firstOrNull()?.let { CardShape.forVideo(it) } ?: CardShape.POSTER
+        (gridPresenter as? VerticalGridPresenter)?.numberOfColumns = shape.gridColumns
         val selectedId = selectedVideoId
         cards.clear()
         row?.videos?.forEach(cards::add)
@@ -66,6 +65,10 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
     }
 
     private fun openVideo(video: Video) {
+        if (video.isGamesLauncher) {
+            startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
+            return
+        }
         if (video.sourceId == null || video.streamUrl.isNotBlank()) {
             openDetails(video)
             return

@@ -168,9 +168,12 @@ class MobileSearchFragment : Fragment() {
     }
 
     private fun openVideo(video: Video) {
+        if (video.isGamesLauncher) {
+            startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
+            return
+        }
         if (video.streamUrl.isNotBlank() || video.sourceId == null) {
-            if (video.streamUrl.isBlank()) Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_SHORT).show()
-            else openDetails(video)
+            openDetails(video)
             return
         }
         if (!resolvingIds.add(video.id)) return

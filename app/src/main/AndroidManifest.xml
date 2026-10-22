@@ -48,7 +48,8 @@
         <!-- Écran d'accueil : visible depuis les lanceurs Android classiques et Android TV. -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -61,13 +62,15 @@
         <activity
             android:name=".extensions.ExtensionsActivity"
             android:exported="false"
+            android:windowSoftInputMode="adjustResize"
             android:label="@string/extensions_title"
             android:theme="@style/Theme.MissaTv.Extensions" />
 
         <!-- Écran « Jeux vidéo » : catalogue des jeux téléchargeables -->
         <activity
             android:name=".games.GamesActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- Lecteur vidéo (Media3 ExoPlayer) — thème AppCompat requis
              (PlayerActivity extends AppCompatActivity) -->

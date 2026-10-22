@@ -69,7 +69,8 @@ class GameDownloader(private val context: Context) {
     /** @return null après un paquet vérifié ou une annulation, sinon une erreur affichable. */
     suspend fun downloadAndInstall(game: Game): String? = withContext(Dispatchers.IO) {
         if (game.downloadUrl.isBlank()) return@withContext "Aucun fichier configuré pour ce jeu."
-        if (game.sha256.isNullOrBlank() || !sha256Pattern.matcher(game.sha256!!).matches()) {
+        val checksum = game.sha256?.trim().orEmpty()
+        if (!sha256Pattern.matcher(checksum).matches()) {
             return@withContext "Checksum SHA-256 manquant ou invalide — installation bloquée."
         }
         if (!isHostAllowed(game.downloadUrl)) return@withContext "Hôte non autorisé pour le téléchargement."
@@ -90,7 +91,7 @@ class GameDownloader(private val context: Context) {
             downloadToFile(game, partial)
             if (cancelled.contains(game.id)) throw DownloadCancelled
             val actual = sha256Of(partial)
-            if (!actual.equals(game.sha256, ignoreCase = true)) {
+            if (!actual.equals(checksum, ignoreCase = true)) {
                 throw IOException("Checksum incorrect — fichier rejeté.")
             }
             if (destination.exists() && !destination.delete()) throw IOException("Impossible de remplacer l’ancien paquet.")

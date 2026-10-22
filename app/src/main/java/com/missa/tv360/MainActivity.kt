@@ -14,6 +14,7 @@ import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
 import com.missa.tv360.ui.BrowseFragment
 import com.missa.tv360.ui.ThumbnailLoader
+import com.missa.tv360.ui.SystemBarInsets
 import com.missa.tv360.ui.mobile.MobileHomeFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ class MainActivity : FragmentActivity() {
         setTheme(if (television) R.style.Theme_MissaTv else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
         setContentView(if (television) R.layout.activity_main else R.layout.activity_mobile_main)
+        if (!television) SystemBarInsets.apply(findViewById(R.id.mobile_root))
 
         lifecycleScope.launch(Dispatchers.IO) { ThumbnailLoader.initDiskCache(applicationContext) }
         catalogModel = ViewModelProvider(this)[CatalogViewModel::class.java]

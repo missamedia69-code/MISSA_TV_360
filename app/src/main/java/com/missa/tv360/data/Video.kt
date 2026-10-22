@@ -24,7 +24,7 @@ enum class ContentKind(val label: String) {
     GAME("Jeu vidéo");
 
     val isLive: Boolean get() = this == LIVE_TV || this == LIVE_SPORT
-    val isAudioOnly: Boolean get() = this == RADIO || this == PODCAST
+    val isAudioOnly: Boolean get() = this == RADIO || this == PODCAST || this == MUSIC
 
     companion object {
         /** Mapping depuis la valeur textuelle du BFF (tolère les inconnus). */

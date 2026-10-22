@@ -11,7 +11,7 @@ object NetworkStatus {
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return false
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return manager.activeNetworkInfo?.isConnectedOrConnecting == true
+            return manager.activeNetworkInfo?.isConnected == true
         }
         val network = manager.activeNetwork ?: return false
         return manager.getNetworkCapabilities(network)

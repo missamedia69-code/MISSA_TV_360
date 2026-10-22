@@ -526,6 +526,8 @@ Mesures utiles : temps jusqu’au premier contenu, nombre d’actions D-pad par 
 
 ## 12. Conclusion
 
+> **État du document :** audit initial réalisé avant les commits de refonte. Les constats ci-dessus décrivent la baseline et ne constituent pas la liste des défauts restants. Voir `docs/refonte-validation.md` pour les changements et validations ultérieurs.
+
 L’application ne nécessite pas une refonte esthétique complète : **la palette, les formats de cartes et la base Leanback sont défendables**. La dette principale se situe dans la continuité des parcours et la vérité des états présentés à l’utilisateur.
 
 Les corrections les plus rentables sont donc :

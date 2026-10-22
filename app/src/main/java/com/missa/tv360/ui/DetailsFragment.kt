@@ -155,8 +155,9 @@ class DetailsFragment : Fragment() {
             isVisible = sourceParts.isNotEmpty()
         }
         val canPlay = video.streamUrl.isNotBlank()
-        view.findViewById<View>(R.id.details_play).apply {
+        view.findViewById<android.widget.ImageButton>(R.id.details_play).apply {
             isVisible = canPlay
+            setImageResource(playIcon(video))
             setOnClickListener { openPlayer() }
             contentDescription = primaryLabel(video, requireContext())
         }
@@ -268,7 +269,7 @@ class DetailsFragment : Fragment() {
             .distinctBy { it.id }
             .take(6)
         if (similar.size >= 3) showSimilar(view, similar)
-        else if (video.kind == ContentKind.MOVIE) loadSimilarFilms(view)
+        else if (video.kind == ContentKind.MOVIE && !video.originalKind.equals("sport", true)) loadSimilarFilms(view)
         else section.isVisible = false
 
     }
@@ -297,6 +298,9 @@ class DetailsFragment : Fragment() {
             return
         }
         view.findViewById<View>(R.id.details_similar_section).isVisible = true
+        view.findViewById<TextView>(R.id.details_similar_title).setText(
+            if (video.isLive || video.isAudioOnly) R.string.details_similar_channels else R.string.details_similar,
+        )
         val cards = ArrayObjectAdapter(MissaCardPresenter()).apply {
             related.forEach { add(it) }
         }
@@ -393,7 +397,7 @@ class DetailsFragment : Fragment() {
             kind.isLive -> R.drawable.ic_tv_direct
             kind == ContentKind.SERIES -> R.drawable.ic_series
             kind == ContentKind.SHORT -> R.drawable.ic_films_courts
-            kind == ContentKind.MUSIC || kind == ContentKind.RADIO -> R.drawable.ic_radio
+            kind.isAudioOnly -> R.drawable.ic_radio
             kind == ContentKind.KIDS -> R.drawable.ic_jeunesse
             kind == ContentKind.GAME -> R.drawable.ic_jeux_video
             else -> R.drawable.ic_films

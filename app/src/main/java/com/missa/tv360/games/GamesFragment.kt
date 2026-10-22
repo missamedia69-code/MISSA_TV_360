@@ -107,7 +107,7 @@ class GamesFragment : RowsSupportFragment() {
     }
 
     private fun startDownload(game: Game) {
-        if (activeGameId?.let { downloader.state.value[it]?.running } == true) {
+        if (downloadJob?.isActive == true || activeGameId?.let { downloader.state.value[it]?.running } == true) {
             showStatus(getString(R.string.games_already_downloading), running = true)
             return
         }
@@ -126,8 +126,9 @@ class GamesFragment : RowsSupportFragment() {
         val state = states[id] ?: return
         when {
             state.running -> showStatus(getString(R.string.games_downloading, state.progress), running = true, progress = state.progress)
-            !state.failed.isNullOrBlank() -> showStatus(state.failed!!, retry = true)
+            !state.failed.isNullOrBlank() -> showStatus(state.failed.orEmpty(), retry = true)
             state.done -> showStatus(getString(R.string.games_verified))
+            else -> showStatus(getString(R.string.games_cancelled))
         }
     }
 

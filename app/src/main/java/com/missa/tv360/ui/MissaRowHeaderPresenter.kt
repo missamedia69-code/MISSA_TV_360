@@ -13,6 +13,7 @@ class MissaRowHeaderPresenter : RowHeaderPresenter() {
     override fun onBindViewHolder(vh: Presenter.ViewHolder, item: Any?) {
         super.onBindViewHolder(vh, item)
         val header = (item as? Row)?.headerItem
+        vh.view.contentDescription = header?.name
         val icon = vh.view.findViewById<ImageView>(R.id.row_header_icon) ?: return
         val res = iconRes(vh.view, header)
         if (res != 0) icon.setImageResource(res)

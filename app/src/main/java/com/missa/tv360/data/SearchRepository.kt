@@ -21,6 +21,7 @@ object SearchRepository {
         config: FilmEngineConfig,
     ): SearchOutcome = withContext(Dispatchers.IO) {
         val clean = query.trim()
+        if (clean.isBlank()) return@withContext SearchOutcome(emptyList(), remoteFailed = false)
         val local = CatalogStore.snapshot()
             .flatMap { row -> row.videos.map { video -> row.title to video } }
             .filter { (category, video) ->

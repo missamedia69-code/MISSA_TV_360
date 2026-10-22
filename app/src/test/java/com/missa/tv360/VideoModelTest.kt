@@ -29,10 +29,11 @@ class VideoModelTest {
 
     @Test
     fun explicitAudioMetadataDrivesAudioBehavior() {
-        val music = Video("music", "Musique", "", 0, "stream", ContentKind.MUSIC, audioOnly = true)
+        val music = Video("music", "Musique", "", 0, "stream", ContentKind.MUSIC)
         val podcast = Video("podcast", "Podcast", "", 0, "stream", ContentKind.PODCAST)
         assertTrue(music.isAudioOnly)
         assertTrue(podcast.isAudioOnly)
+        assertTrue(ContentKind.fromApi("music").isAudioOnly)
         assertFalse(music.isLive)
     }
 

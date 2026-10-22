@@ -104,7 +104,6 @@ class MobileHomeFragment : Fragment() {
         when {
             video.isGamesLauncher -> startActivity(Intent(requireContext(), GamesActivity::class.java))
             video.sourceId != null && video.streamUrl.isBlank() -> resolveAndOpen(video)
-            video.streamUrl.isBlank() -> Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_SHORT).show()
             else -> openDetails(video)
         }
     }

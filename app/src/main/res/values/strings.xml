@@ -132,4 +132,5 @@
     <string name="games_load_error">Impossible de charger les jeux. Réessayez.</string>
     <string name="games_size_unknown">taille non communiquée</string>
     <string name="games_already_downloading">Un téléchargement est déjà en cours. Annulez-le avant d’en lancer un autre.</string>
+    <string name="games_cancelled">Téléchargement annulé.</string>
 </resources>
