@@ -22,7 +22,8 @@
             android:layout_height="wrap_content"
             android:textColor="@color/missa_white"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/ext_subtitle"
@@ -32,7 +33,8 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textColor="@color/missa_white"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:importantForAccessibility="no" />
     </LinearLayout>
 
     <TextView
@@ -43,7 +45,8 @@
         android:layout_marginStart="12dp"
         android:textColor="@color/missa_yellow"
         android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:importantForAccessibility="no" />
 
     <ImageButton
         android:id="@+id/ext_remove"

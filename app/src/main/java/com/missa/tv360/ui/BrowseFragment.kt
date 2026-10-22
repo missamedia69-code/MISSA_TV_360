@@ -35,15 +35,11 @@ import com.missa.tv360.data.source.FilmEngineConfig
 import com.missa.tv360.data.source.FilmEngineRepository
 import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.data.source.bundledFilmEngineConfig
-import com.missa.tv360.extensions.ExtensionCatalog
-import com.missa.tv360.extensions.ExtensionManager
 import com.missa.tv360.extensions.ExtensionsActivity
 import com.missa.tv360.games.GamesActivity
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 /** Accueil Leanback synchronisé avec le catalogue partagé TV/mobile. */
@@ -139,7 +135,7 @@ class BrowseFragment : BrowseSupportFragment() {
             val id = desiredIds[index]
             val isGames = id == "jeux" || id == "games" || displayRow.videos.firstOrNull()?.isGamesLauncher == true
             val items = displayRow.videos + if (isGames) emptyList() else {
-                listOf(moreCard(id, displayRow.title, displayRow.videos.firstOrNull()?.kind))
+                listOf(moreCard(id, displayRow.title, displayRow.videos.firstOrNull()))
             }
             val existing = rowsById[id]
             if (existing == null) {
@@ -167,14 +163,15 @@ class BrowseFragment : BrowseSupportFragment() {
     private fun moreCard(
         rowId: String,
         header: String,
-        kind: com.missa.tv360.data.ContentKind?,
+        sample: Video?,
     ) = Video(
         id = "more-$rowId",
         title = getString(R.string.row_more),
         description = header,
         cardRes = R.drawable.card_more,
         streamUrl = "",
-        kind = kind ?: com.missa.tv360.data.ContentKind.MOVIE,
+        kind = sample?.kind ?: com.missa.tv360.data.ContentKind.MOVIE,
+        shapeHint = sample?.shapeHint,
         moreTargetRowId = rowId,
     )
 
@@ -247,30 +244,13 @@ class BrowseFragment : BrowseSupportFragment() {
         extensionJob?.cancel()
         extensionJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                ExtensionManager.init(requireContext())
-                if (bootstrap) {
-                    withContext(Dispatchers.IO) {
-                        try { ExtensionManager.bootstrapIfNeeded() }
-                        catch (cancelled: CancellationException) { throw cancelled }
-                        catch (t: Throwable) { android.util.Log.w("Browse", "Bootstrap indisponible", t) }
-                    }
-                }
-                val extensionRows = try {
-                    withTimeout(15_000L) { ExtensionCatalog.rows() }
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (_: Exception) {
-                    emptyList()
-                }
+                val rows = com.missa.tv360.extensions.ExtensionCatalogLoader.load(
+                    requireContext().applicationContext,
+                    bootstrap,
+                )
                 if (!isAdded) return@launch
                 CatalogStore.removeExtensions(requireContext())
-                val displayRows = extensionRows.mapNotNull { row ->
-                    val videos = row.videos.filterNot { it.title.contains("Emplacement", true) }
-                    val title = row.headerTitle ?: if (row.headerRes != 0) getString(row.headerRes) else ""
-                    if (videos.isEmpty() || title.isBlank()) null
-                    else CatalogStore.DisplayRow(row.rowId ?: title, title, videos)
-                }
-                CatalogStore.append(requireContext(), displayRows)
+                CatalogStore.append(requireContext(), rows)
                 syncRows()
             } catch (cancelled: CancellationException) {
                 throw cancelled

@@ -89,6 +89,7 @@ data class StreamDto(
             streamUrl = url,
             kind = kindEnum,
             format = format ?: if (kindEnum.isAudioOnly) "mp3" else "mp4",
+            forceLive = live == true,
             originalKind = kind,
         )
     }

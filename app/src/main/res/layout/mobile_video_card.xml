@@ -37,6 +37,7 @@
             android:textColor="@color/missa_white"
             android:textSize="10sp"
             android:textStyle="bold"
+            android:importantForAccessibility="no"
             android:visibility="gone" />
     </FrameLayout>
 
@@ -48,6 +49,7 @@
         android:max="100"
         android:progressBackgroundTint="@color/missa_border"
         android:progressTint="@color/missa_yellow"
+        android:importantForAccessibility="no"
         android:visibility="gone" />
 
     <TextView
@@ -59,7 +61,8 @@
         android:maxLines="2"
         android:textColor="@color/missa_white"
         android:textSize="@dimen/text_body"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/mobile_card_subtitle"
@@ -69,5 +72,6 @@
         android:ellipsize="end"
         android:maxLines="2"
         android:textColor="@color/missa_text_secondary"
-        android:textSize="@dimen/text_meta" />
+        android:textSize="@dimen/text_meta"
+        android:importantForAccessibility="no" />
 </LinearLayout>

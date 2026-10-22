@@ -81,16 +81,16 @@ class DetailsFragment : Fragment() {
         (art as? com.missa.tv360.ui.mobile.RatioImageView)?.aspectRatio = shape.ratio
         val artContainer = view.findViewById<View>(R.id.details_art_container)
         if (resources.getBoolean(R.bool.is_compact_layout)) {
-            val width = when {
-                shape.gridColumns >= 3 -> 180.dp
-                shape.gridColumns == 4 -> 200.dp
-                else -> ViewGroup.LayoutParams.MATCH_PARENT
+            val width = when (shape) {
+                CardShape.POSTER -> 180.dp
+                CardShape.SQUARE -> 200.dp
+                CardShape.LANDSCAPE -> ViewGroup.LayoutParams.MATCH_PARENT
             }
             artContainer.layoutParams = artContainer.layoutParams.apply { this.width = width }
-        } else if (shape.gridColumns >= 3) {
+        } else if (shape == CardShape.POSTER || shape == CardShape.SQUARE) {
             artContainer.layoutParams = artContainer.layoutParams.apply {
                 width = 180.dp
-                height = 270.dp
+                height = if (shape == CardShape.POSTER) 270.dp else 180.dp
             }
         }
         val fallback = fondParDefaut(video.kind.name)
@@ -138,8 +138,9 @@ class DetailsFragment : Fragment() {
             video.seriesDisplayTitle() ?: video.title
         view.findViewById<TextView>(R.id.details_description).text =
             video.description.ifBlank { getString(R.string.details_description) }
+        val sourceName = video.source ?: if (video.sourceId?.contains("archive", true) == true) "Internet Archive" else null
         val sourceParts = listOfNotNull(
-            video.source?.takeIf { it.isNotBlank() }?.let { getString(R.string.details_source, it) },
+            sourceName?.takeIf { it.isNotBlank() }?.let { getString(R.string.details_source, it) },
             video.format?.takeIf { it.isNotBlank() }?.let {
                 getString(R.string.details_source_format, it.uppercase())
             },
@@ -180,6 +181,7 @@ class DetailsFragment : Fragment() {
                 button.setBackgroundResource(R.drawable.bg_btn_secondary)
                 button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.button_secondary_text))
             } else {
+                button.setBackgroundResource(R.drawable.bg_btn_primary)
                 button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.button_primary_text))
                 primaryButton = button
                 button.isEnabled = video.streamUrl.isNotBlank()

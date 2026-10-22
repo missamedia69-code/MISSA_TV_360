@@ -64,7 +64,8 @@
         android:maxLines="2"
         android:ellipsize="end"
         android:textSize="@dimen/text_content_title"
-        android:textColor="@color/missa_text_secondary" />
+            android:textColor="@color/missa_text_secondary"
+            android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/card_subtitle"
@@ -74,6 +75,7 @@
         android:maxLines="2"
         android:ellipsize="end"
         android:textSize="@dimen/text_caption"
-        android:textColor="@color/missa_text_muted"
-        android:visibility="gone" />
+            android:textColor="@color/missa_text_muted"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
 </LinearLayout>
