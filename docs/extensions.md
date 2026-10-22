@@ -263,20 +263,39 @@ Un `version` supérieur déclenche la mise à jour automatique (si
 
 * `extension-tools/test_build_extension_repo.py` : **15 tests, tous verts**
   (`python3 -m unittest discover -s extension-tools`).
-* Le code Kotlin (moteur + écran + extension d'exemple) **n'a pas été compilé
-  dans l'environnement de rédaction** : ni JDK, ni SDK Android, ni Gradle n'y
-  sont installés. Il doit être validé par :
+* **Compilation Kotlin : verte en CI** (2026-10-22), sur le commit `cf95af9` :
+  - `Assemble Android TV debug APK` → `:app:compileDebugKotlin` +
+    `:app:assembleDebug` OK, APK publié dans la release `apk-debug` ;
+  - `Build .msa and validate plugins.json` → `:plugin-api:jar` puis
+    `:extensions-src:hello-provider:packagePlugin` OK.
+
+  Le poste de rédaction n'a ni JDK, ni SDK Android, ni Gradle : la CI est le
+  seul compilateur, et elle est donc la référence. En local :
 
   ```bash
-  ./gradlew :app:assembleDebug :app:testDebugUnitTest
-  ./gradlew :extensions-src:hello-provider:packagePlugin
+  bash ./gradlew :app:assembleDebug :app:testDebugUnitTest
+  bash ./gradlew :extensions-src:hello-provider:packagePlugin
   ```
 
-* La première publication est faite par la CI : au 2026-10-22, la chaîne
-  `repo.json` → `plugins.json` → `hello-provider.msa` est servie depuis la
-  release `extensions`, et `site/extensions/repo.json` (Pages) ne devient
-  accessible qu'après fusion sur `main`.
-* Tant que `repo.json` n'est pas servi (Pages pas encore déployé), le
-  bootstrap échoue proprement : aucune exception visible, message d'état
-  « dépôt injoignable », 5 tentatives maximum, puis abandon silencieux — c'est
-  le comportement attendu, pas un bug.
+* **Chaîne de publication vérifiée** (téléchargement réel des trois assets) :
+
+  | Asset | Taille | Contenu vérifié |
+  |---|---|---|
+  | `repo.json` | 287 o | `pluginLists` → `…/releases/download/extensions/plugins.json` |
+  | `plugins.json` | 580 o | 1 entrée, `fileSize: 2727`, `fileHash: sha256-edf4bb83…fec6` |
+  | `hello-provider.msa` | 2 727 o | ZIP `manifest.json` + `classes.dex` |
+
+  `plugins.json` et l'archive sont produits par le même job à partir du même
+  fichier : le hash publié est, par construction, celui de l'archive
+  téléversée. Il n'a pas été recalculé côté client après téléchargement.
+
+* **Premier démarrage réellement testable dès maintenant** : l'APK debug du
+  dernier build vert est dans la release `apk-debug`
+  (`https://github.com/missamedia69-code/MISSA_TV_360/releases/download/apk-debug/app-debug.apk`).
+  `site/extensions/repo.json` (Pages) n'est servi qu'après fusion sur `main` ;
+  d'ici là, c'est le miroir `releases/download/extensions/repo.json` qui répond,
+  et l'extension d'exemple s'installe au premier lancement.
+* Tant que ni Pages ni le miroir ne répondent (hors ligne, release supprimée),
+  le bootstrap échoue proprement : aucune exception visible, message d'état
+  « aucun dépôt joignable », 5 tentatives maximum, puis abandon silencieux —
+  c'est le comportement attendu, pas un bug.
