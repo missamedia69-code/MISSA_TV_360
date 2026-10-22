@@ -53,6 +53,9 @@ class MissaCardPresenter(
 
         val shape = CardShape.forVideo(video)
         val image = v.findViewById<ImageView>(R.id.card_image)
+        // Les cartes normales gardent leur recadrage. La tuile « Tout voir »
+        // utilise FIT_XY pour que son pictogramme conserve sa taille intrinsèque.
+        image.scaleType = ImageView.ScaleType.CENTER_CROP
         val w = v.resources.getDimensionPixelSize(
             fixedWidthRes.takeIf { it != 0 } ?: if (useGridDimensions) shape.gridWidthRes else shape.widthRes,
         )
@@ -85,6 +88,7 @@ class MissaCardPresenter(
 
         v.tag = video.id
         if (video.moreTargetRowId != null) {
+            image.scaleType = ImageView.ScaleType.FIT_XY
             image.setImageResource(R.drawable.card_more)
             v.contentDescription = v.context.getString(R.string.row_more_description, video.description)
             return

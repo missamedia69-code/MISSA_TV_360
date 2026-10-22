@@ -5,7 +5,5 @@
     <item android:drawable="@color/card_more_bg" />
     <item
         android:drawable="@drawable/ic_plus"
-        android:gravity="center"
-        android:width="48dp"
-        android:height="48dp" />
+        android:gravity="center" />
 </layer-list>

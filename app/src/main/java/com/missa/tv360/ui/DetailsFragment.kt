@@ -1,6 +1,7 @@
 package com.missa.tv360.ui
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -169,9 +170,17 @@ class DetailsFragment : Fragment() {
 
     private fun buildActions(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.details_actions)
-        container.orientation = if (resources.getBoolean(R.bool.is_compact_layout)) {
-            LinearLayout.VERTICAL
-        } else LinearLayout.HORIZONTAL
+        val compact = resources.getBoolean(R.bool.is_compact_layout)
+        container.orientation = if (compact) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        val availableWidth = (
+            resources.displayMetrics.widthPixels -
+                resources.getDimensionPixelSize(R.dimen.screen_margin_compact) * 2
+            ).coerceAtLeast(0)
+        val compactActionWidth = minOf(
+            resources.getDimensionPixelSize(R.dimen.details_action_width),
+            availableWidth,
+        )
+        val actionHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         val actions = listOf(
             MissaAction(1, primaryLabel(video, requireContext()), playIcon(video), true),
             MissaAction(2, myListLabel(), if (MyListStore.contains(requireContext(), video.id)) R.drawable.ic_remove else R.drawable.ic_add, false),
@@ -202,10 +211,12 @@ class DetailsFragment : Fragment() {
                 else -> button.setOnClickListener { showReportDialog() }
             }
             val params = if (container.orientation == LinearLayout.VERTICAL) {
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    .apply { bottomMargin = 8.dp }
+                LinearLayout.LayoutParams(compactActionWidth, actionHeight).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    bottomMargin = 8.dp
+                }
             } else {
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, actionHeight)
                     .apply { marginEnd = 12.dp }
             }
             container.addView(button, params)
