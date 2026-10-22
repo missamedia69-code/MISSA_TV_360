@@ -37,16 +37,19 @@ class AndroidResourceTests(unittest.TestCase):
     def test_detail_variants_share_the_same_interaction_contract(self):
         default = (RES / "layout" / "fragment_details.xml").read_text()
         wide = (RES / "layout-sw600dp" / "fragment_details.xml").read_text()
+        landscape = (RES / "layout-land" / "fragment_details.xml").read_text()
         required = {
             "details_back", "details_art", "details_play", "details_title",
-            "details_description", "details_description_toggle", "details_actions",
+            "details_description", "details_metadata", "details_description_toggle", "details_actions",
             "details_similar_grid", "details_similar_section",
         }
-        for name in required:
-            self.assertIn(f'@+id/{name}', default)
-            self.assertIn(f'@+id/{name}', wide)
+        for variant in (default, wide, landscape):
+            for name in required:
+                self.assertIn(f'@+id/{name}', variant)
+            self.assertIn('android:clipChildren="false"', variant)
         self.assertIn("RatioImageView", default)
         self.assertIn("LinearLayout", wide)
+        self.assertIn("details_primary_row", landscape)
 
     def test_orientation_is_not_locked_and_touch_target_is_at_least_48dp(self):
         manifest = MANIFEST.read_text()

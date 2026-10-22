@@ -52,6 +52,8 @@
     <string name="details_source">Source : %1$s</string>
     <string name="details_duration">%1$d min</string>
     <string name="details_source_format">Format : %1$s</string>
+    <string name="details_creator">Créateur : %1$s</string>
+    <string name="details_release_year">Année de sortie : %1$s</string>
     <string name="details_back">Retour</string>
     <string name="details_crumb">%1$s › %2$s</string>
     <string name="details_add_list_description">Ajouter %1$s à Ma liste</string>

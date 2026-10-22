@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="is_compact_layout">false</bool>
+    <bool name="details_two_column">true</bool>
 </resources>

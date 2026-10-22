@@ -54,7 +54,6 @@
     <dimen name="details_art_gap">27dp</dimen>
     <dimen name="details_desc_width">450dp</dimen>
     <dimen name="details_play_size">48dp</dimen>
-    <dimen name="details_action_width">320dp</dimen>
     <dimen name="details_similar_card_w">136dp</dimen>
     <dimen name="details_similar_card_h">76dp</dimen>
     <dimen name="details_similar_row_h">300dp</dimen>

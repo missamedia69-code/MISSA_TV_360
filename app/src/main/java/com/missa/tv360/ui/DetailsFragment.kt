@@ -81,17 +81,33 @@ class DetailsFragment : Fragment() {
         val shape = CardShape.forVideo(video)
         (art as? com.missa.tv360.ui.mobile.RatioImageView)?.aspectRatio = shape.ratio
         val artContainer = view.findViewById<View>(R.id.details_art_container)
-        if (resources.getBoolean(R.bool.is_compact_layout)) {
-            val width = when (shape) {
-                CardShape.POSTER -> 180.dp
-                CardShape.SQUARE -> 200.dp
-                CardShape.LANDSCAPE -> ViewGroup.LayoutParams.MATCH_PARENT
+        val compact = resources.getBoolean(R.bool.is_compact_layout)
+        val twoColumn = resources.getBoolean(R.bool.details_two_column)
+        when {
+            twoColumn -> {
+                val (width, height) = when (shape) {
+                    CardShape.POSTER -> if (compact) 160.dp to 240.dp else 180.dp to 270.dp
+                    CardShape.SQUARE -> 180.dp to 180.dp
+                    CardShape.LANDSCAPE -> if (compact) 240.dp to 135.dp else 264.dp to 148.dp
+                }
+                artContainer.layoutParams = artContainer.layoutParams.apply {
+                    this.width = width
+                    this.height = height
+                }
             }
-            artContainer.layoutParams = artContainer.layoutParams.apply { this.width = width }
-        } else if (shape == CardShape.POSTER || shape == CardShape.SQUARE) {
-            artContainer.layoutParams = artContainer.layoutParams.apply {
-                width = 180.dp
-                height = if (shape == CardShape.POSTER) 270.dp else 180.dp
+            compact -> {
+                val width = when (shape) {
+                    CardShape.POSTER -> 180.dp
+                    CardShape.SQUARE -> 200.dp
+                    CardShape.LANDSCAPE -> ViewGroup.LayoutParams.MATCH_PARENT
+                }
+                artContainer.layoutParams = artContainer.layoutParams.apply { this.width = width }
+            }
+            shape == CardShape.POSTER || shape == CardShape.SQUARE -> {
+                artContainer.layoutParams = artContainer.layoutParams.apply {
+                    width = 180.dp
+                    height = if (shape == CardShape.POSTER) 270.dp else 180.dp
+                }
             }
         }
         val fallback = fondParDefaut(video.kind.name)
@@ -100,7 +116,7 @@ class DetailsFragment : Fragment() {
                 requireContext(),
                 video.cardUrl,
                 fallback,
-                targetWidth = if (resources.getBoolean(R.bool.is_compact_layout)) 640 else 1280,
+                targetWidth = if (compact) 640 else 1280,
             ) { drawable ->
                 if (!isAdded) return@loadDrawable
                 bg.setImageDrawable(drawable)
@@ -114,7 +130,6 @@ class DetailsFragment : Fragment() {
         container.removeAllViews()
         if (video.isLive) addChip(container, getString(R.string.badge_live))
         addChip(container, video.displayKindLabel)
-        video.releaseYear?.toIntOrNull()?.takeIf { it > 0 }?.let { addChip(container, it.toString()) }
         video.durationSec?.takeIf { it > 0 }?.let { seconds ->
             addChip(container, getString(R.string.details_duration, (seconds + 59) / 60))
         }
@@ -144,6 +159,18 @@ class DetailsFragment : Fragment() {
             video.seriesDisplayTitle() ?: video.title
         view.findViewById<TextView>(R.id.details_description).text =
             video.description.ifBlank { getString(R.string.details_description) }
+        val metadata = listOfNotNull(
+            video.creator?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                getString(R.string.details_creator, it.take(160))
+            },
+            video.releaseYear?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                getString(R.string.details_release_year, it.take(20))
+            },
+        )
+        view.findViewById<TextView>(R.id.details_metadata).apply {
+            text = metadata.joinToString("\n")
+            isVisible = metadata.isNotEmpty()
+        }
         val sourceName = video.source ?: if (video.sourceId?.contains("archive", true) == true) "Internet Archive" else null
         val sourceParts = listOfNotNull(
             sourceName?.takeIf { it.isNotBlank() }?.let { getString(R.string.details_source, it) },
@@ -171,15 +198,7 @@ class DetailsFragment : Fragment() {
     private fun buildActions(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.details_actions)
         val compact = resources.getBoolean(R.bool.is_compact_layout)
-        container.orientation = if (compact) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-        val availableWidth = (
-            resources.displayMetrics.widthPixels -
-                resources.getDimensionPixelSize(R.dimen.screen_margin_compact) * 2
-            ).coerceAtLeast(0)
-        val compactActionWidth = minOf(
-            resources.getDimensionPixelSize(R.dimen.details_action_width),
-            availableWidth,
-        )
+        container.orientation = LinearLayout.HORIZONTAL
         val actionHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         val actions = listOf(
             MissaAction(1, primaryLabel(video, requireContext()), playIcon(video), true),
@@ -191,6 +210,11 @@ class DetailsFragment : Fragment() {
                 .inflate(R.layout.action_button, container, false) as Button
             button.text = action.label
             button.contentDescription = action.label
+            button.textSize = if (compact) 12f else 16f
+            button.maxLines = 2
+            button.gravity = Gravity.CENTER
+            val horizontalPadding = if (compact) 6.dp else 18.dp
+            button.setPadding(horizontalPadding, 4.dp, horizontalPadding, 4.dp)
             button.setCompoundDrawablesWithIntrinsicBounds(action.iconRes, 0, 0, 0)
             if (!action.primary) {
                 button.setBackgroundResource(R.drawable.bg_btn_secondary)
@@ -210,14 +234,11 @@ class DetailsFragment : Fragment() {
                 }
                 else -> button.setOnClickListener { showReportDialog() }
             }
-            val params = if (container.orientation == LinearLayout.VERTICAL) {
-                LinearLayout.LayoutParams(compactActionWidth, actionHeight).apply {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    bottomMargin = 8.dp
-                }
+            val params = if (compact) {
+                LinearLayout.LayoutParams(0, actionHeight, 1f).apply { marginEnd = 4.dp }
             } else {
                 LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, actionHeight)
-                    .apply { marginEnd = 12.dp }
+                    .apply { marginEnd = 8.dp }
             }
             container.addView(button, params)
         }
