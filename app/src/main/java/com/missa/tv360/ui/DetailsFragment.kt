@@ -182,23 +182,24 @@ class DetailsFragment : Fragment() {
             text = sourceParts.joinToString(" · ")
             isVisible = sourceParts.isNotEmpty()
         }
-        val canPlay = video.streamUrl.isNotBlank()
-        view.findViewById<android.widget.ImageButton>(R.id.details_play).apply {
-            isVisible = canPlay
-            setImageResource(playIcon(video))
-            setOnClickListener { openPlayer() }
-            contentDescription = primaryLabel(video, requireContext())
-        }
-        view.findViewById<View>(R.id.details_art).apply {
-            isFocusable = false
-            setOnClickListener { if (canPlay) openPlayer() }
-        }
+        view.findViewById<View>(R.id.details_art).isFocusable = false
     }
 
     private fun buildActions(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.details_actions)
         val compact = resources.getBoolean(R.bool.is_compact_layout)
+        val twoColumn = resources.getBoolean(R.bool.details_two_column)
         container.orientation = LinearLayout.HORIZONTAL
+        if (compact && twoColumn) {
+            val availableWidth = (
+                resources.displayMetrics.widthPixels -
+                    resources.getDimensionPixelSize(R.dimen.screen_margin_compact) * 2
+                ).coerceAtLeast(0)
+            container.layoutParams = container.layoutParams.apply {
+                width = minOf(resources.getDimensionPixelSize(R.dimen.details_action_row_width), availableWidth)
+            }
+            (container.layoutParams as? LinearLayout.LayoutParams)?.gravity = Gravity.CENTER_HORIZONTAL
+        }
         val actionHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         val actions = listOf(
             MissaAction(1, primaryLabel(video, requireContext()), playIcon(video), true),
@@ -249,7 +250,6 @@ class DetailsFragment : Fragment() {
         primaryButton.text = label
         primaryButton.contentDescription = label
         primaryButton.isEnabled = video.streamUrl.isNotBlank()
-        view?.findViewById<View>(R.id.details_play)?.contentDescription = label
     }
 
     private fun myListLabel(): String = getString(

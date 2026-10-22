@@ -73,16 +73,6 @@
                     android:importantForAccessibility="no"
                     android:scaleType="centerCrop" />
 
-                <ImageButton
-                    android:id="@+id/details_play"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_gravity="bottom|end"
-                    android:layout_margin="16dp"
-                    android:background="@drawable/bg_play_circle"
-                    android:contentDescription="@string/action_play"
-                    android:padding="18dp"
-                    android:src="@drawable/ic_play" />
             </FrameLayout>
 
             <LinearLayout
