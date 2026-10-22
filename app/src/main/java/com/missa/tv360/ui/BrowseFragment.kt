@@ -1,14 +1,9 @@
 package com.missa.tv360.ui
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -45,6 +40,7 @@ import kotlinx.coroutines.withTimeout
 /** Accueil Leanback synchronisé avec le catalogue partagé TV/mobile. */
 class BrowseFragment : BrowseSupportFragment() {
     private val rowPresenter = ListRowPresenter().apply {
+        setHeaderPresenter(MissaRowHeaderPresenter())
         selectEffectEnabled = false
         shadowEnabled = false
     }
@@ -53,7 +49,6 @@ class BrowseFragment : BrowseSupportFragment() {
     private val rowsById = mutableMapOf<String, ListRow>()
     private val boundVideos = mutableMapOf<String, List<Video>>()
     private var extensionsRow: ListRow? = null
-    private var headerIconObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
     private var extensionJob: Job? = null
     private var refreshExtensionsOnResume = false
     private var extensionsStarted = false
@@ -78,7 +73,6 @@ class BrowseFragment : BrowseSupportFragment() {
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
         adapter = rowsAdapter
         setOnSearchClickedListener { openFilmSearch() }
-        installHeaderIcons(view)
         BackgroundManager.getInstance(requireActivity()).attach(requireActivity().window)
 
         onItemViewClickedListener = OnItemViewClickedListener { _, item, _, _ ->
@@ -311,59 +305,8 @@ class BrowseFragment : BrowseSupportFragment() {
         startActivity(android.content.Intent(requireContext(), GamesActivity::class.java))
     }
 
-    private fun installHeaderIcons(root: View) {
-        val observer = ViewTreeObserver.OnGlobalLayoutListener { hookHeaderIcons(root) }
-        root.viewTreeObserver.addOnGlobalLayoutListener(observer)
-        headerIconObserver = observer
-        hookHeaderIcons(root)
-    }
-
-    private fun hookHeaderIcons(view: View) {
-        if (view is TextView && view.id == R.id.row_header) hookHeaderIcon(view)
-        if (view is ViewGroup) {
-            for (index in 0 until view.childCount) hookHeaderIcons(view.getChildAt(index))
-        }
-    }
-
-    private fun hookHeaderIcon(title: TextView) {
-        val parent = title.parent as? ViewGroup ?: return
-        val icon = parent.findViewById<ImageView>(R.id.row_header_icon) ?: return
-        if (icon.tag != null) return
-        icon.tag = true
-        applyHeaderIcon(icon, title.text)
-        title.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) = Unit
-            override fun afterTextChanged(s: Editable?) = applyHeaderIcon(icon, title.text)
-        })
-    }
-
-    private fun applyHeaderIcon(icon: ImageView, label: CharSequence?) {
-        val text = label?.toString()?.trim().orEmpty()
-        val res = listOf(
-            getString(R.string.row_resume) to R.drawable.ic_reprendre,
-            getString(R.string.row_my_list) to R.drawable.ic_add,
-            getString(R.string.row_live_tv) to R.drawable.ic_tv_direct,
-            getString(R.string.row_sport) to R.drawable.ic_tv_direct,
-            "Sport" to R.drawable.ic_tv_direct,
-            getString(R.string.row_films) to R.drawable.ic_films,
-            getString(R.string.row_series) to R.drawable.ic_series,
-            getString(R.string.row_shorts) to R.drawable.ic_films_courts,
-            getString(R.string.row_radio) to R.drawable.ic_radio,
-            getString(R.string.row_podcast) to R.drawable.ic_radio,
-            getString(R.string.row_music) to R.drawable.ic_radio,
-            getString(R.string.row_kids) to R.drawable.ic_jeunesse,
-            getString(R.string.row_games) to R.drawable.ic_jeux_video,
-        ).firstOrNull { it.first.equals(text, true) }?.second ?: 0
-        if (res != 0) icon.setImageResource(res)
-        icon.visibility = if (res != 0) View.VISIBLE else View.GONE
-    }
 
     override fun onDestroyView() {
-        headerIconObserver?.let { observer ->
-            view?.viewTreeObserver?.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(observer)
-        }
-        headerIconObserver = null
         extensionJob = null
         super.onDestroyView()
     }

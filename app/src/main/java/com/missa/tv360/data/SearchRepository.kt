@@ -3,8 +3,10 @@ package com.missa.tv360.data
 import android.content.Context
 import com.missa.tv360.data.source.FilmEngineConfig
 import com.missa.tv360.data.source.FilmSourceRegistry
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** Recherche locale multi-catégories enrichie par le moteur Films déjà présent. */
 object SearchRepository {
@@ -29,7 +31,13 @@ object SearchRepository {
             }
             .map { it.second }
         val remote = if (NetworkStatus.isOnline(context)) {
-            runCatching { FilmSourceRegistry.search(clean, config) }.getOrNull()
+            try {
+                withTimeoutOrNull(10_000L) { FilmSourceRegistry.search(clean, config) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
         } else null
         SearchOutcome(
             items = (local + remote.orEmpty()).distinctBy { it.id },

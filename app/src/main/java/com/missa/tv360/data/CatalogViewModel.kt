@@ -3,6 +3,7 @@ package com.missa.tv360.data
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -27,7 +28,13 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         if (started) return
         started = true
         refreshJob = viewModelScope.launch {
-            val initial = CatalogRepository.initialCatalog(getApplication())
+            val initial = try {
+                CatalogRepository.initialCatalog(getApplication())
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                CatalogLoadResult(CatalogRepository.localCatalog(), CatalogSource.DEMO, remoteFailed = true)
+            }
             publish(initial, initialLoading = false, refreshing = true)
             refreshRemote()
         }
@@ -46,21 +53,32 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         val app = getApplication<Application>()
         _state.value = _state.value.copy(refreshing = true)
         val current = _state.value
-        val result = if (!NetworkStatus.isOnline(app)) {
+        val result = try {
+            if (!NetworkStatus.isOnline(app)) {
+                CatalogLoadResult(
+                    rows = current.rows,
+                    source = current.source ?: CatalogSource.BUNDLED,
+                    remoteFailed = true,
+                    networkFailed = true,
+                )
+            } else {
+                withTimeoutOrNull(8_000L) { CatalogRepository.loadCatalogWithStatus(app) }
+                    ?: CatalogLoadResult(
+                        rows = current.rows,
+                        source = current.source ?: CatalogSource.BUNDLED,
+                        remoteFailed = true,
+                        networkFailed = true,
+                    )
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
             CatalogLoadResult(
                 rows = current.rows,
                 source = current.source ?: CatalogSource.BUNDLED,
                 remoteFailed = true,
                 networkFailed = true,
             )
-        } else {
-            withTimeoutOrNull(8_000L) { CatalogRepository.loadCatalogWithStatus(app) }
-                ?: CatalogLoadResult(
-                    rows = current.rows,
-                    source = current.source ?: CatalogSource.BUNDLED,
-                    remoteFailed = true,
-                    networkFailed = true,
-                )
         }
         publish(
             result.copy(rows = result.rows.ifEmpty { current.rows }),

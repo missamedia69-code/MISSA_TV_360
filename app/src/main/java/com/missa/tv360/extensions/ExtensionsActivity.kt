@@ -140,8 +140,9 @@ class ExtensionsActivity : FragmentActivity() {
             .setTitle(R.string.extensions_add_repo)
             .setView(container)
             .setPositiveButton(R.string.extensions_add) { _, _ ->
-                val url = input.text?.toString().orEmpty()
-                if (url.isNotBlank()) addRepository(url)
+                val url = input.text?.toString().orEmpty().trim()
+                if (url.isBlank()) toast(getString(R.string.extensions_url_required))
+                else addRepository(url)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
