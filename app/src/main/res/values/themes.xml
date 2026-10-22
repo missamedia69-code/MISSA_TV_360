@@ -31,4 +31,15 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
+    <!-- Écran Extensions : activité AppCompat (boîtes de dialogue et champ de
+         saisie AppCompat exigent un thème AppCompat, Theme.Leanback n'en est pas
+         un). Palette identique au reste de l'application. -->
+    <style name="Theme.MissaTv.Extensions" parent="@style/Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_missa_night</item>
+        <item name="colorPrimary">@color/missa_yellow</item>
+        <item name="colorAccent">@color/missa_yellow</item>
+        <item name="android:textColorPrimary">@color/missa_white</item>
+        <item name="android:textColorSecondary">@color/missa_white</item>
+    </style>
+
 </resources>

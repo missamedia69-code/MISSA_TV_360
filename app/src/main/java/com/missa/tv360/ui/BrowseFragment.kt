@@ -1,6 +1,7 @@
 package com.missa.tv360.ui
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
@@ -36,8 +37,13 @@ import com.missa.tv360.data.source.FilmEngineConfig
 import com.missa.tv360.data.source.FilmEngineRepository
 import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.data.source.bundledFilmEngineConfig
+import com.missa.tv360.extensions.ExtensionCatalog
+import com.missa.tv360.extensions.ExtensionManager
+import com.missa.tv360.extensions.ExtensionsActivity
 import com.missa.tv360.games.GamesActivity
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -58,6 +64,12 @@ class BrowseFragment : BrowseSupportFragment() {
     private val rowsAdapter = ArrayObjectAdapter(rowPresenter)
     private var filmListAdapter: ArrayObjectAdapter? = null
     private var engineConfig: FilmEngineConfig? = null
+
+    private companion object {
+        const val EXTENSIONS_CARD_ID = "open-extensions"
+        const val EXTENSIONS_HEADER_ID = 2000L
+        const val EXTENSIONS_TIMEOUT_MS = 15_000L
+    }
     private var headerIconObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onInflateTitleView(
@@ -84,6 +96,7 @@ class BrowseFragment : BrowseSupportFragment() {
                                                                 _: RowPresenter.ViewHolder, _: Row ->
             if (item is Video) {
                 when {
+                    item.id == EXTENSIONS_CARD_ID -> openExtensions()
                     item.moreTargetRowId != null -> openCategoryGrid(item.moreTargetRowId, item.description)
                     item.sourceId != null -> resolveAndOpen(item)
                     item.isGamesLauncher -> openGames()
@@ -140,8 +153,108 @@ class BrowseFragment : BrowseSupportFragment() {
                     if (trending.isNotEmpty()) updateFilmRow(trending)
                 }
             }
+
+            // Extensions : au premier démarrage, bootstrap du dépôt intégré
+            // (téléchargement + installation + chargement), puis publication
+            // des rangées fournies par les extensions actives.
+            loadExtensions()
+
             return@launch
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Extensions (plugins téléchargés depuis un dépôt)
+    // ------------------------------------------------------------------
+
+    /**
+     * Charge les extensions puis ajoute leurs rangées à l'accueil.
+     *
+     * Le bootstrap (premier démarrage) est exécuté sur le dispatcher IO : il
+     * télécharge `repo.json`, la liste des extensions et les artefacts, ce qui
+     * ne doit jamais toucher le thread principal.
+     */
+    private suspend fun loadExtensions() {
+        try {
+            ExtensionManager.init(requireContext())
+            withContext(Dispatchers.IO) {
+                try {
+                    ExtensionManager.bootstrapIfNeeded()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (t: Throwable) {
+                    android.util.Log.w("Browse", "Bootstrap des extensions impossible", t)
+                }
+            }
+            val rows = try {
+                withTimeout(EXTENSIONS_TIMEOUT_MS) { ExtensionCatalog.rows() }
+            } catch (_: Exception) {
+                emptyList()
+            }
+            if (!isAdded) return
+            appendRows(rows)
+            appendExtensionsCard()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            android.util.Log.w("Browse", "Extensions indisponibles", t)
+        }
+    }
+
+    /** Ajoute des rangées sans toucher à celles déjà affichées. */
+    private fun appendRows(rows: List<VideoRow>) {
+        if (rows.isEmpty()) return
+        val cardPresenter = MissaCardPresenter()
+        val displayRows = mutableListOf<CatalogStore.DisplayRow>()
+
+        rows.forEach { row ->
+            val videos = row.videos.filter { !it.title.contains("Emplacement", ignoreCase = true) }
+            if (videos.isEmpty()) return@forEach
+            val header = row.headerTitle ?: if (row.headerRes != 0) getString(row.headerRes) else ""
+            if (header.isBlank()) return@forEach
+            // Rangée déjà présente (rafraîchissement) : on remplace son contenu.
+            val existing = existingRow(header)
+            val adapter = ArrayObjectAdapter(cardPresenter).apply { videos.forEach { add(it) } }
+            if (existing == null) {
+                val position = rowsAdapter.size().toLong()
+                rowsAdapter.add(ListRow(HeaderItem(position, header), adapter))
+            } else {
+                @Suppress("UNCHECKED_CAST")
+                val current = existing.adapter as ArrayObjectAdapter
+                current.clear()
+                videos.forEach { current.add(it) }
+            }
+            displayRows += CatalogStore.DisplayRow(row.rowId ?: header, header, videos)
+        }
+        CatalogStore.append(displayRows)
+    }
+
+    /**
+     * Carte d'accès permanent à l'écran Extensions : sans elle, un utilisateur
+     * de TV n'aurait aucun moyen d'ajouter un dépôt.
+     */
+    private fun appendExtensionsCard() {
+        val header = getString(R.string.extensions_title)
+        val existing = existingRow(header)
+        val card = Video(
+            id = EXTENSIONS_CARD_ID,
+            title = getString(R.string.extensions_card_title),
+            description = getString(R.string.extensions_card_description),
+            cardRes = R.drawable.card_more,
+            streamUrl = "",
+        )
+        if (existing == null) {
+            val adapter = ArrayObjectAdapter(MissaCardPresenter()).apply { add(card) }
+            rowsAdapter.add(ListRow(HeaderItem(EXTENSIONS_HEADER_ID, header), adapter))
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            val current = existing.adapter as ArrayObjectAdapter
+            if (current.size() == 0) current.add(card)
+        }
+    }
+
+    private fun openExtensions() {
+        startActivity(Intent(requireContext(), ExtensionsActivity::class.java))
     }
 
     private fun isOnline(): Boolean {

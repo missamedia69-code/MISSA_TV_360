@@ -23,6 +23,21 @@ object CatalogStore {
         rows = displayRows
     }
 
+    /**
+     * Ajoute des rangées à la suite de celles déjà déposées (extensions).
+     * Les rangées de même identifiant sont remplacées : un rafraîchissement
+     * d'extension met à jour la grille sans dupliquer la rangée.
+     */
+    fun append(displayRows: List<DisplayRow>) {
+        if (displayRows.isEmpty()) return
+        val incoming = displayRows.associateBy { it.rowId ?: it.title }
+        val merged = rows.filterNot { incoming.containsKey(it.rowId ?: it.title) } + displayRows
+        rows = merged
+    }
+
+    /** Rangées actuellement déposées (lecture défensive). */
+    fun snapshot(): List<DisplayRow> = rows
+
     /** Rangée correspondant à un identifiant ou, à défaut, à un titre. */
     fun row(rowId: String?, title: String?): DisplayRow? {
         val current = rows
