@@ -51,8 +51,15 @@ class MobileSearchFragment : Fragment() {
         query.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-            override fun afterTextChanged(s: Editable?) = scheduleSearch(s?.toString().orEmpty(), immediate = false)
+            override fun afterTextChanged(s: Editable?) {
+                view.findViewById<View>(R.id.mobile_search_clear).isVisible = !s.isNullOrBlank()
+                scheduleSearch(s?.toString().orEmpty(), immediate = false)
+            }
         })
+        view.findViewById<View>(R.id.mobile_search_clear).setOnClickListener {
+            query.text.clear()
+            query.requestFocus()
+        }
         query.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 scheduleSearch(query.text.toString(), immediate = true)

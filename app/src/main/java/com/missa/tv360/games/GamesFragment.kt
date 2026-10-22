@@ -107,6 +107,10 @@ class GamesFragment : RowsSupportFragment() {
     }
 
     private fun startDownload(game: Game) {
+        if (activeGameId?.let { downloader.state.value[it]?.running } == true) {
+            showStatus(getString(R.string.games_already_downloading), running = true)
+            return
+        }
         activeGameId = game.id
         showStatus(getString(R.string.games_download_started, game.title), running = true)
         downloadJob?.cancel()

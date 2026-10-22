@@ -50,6 +50,17 @@
             android:textColorHint="@color/missa_text_muted"
             android:textSize="@dimen/text_body" />
 
+        <ImageButton
+            android:id="@+id/mobile_search_clear"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_btn_secondary"
+            android:contentDescription="@string/mobile_clear"
+            android:padding="12dp"
+            android:src="@drawable/ic_close"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/mobile_search_submit"
             style="@style/MissaButton.Primary"

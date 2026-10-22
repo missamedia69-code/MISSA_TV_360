@@ -13,6 +13,7 @@
         android:id="@+id/mobile_game_image"
         android:layout_width="128dp"
         android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
     <LinearLayout

@@ -67,7 +67,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                         rows = current.rows,
                         source = current.source ?: CatalogSource.BUNDLED,
                         remoteFailed = true,
-                        networkFailed = true,
+                        networkFailed = !NetworkStatus.isOnline(app),
                     )
             }
         } catch (cancelled: CancellationException) {
@@ -77,7 +77,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                 rows = current.rows,
                 source = current.source ?: CatalogSource.BUNDLED,
                 remoteFailed = true,
-                networkFailed = true,
+                networkFailed = !NetworkStatus.isOnline(app),
             )
         }
         publish(

@@ -95,7 +95,12 @@ class DetailsFragment : Fragment() {
         }
         val fallback = fondParDefaut(video.kind.name)
         if (!video.cardUrl.isNullOrBlank()) {
-            ThumbnailLoader.loadDrawable(requireContext(), video.cardUrl, fallback) { drawable ->
+            ThumbnailLoader.loadDrawable(
+                requireContext(),
+                video.cardUrl,
+                fallback,
+                targetWidth = if (resources.getBoolean(R.bool.is_compact_layout)) 640 else 1280,
+            ) { drawable ->
                 if (!isAdded) return@loadDrawable
                 bg.setImageDrawable(drawable)
                 art.setImageDrawable(drawable)
