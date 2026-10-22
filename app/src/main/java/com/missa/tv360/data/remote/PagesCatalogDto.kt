@@ -71,6 +71,8 @@ data class PagesItemDto(
             // stream.live est la source de vérité pour le statut « direct » :
             // un item kind « sport » avec stream.live=false n'est pas un direct.
             forceLive = stream?.live == true,
+            audioOnly = audioOnly,
+            originalKind = kind,
             seriesTitle = seriesTitle,
             season = seasonNumber,
             episode = episodeNumber,

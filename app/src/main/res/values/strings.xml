@@ -2,9 +2,13 @@
 <resources>
     <string name="app_name">MISSA TV 360</string>
     <string name="catalog_loading">Préparation de votre catalogue…</string>
+    <string name="catalog_refreshing">Actualisation du catalogue…</string>
+    <string name="catalog_offline">Hors ligne · catalogue local affiché</string>
+    <string name="catalog_stale">Actualisation impossible · catalogue local affiché</string>
+    <string name="catalog_retry">Réessayer</string>
 
-    <!-- En-têtes des 10 lignes de contenu -->
-    <string name="row_resume">Reprendre</string>
+    <string name="row_resume">Reprendre la lecture</string>
+    <string name="row_my_list">Ma liste</string>
     <string name="row_hero">À la une</string>
     <string name="row_live_tv">TV Direct</string>
     <string name="row_sport">Sport Direct</string>
@@ -17,44 +21,69 @@
     <string name="row_podcast">Podcasts</string>
     <string name="row_kids">Jeunesse</string>
     <string name="row_games">Jeux vidéo</string>
-    <!-- Carte « Tout voir » en fin de rangée + grille complète de la catégorie -->
     <string name="row_more">Tout voir</string>
-    <string name="row_more_description">Tout voir : %1$s</string>
-    <string name="grid_count">%1$d contenus</string>
+    <string name="row_more_description">Afficher tous les contenus : %1$s</string>
+    <plurals name="category_count">
+        <item quantity="one">%1$d contenu</item>
+        <item quantity="other">%1$d contenus</item>
+    </plurals>
+    <string name="empty_category">Aucun contenu disponible dans cette catégorie.</string>
+    <string name="empty_my_list">Votre liste est vide. Ajoutez des contenus depuis leur fiche.</string>
 
-    <!-- Détails -->
-    <string name="action_play">Lire</string>
+    <string name="mobile_home">Accueil</string>
+    <string name="mobile_search">Recherche</string>
+    <string name="mobile_extensions">Extensions</string>
+    <string name="mobile_extensions">Extensions</string>
+    <string name="mobile_back">Retour</string>
+    <string name="mobile_clear">Effacer</string>
+
+    <string name="action_play">Regarder</string>
     <string name="action_watch">Regarder</string>
     <string name="action_watch_live">Regarder en direct</string>
     <string name="action_listen">Écouter</string>
-    <string name="action_my_list_add">+ Ma liste</string>
-    <string name="action_my_list_remove">✓ Dans ma liste</string>
+    <string name="action_resume">Reprendre</string>
+    <string name="action_unavailable">Indisponible</string>
+    <string name="action_my_list_add">Ajouter à Ma liste</string>
+    <string name="action_my_list_remove">Retirer de Ma liste</string>
     <string name="action_report">Signaler un problème</string>
     <string name="details_description">Aucune description disponible.</string>
-    <string name="details_similar">Chaînes similaires</string>
+    <string name="details_read_more">Lire la suite</string>
+    <string name="details_similar">Contenus similaires</string>
+    <string name="details_similar_channels">Chaînes similaires</string>
     <string name="details_source">Source : %1$s</string>
+    <string name="details_duration">%1$d min</string>
+    <string name="details_source_format">Format : %1$s</string>
     <string name="details_back">Retour</string>
-    <string name="details_play">Lire</string>
+    <string name="details_crumb">%1$s › %2$s</string>
+    <string name="details_add_list_description">Ajouter %1$s à Ma liste</string>
+    <string name="details_remove_list_description">Retirer %1$s de Ma liste</string>
+    <string name="details_play">Lire le contenu</string>
     <string name="badge_live">EN DIRECT</string>
     <string name="badge_hd">HD</string>
-    <string name="report_send">Envoyer</string>
-    <string name="report_done">Signalement enregistré. Merci.</string>
+    <string name="report_send">Enregistrer</string>
+    <string name="report_done">Signalement enregistré sur cet appareil.</string>
 
-    <!-- Lecteur -->
-    <string name="player_error">Lecture impossible : réessayez ou revenez à la fiche.</string>
+    <string name="player_error">Lecture impossible. Vérifiez la source ou réessayez.</string>
+    <string name="player_error_title">Lecture impossible</string>
+    <string name="player_error_network">La connexion a été interrompue. Vérifiez le réseau, puis réessayez.</string>
+    <string name="player_error_source">La source est inaccessible ou n’est plus valide. Réessayez plus tard.</string>
+    <string name="player_error_format">Ce format de lecture n’est pas pris en charge sur cet appareil.</string>
+    <string name="player_retry">Réessayer</string>
+    <string name="player_back">Retour</string>
+    <string name="player_buffering">Chargement de la lecture…</string>
 
-    <!-- Recherche Leanback / moteurs de sources -->
-    <string name="search_title">Rechercher un film</string>
-    <string name="search_film_hint">Titre du film</string>
+    <string name="search_title">Rechercher</string>
+    <string name="search_film_hint">Titre, catégorie ou description</string>
     <string name="search_submit">Rechercher</string>
-    <string name="search_loading">Recherche dans les sources Films…</string>
-    <string name="search_error">La recherche est indisponible pour le moment.</string>
-    <string name="search_no_results">Aucun film trouvé. Essayez un autre titre.</string>
+    <string name="search_initial">Recherchez dans le catalogue et les films en ligne.</string>
+    <string name="search_loading">Recherche en cours…</string>
+    <string name="search_error">Recherche en ligne indisponible. Vérifiez votre connexion et réessayez.</string>
+    <string name="search_no_results">Aucun résultat. Essayez une autre recherche.</string>
     <string name="search_results_header">Résultats pour « %1$s » (%2$d)</string>
-    <string name="search_resolving">Récupération des informations du film…</string>
-    <string name="search_unplayable">Aucun flux MP4 lisible trouvé pour ce film.</string>
+    <string name="search_resolving">Récupération des informations du contenu…</string>
+    <string name="search_unplayable">Aucune source lisible n’a été trouvée pour ce contenu.</string>
     <string name="settings_title">Paramètres</string>
-    <!-- Extensions (dépôts + plugins téléchargés) -->
+
     <string name="extensions_title">Extensions</string>
     <string name="extensions_card_title">Chaînes &amp; extensions</string>
     <string name="extensions_card_description">Ajouter un dépôt d\'extensions et installer des sources</string>
@@ -63,10 +92,44 @@
     <string name="extensions_repo_hint">https://exemple.tld/extensions/repo.json</string>
     <string name="extensions_add">Ajouter</string>
     <string name="extensions_remove">Supprimer</string>
-    <string name="extensions_remove_repo">Supprimer ce dépôt ?</string>
+    <string name="extensions_remove_repo">Supprimer ce dépôt et ses extensions ?</string>
+    <string name="extensions_remove_repo_message">%1$s\n\nToutes les extensions installées depuis ce dépôt seront également supprimées.</string>
     <string name="extensions_remove_plugin">Supprimer cette extension ?</string>
     <string name="extensions_busy">Opération en cours…</string>
     <string name="extensions_summary">%1$d dépôt(s) · %2$d extension(s) installée(s)</string>
     <string name="extensions_never_refreshed">Aucun rafraîchissement effectué.</string>
     <string name="extensions_error">Opération impossible.</string>
+    <string name="extensions_empty_repositories">Aucun dépôt. Ajoutez-en un pour découvrir des extensions.</string>
+    <string name="extensions_empty_plugins">Aucune extension publiée par les dépôts actuels.</string>
+    <string name="extensions_repositories">Dépôts</string>
+    <string name="extensions_plugins">Extensions</string>
+    <string name="extensions_status_ok">Disponible</string>
+    <string name="extensions_status_error">Erreur</string>
+    <string name="extensions_install">Installer</string>
+    <string name="extensions_update">Mettre à jour</string>
+    <string name="extensions_up_to_date">À jour</string>
+    <string name="extensions_unavailable">Indisponible</string>
+    <string name="extensions_incompatible">Version incompatible</string>
+    <string name="extensions_local">Locale</string>
+    <string name="extensions_disabled">Désactivée</string>
+    <string name="extensions_url_required">Saisissez l’adresse d’un dépôt.</string>
+
+    <string name="games_loading">Chargement des jeux…</string>
+    <string name="games_empty">Aucun jeu disponible pour le moment.</string>
+    <string name="games_offline">Jeux indisponibles hors ligne. Reconnectez-vous puis réessayez.</string>
+    <string name="games_download">Télécharger</string>
+    <string name="games_downloading">Téléchargement · %1$d %%</string>
+    <string name="games_cancel">Annuler</string>
+    <string name="games_retry">Réessayer</string>
+    <string name="games_open">Ouvrir</string>
+    <string name="games_install">Installer</string>
+    <string name="games_installed">Installé</string>
+    <string name="games_unknown_sources">Pour installer ce jeu, autorisez temporairement MISSA TV 360 à installer des applications. Android vous demandera confirmation avant l’installation.</string>
+    <string name="games_download_started">Téléchargement de %1$s…</string>
+    <string name="games_verified">Paquet vérifié · installation système non confirmée</string>
+    <string name="games_downloaded">Téléchargé</string>
+    <string name="games_confirm_download">Télécharger %1$s (%2$s) ?</string>
+    <string name="games_open_settings">Ouvrir les paramètres</string>
+    <string name="games_load_error">Impossible de charger les jeux. Réessayez.</string>
+    <string name="games_size_unknown">taille non communiquée</string>
 </resources>

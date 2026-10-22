@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:clipChildren="false"
+    android:clipToPadding="false"
     android:layout_marginStart="@dimen/card_gap"
     android:layout_marginEnd="@dimen/card_gap">
 
@@ -11,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_card_focus"
+        android:clipChildren="false"
         android:duplicateParentState="true">
 
         <ImageView
@@ -19,32 +21,8 @@
             android:layout_height="@dimen/card16_h"
             android:background="@drawable/bg_card_image"
             android:clipToOutline="true"
+            android:importantForAccessibility="no"
             android:scaleType="centerCrop" />
-
-        <View
-            android:id="@+id/card_scrim"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/scrim_vertical" />
-
-        <TextView
-            android:id="@+id/card_overlay_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="8dp"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="@color/missa_white"
-            android:shadowColor="#CC000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="3" />
 
         <TextView
             android:id="@+id/badge_live"
@@ -52,11 +30,13 @@
             android:layout_height="wrap_content"
             android:layout_margin="6dp"
             android:background="@drawable/bg_badge_live"
-            android:text="LIVE"
-            android:textColor="@color/missa_white"
-            android:textSize="12sp"
-            android:textStyle="bold"
+            android:importantForAccessibility="no"
             android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="@string/badge_live"
+            android:textColor="@color/missa_white"
+            android:textSize="@dimen/text_caption"
+            android:textStyle="bold"
             android:visibility="gone" />
 
         <ProgressBar
@@ -65,10 +45,10 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/progress_h"
             android:layout_gravity="bottom"
+            android:importantForAccessibility="no"
             android:progressTint="@color/missa_yellow"
             android:visibility="gone" />
 
-        <!-- Anneau de focus jaune : fond posé par MissaCardPresenter au focus. -->
         <View
             android:id="@+id/card_focus_ring"
             android:layout_width="match_parent"
@@ -83,7 +63,7 @@
         android:layout_marginTop="6dp"
         android:maxLines="2"
         android:ellipsize="end"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_content_title"
         android:textColor="@color/missa_text_secondary" />
 
     <TextView
@@ -93,7 +73,7 @@
         android:layout_marginTop="2dp"
         android:maxLines="2"
         android:ellipsize="end"
-        android:textSize="11sp"
+        android:textSize="@dimen/text_caption"
         android:textColor="@color/missa_text_muted"
         android:visibility="gone" />
 </LinearLayout>

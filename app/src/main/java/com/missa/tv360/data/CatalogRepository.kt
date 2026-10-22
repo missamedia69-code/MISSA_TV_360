@@ -30,6 +30,15 @@ import retrofit2.converter.gson.GsonConverterFactory
  *            libres de droits (domaine public, Creative Commons) +
  *            emplacements réservés à connecter.
  */
+enum class CatalogSource { REMOTE, CACHE, BUNDLED, DEMO }
+
+data class CatalogLoadResult(
+    val rows: List<VideoRow>,
+    val source: CatalogSource,
+    val remoteFailed: Boolean = false,
+    val networkFailed: Boolean = false,
+)
+
 object CatalogRepository {
 
     /** Ordre canonique des 10 lignes (identifiants de row du dépôt). */
@@ -61,9 +70,24 @@ object CatalogRepository {
             .create(BffApi::class.java)
     }
 
-    suspend fun loadCatalog(context: Context): List<VideoRow> = withContext(Dispatchers.IO) {
+    /** Premier affichage : cache réel, asset embarqué, puis démonstration en dernier recours. */
+    suspend fun initialCatalog(context: Context): CatalogLoadResult = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        // Source 1 : le dépôt GitHub (GitHub Pages) — le « serveur » de l'app.
+        cachedCatalogRows(appContext)?.let {
+            return@withContext CatalogLoadResult(it, CatalogSource.CACHE)
+        }
+        bundledCatalogRows(appContext)?.let {
+            return@withContext CatalogLoadResult(it, CatalogSource.BUNDLED)
+        }
+        CatalogLoadResult(localCatalog(), CatalogSource.DEMO)
+    }
+
+    /** Compatibilité avec les appels existants qui n'ont besoin que des rangées. */
+    suspend fun loadCatalog(context: Context): List<VideoRow> = loadCatalogWithStatus(context).rows
+
+    /** Charge la source distante sans masquer l'origine du repli affiché à l'utilisateur. */
+    suspend fun loadCatalogWithStatus(context: Context): CatalogLoadResult = withContext(Dispatchers.IO) {
+        val appContext = context.applicationContext
         val type = object : TypeToken<PagesCatalogDto>() {}.type
         val result: PagesClient.FetchResult<PagesCatalogDto> =
             PagesClient.fetchJson(BuildConfig.BFF_BASE_URL, CATALOG_PATH, type, 4000)
@@ -73,31 +97,31 @@ object CatalogRepository {
         }
         val rows = dto?.toRows().orEmpty()
         if (rows.isNotEmpty()) {
-            // On garde la dernière version valide : elle sert de repli si le
-            // réseau tombe au prochain lancement.
             if (dto != null) cacheCatalog(appContext, dto)
-            return@withContext rows
+            return@withContext CatalogLoadResult(rows, CatalogSource.REMOTE)
         }
-        // Source 2 : BFF Retrofit (alternative, même contrat).
+
+        var networkFailed = result is PagesClient.FetchResult.NetworkError
         try {
-            val rows = api.rows()
-            if (rows.isNotEmpty()) {
-                return@withContext rows.map { row ->
-                    VideoRow(
-                        headerRes = R.string.app_name,
-                        videos = row.items.mapNotNull { it.toVideo() },
-                    )
-                }
+            val bffRows = api.rows()
+            if (bffRows.isNotEmpty()) {
+                return@withContext CatalogLoadResult(
+                    bffRows.map { row ->
+                        VideoRow(
+                            rowId = row.id,
+                            headerTitle = row.title,
+                            videos = row.items.mapNotNull { it.toVideo() },
+                        )
+                    },
+                    CatalogSource.REMOTE,
+                )
             }
         } catch (_: Exception) {
-            // on passe à la source suivante
+            networkFailed = true
         }
-        // Source 3 : dernier catalogue distant valide (hors réseau).
-        cachedCatalogRows(appContext)?.let { return@withContext it }
-        // Source 4 : catalogue embarqué dans l'APK (fiable, même hors réseau).
-        bundledCatalogRows(appContext)?.let { return@withContext it }
-        // Source 5 : catalogue local de démonstration.
-        localCatalog()
+
+        val fallback = initialCatalog(appContext)
+        fallback.copy(remoteFailed = true, networkFailed = networkFailed)
     }
 
     /**

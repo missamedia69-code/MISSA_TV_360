@@ -1,69 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Écran Extensions : dépôts + liste des extensions publiées.
-     Construit pour la télécommande : tout est focusable, aucun geste requis. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/missa_bg_top"
+    android:background="@drawable/bg_missa_night"
     android:orientation="vertical"
-    android:padding="32dp">
-
-    <TextView
-        android:id="@+id/extensions_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/extensions_title"
-        android:textColor="@color/missa_white"
-        android:textSize="28sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/extensions_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:minHeight="24dp"
-        android:textColor="@color/missa_yellow"
-        android:textSize="15sp" />
+    android:paddingStart="16dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/extensions_back"
+            style="@style/MissaButton.Secondary"
+            android:layout_width="wrap_content"
+            android:text="@string/player_back" />
+
+        <TextView
+            android:id="@+id/extensions_title"
+            style="@style/MissaText.ScreenTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="@string/extensions_title" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/extensions_status"
+        style="@style/MissaText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:accessibilityLiveRegion="polite"
+        android:minHeight="24dp"
+        android:textColor="@color/missa_yellow" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/extensions_add"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_btn_primary"
-            android:focusable="true"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:text="@string/extensions_add_repo"
-            android:textColor="@color/missa_bg_top"
-            android:textStyle="bold" />
+            style="@style/MissaButton.Primary"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="@string/extensions_add_repo" />
 
         <Button
             android:id="@+id/extensions_refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/bg_btn_secondary"
-            android:focusable="true"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:text="@string/extensions_refresh"
-            android:textColor="@color/missa_white" />
+            style="@style/MissaButton.Secondary"
+            android:layout_width="0dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/extensions_refresh" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/extensions_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingBottom="32dp" />
-
+        android:paddingBottom="24dp" />
 </LinearLayout>

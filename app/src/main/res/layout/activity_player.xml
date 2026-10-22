@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <!-- Visuel de fond (utilisé en mode audio : radio / podcast) -->
     <ImageView
         android:id="@+id/player_cover"
         android:layout_width="match_parent"
@@ -17,28 +16,99 @@
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:focusable="true"
         android:keepScreenOn="true" />
 
-    <!-- Titre réel du contenu, visible quelques secondes puis estompé
-         (ne masque jamais durablement la vidéo ni les contrôles). -->
     <TextView
         android:id="@+id/player_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_marginLeft="48dp"
+        android:layout_marginStart="48dp"
         android:layout_marginTop="24dp"
+        android:background="@drawable/bg_player_title"
+        android:ellipsize="end"
         android:maxWidth="760dp"
         android:maxLines="1"
-        android:ellipsize="end"
-        android:background="@drawable/bg_player_title"
-        android:paddingLeft="14dp"
-        android:paddingRight="14dp"
+        android:paddingStart="14dp"
         android:paddingTop="6dp"
+        android:paddingEnd="14dp"
         android:paddingBottom="6dp"
+        android:textColor="@color/missa_white"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/missa_white"
         android:visibility="gone" />
 
+    <LinearLayout
+        android:id="@+id/player_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_status_panel"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:indeterminateTint="@color/missa_yellow" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/player_buffering"
+            android:textColor="@color/missa_white"
+            android:textSize="@dimen/text_body" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/player_error_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_status_panel"
+        android:gravity="center"
+        android:maxWidth="560dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/MissaText.SectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/player_error_title" />
+
+        <TextView
+            android:id="@+id/player_error_message"
+            style="@style/MissaText.Body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:accessibilityLiveRegion="assertive"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/player_retry"
+                style="@style/MissaButton.Primary"
+                android:layout_width="wrap_content"
+                android:text="@string/player_retry" />
+
+            <Button
+                android:id="@+id/player_back"
+                style="@style/MissaButton.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/player_back" />
+        </LinearLayout>
+    </LinearLayout>
 </FrameLayout>

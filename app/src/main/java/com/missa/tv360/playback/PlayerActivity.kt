@@ -2,9 +2,10 @@ package com.missa.tv360.playback
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
@@ -14,13 +15,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import com.missa.tv360.R
+import com.missa.tv360.data.CatalogStore
+import com.missa.tv360.data.WatchProgressStore
+import com.missa.tv360.ui.ThumbnailLoader
+import com.missa.tv360.ui.fondParDefaut
 
-/**
- * Lecteur vidéo (Media3 ExoPlayer) — gère MP4 et HLS (live inclus).
- * Navigation au clavier/télécommande : Retour quitte, OK/Pause joue.
- */
+/** Lecteur Media3 vidéo/audio avec reprise, chargement et erreur récupérable. */
 class PlayerActivity : AppCompatActivity() {
-
     companion object {
         const val EXTRA_URL = "extra_url"
         const val EXTRA_VIDEO_ID = "extra_video_id"
@@ -29,42 +30,41 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_AUDIO_ONLY = "extra_audio_only"
         const val EXTRA_COVER_RES = "extra_cover_res"
         const val EXTRA_COVER_URL = "extra_cover_url"
-
-        /**
-         * En-têtes HTTP exigés par le flux (Referer, User-Agent…), transmis en
-         * `HashMap<String, String>` sérialisable. Vide pour un flux public.
-         */
         const val EXTRA_HEADERS = "extra_headers"
-
-        /** Format annoncé par la source : mp4 | hls | mp3. */
         const val EXTRA_FORMAT = "extra_format"
-
         private const val USER_AGENT = "MISSA-TV-360/1.0 (Android player)"
+        private const val STATE_POSITION = "state_position"
+        private const val STATE_ERROR = "state_error"
     }
 
     private var player: ExoPlayer? = null
     private var titleOverlay: TextView? = null
     private var titleFade: Runnable? = null
+    private var retryPositionMs = 0L
+    private var hasFatalError = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
-
-        val url = intent.getStringExtra(EXTRA_URL)
-        if (url.isNullOrBlank()) {
-            Toast.makeText(this, R.string.player_error, Toast.LENGTH_LONG).show()
-            finish()
-            return
-        }
+        retryPositionMs = savedInstanceState?.getLong(STATE_POSITION, 0L) ?: 0L
+        hasFatalError = savedInstanceState?.getBoolean(STATE_ERROR, false) ?: false
         title = intent.getStringExtra(EXTRA_TITLE)
         setupCover()
         setupTitleOverlay()
+        findViewById<Button>(R.id.player_retry).setOnClickListener { retryPlayback() }
+        findViewById<Button>(R.id.player_back).setOnClickListener { finish() }
+        findViewById<PlayerView>(R.id.player_view).apply {
+            useController = true
+            controllerShowTimeoutMs = 4_000
+            isFocusable = true
+        }
+        if (hasFatalError) {
+            showError(getString(R.string.player_error_source))
+        } else if (intent.getStringExtra(EXTRA_URL).isNullOrBlank()) {
+            showError(getString(R.string.player_error_source))
+        }
     }
 
-    /**
-     * Titre réel du contenu affiché en haut à gauche puis estompé (§9) :
-     * le panneau reste « subtil » et ne masque jamais durablement la vidéo.
-     */
     private fun setupTitleOverlay() {
         val label = intent.getStringExtra(EXTRA_TITLE)?.trim()
         if (label.isNullOrEmpty()) return
@@ -80,22 +80,29 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (player == null) initializePlayer()
+        if (player == null && !hasFatalError) initializePlayer()
     }
 
     override fun onPause() {
-        val p = player
-        val id = intent.getStringExtra(EXTRA_VIDEO_ID)
-        if (p != null && !id.isNullOrBlank()) {
-            com.missa.tv360.data.WatchProgressStore.save(
-                this, id, p.currentPosition, p.duration.coerceAtLeast(0L)
-            )
-        }
+        saveProgress()
         super.onPause()
         releasePlayer()
     }
 
-    /** Mode audio (radio/podcast) : affiche le visuel de fond à la place du noir. */
+    private fun saveProgress() {
+        val current = player ?: return
+        val id = intent.getStringExtra(EXTRA_VIDEO_ID)
+        if (id.isNullOrBlank() || intent.getBooleanExtra(EXTRA_LIVE, false)) return
+        retryPositionMs = current.currentPosition.coerceAtLeast(0L)
+        WatchProgressStore.save(
+            this,
+            id,
+            retryPositionMs,
+            current.duration.coerceAtLeast(0L),
+        )
+        CatalogStore.refreshUserRows(this)
+    }
+
     private fun setupCover() {
         if (!intent.getBooleanExtra(EXTRA_AUDIO_ONLY, false)) return
         val playerView = findViewById<PlayerView>(R.id.player_view)
@@ -103,35 +110,33 @@ class PlayerActivity : AppCompatActivity() {
         playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
         val coverRes = intent.getIntExtra(EXTRA_COVER_RES, 0)
         if (coverRes != 0) {
-            // Keep a local MISSA fallback visible while an optional remote cover loads.
-            playerView.defaultArtwork = androidx.core.content.ContextCompat.getDrawable(
-                this, coverRes
-            )
+            playerView.defaultArtwork = androidx.core.content.ContextCompat.getDrawable(this, coverRes)
         }
         intent.getStringExtra(EXTRA_COVER_URL)?.takeIf { it.isNotBlank() }?.let { url ->
-            com.missa.tv360.ui.ThumbnailLoader.loadArtwork(url) { bitmap ->
+            ThumbnailLoader.loadArtwork(url) { bitmap ->
                 if (!isFinishing && !isDestroyed) {
-                    playerView.defaultArtwork = android.graphics.drawable.BitmapDrawable(
-                        resources, bitmap
-                    )
+                    playerView.defaultArtwork = android.graphics.drawable.BitmapDrawable(resources, bitmap)
                 }
             }
         }
     }
 
-    private fun initializePlayer() {
-        val url = intent.getStringExtra(EXTRA_URL) ?: return
+    private fun initializePlayer(startPositionMs: Long? = null) {
+        val url = intent.getStringExtra(EXTRA_URL)
+        if (url.isNullOrBlank()) {
+            showError(getString(R.string.player_error_source))
+            return
+        }
+        hasFatalError = false
+        findViewById<View>(R.id.player_error_panel).isVisible = false
+        findViewById<View>(R.id.player_loading).isVisible = true
         val isLive = intent.getBooleanExtra(EXTRA_LIVE, false)
-
         val exo = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setSeekBackIncrementMs(10_000)
             .setSeekForwardIncrementMs(10_000)
             .build()
-
         val mediaItemBuilder = MediaItem.Builder().setUri(url)
-        // Le type MIME est imposé par la source plutôt que deviné depuis
-        // l'extension : un manifeste HLS peut arriver sans « .m3u8 ».
         mimeTypeFor(intent.getStringExtra(EXTRA_FORMAT))?.let(mediaItemBuilder::setMimeType)
         if (isLive) {
             mediaItemBuilder.setLiveConfiguration(
@@ -139,34 +144,60 @@ class PlayerActivity : AppCompatActivity() {
                     .setTargetOffsetMs(5_000)
                     .setMinPlaybackSpeed(0.97f)
                     .setMaxPlaybackSpeed(1.03f)
-                    .build()
+                    .build(),
             )
         }
-
-        // Reprise de la progression enregistrée (§9) : jamais sur un direct.
         val videoId = intent.getStringExtra(EXTRA_VIDEO_ID)
-        val resumeMs = if (isLive || videoId.isNullOrBlank()) {
-            0L
-        } else {
-            com.missa.tv360.data.WatchProgressStore.position(this, videoId) ?: 0L
-        }
-
+        val storedPosition = if (isLive || videoId.isNullOrBlank()) 0L
+        else WatchProgressStore.position(this, videoId) ?: 0L
+        val resumeMs = if (isLive) 0L else startPositionMs ?: storedPosition
         exo.setMediaItem(mediaItemBuilder.build(), resumeMs)
         exo.playWhenReady = true
-        exo.prepare()
-
         exo.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    findViewById<View>(R.id.player_loading).isVisible = false
+                } else if (playbackState == Player.STATE_BUFFERING && !hasFatalError) {
+                    findViewById<View>(R.id.player_loading).isVisible = true
+                }
+            }
+
             override fun onPlayerError(error: PlaybackException) {
-                Toast.makeText(this@PlayerActivity, R.string.player_error, Toast.LENGTH_LONG).show()
-                finish()
+                retryPositionMs = exo.currentPosition.coerceAtLeast(0L)
+                showError(errorMessage(error))
             }
         })
-
         findViewById<PlayerView>(R.id.player_view).player = exo
         player = exo
+        exo.prepare()
     }
 
-    /** Type MIME explicite pour les formats que le lecteur doit forcer. */
+    private fun retryPlayback() {
+        val position = retryPositionMs
+        releasePlayer()
+        initializePlayer(position)
+    }
+
+    private fun showError(message: String) {
+        hasFatalError = true
+        findViewById<View>(R.id.player_loading).isVisible = false
+        findViewById<View>(R.id.player_error_panel).isVisible = true
+        findViewById<TextView>(R.id.player_error_message).text = message
+        findViewById<Button>(R.id.player_retry).requestFocus()
+    }
+
+    private fun errorMessage(error: PlaybackException): String = when (error.errorCode) {
+        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+        -> getString(R.string.player_error_network)
+        PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+        PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED,
+        PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
+        PlaybackException.ERROR_CODE_DECODING_FAILED,
+        -> getString(R.string.player_error_format)
+        else -> getString(R.string.player_error_source)
+    }
+
     private fun mimeTypeFor(format: String?): String? = when (format?.lowercase()) {
         "hls" -> MimeTypes.APPLICATION_M3U8
         "mp4" -> MimeTypes.VIDEO_MP4
@@ -174,17 +205,11 @@ class PlayerActivity : AppCompatActivity() {
         else -> null
     }
 
-    /**
-     * Source HTTP du lecteur, avec les en-têtes résolus par la source de
-     * contenu. Certains CDN refusent une requête sans `Referer` ou `Origin`.
-     */
-    private fun createDataSourceFactory(): DefaultHttpDataSource.Factory {
-        val headers = readHeadersExtra()
-        return DefaultHttpDataSource.Factory()
+    private fun createDataSourceFactory(): DefaultHttpDataSource.Factory =
+        DefaultHttpDataSource.Factory()
             .setUserAgent(USER_AGENT)
             .setAllowCrossProtocolRedirects(true)
-            .setDefaultRequestProperties(headers)
-    }
+            .setDefaultRequestProperties(readHeadersExtra())
 
     @Suppress("UNCHECKED_CAST")
     private fun readHeadersExtra(): Map<String, String> {
@@ -199,8 +224,16 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun releasePlayer() {
+        findViewById<PlayerView>(R.id.player_view).player = null
         player?.release()
         player = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        player?.let { retryPositionMs = it.currentPosition.coerceAtLeast(0L) }
+        outState.putLong(STATE_POSITION, retryPositionMs)
+        outState.putBoolean(STATE_ERROR, hasFatalError)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {

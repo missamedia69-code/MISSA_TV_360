@@ -30,12 +30,7 @@ class CardPresenter : Presenter() {
         card.setOnFocusChangeListener { view, focused ->
             // Zoom « actif » 1,05 / 160 ms (§5) : pas d'élévation au focus,
             // une ombre portée reste une grande ombre à éviter (§12).
-            view.animate().cancel()
-            view.animate()
-                .scaleX(if (focused) 1.05f else 1f)
-                .scaleY(if (focused) 1.05f else 1f)
-                .setDuration(160)
-                .start()
+            FocusMotion.apply(view, focused)
             BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)

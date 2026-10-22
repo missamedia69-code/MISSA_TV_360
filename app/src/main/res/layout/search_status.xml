@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="24dp"
+    android:background="@drawable/bg_focusable_surface"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:padding="16dp"
+    android:textColor="@color/missa_text_secondary"
+    android:textSize="@dimen/text_body" />

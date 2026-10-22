@@ -97,6 +97,10 @@ data class Video(
     /** Licence du contenu (« Domaine public », « CC BY »…) — null si inconnue. */
     val license: String? = null,
     val forceLive: Boolean = false,
+    /** Nature audio explicite fournie par la source (notamment les musiques MP3). */
+    val audioOnly: Boolean = false,
+    /** Type brut de la source, utilisé pour ne pas afficher un extrait sportif comme un film. */
+    val originalKind: String? = null,
     /**
      * Forme de tuile imposée (issue du genre d'API). Permet de garder une
      * tuile paysage pour un extrait sportif, dont le kind est normalisé en
@@ -112,8 +116,18 @@ data class Video(
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive || forceLive
-    val isAudioOnly: Boolean get() = kind.isAudioOnly
+    val isAudioOnly: Boolean get() = audioOnly || kind.isAudioOnly
     val isSeries: Boolean get() = seriesTitle != null
+    val displayKindLabel: String get() = when (originalKind?.lowercase()) {
+        "sport" -> "Sport"
+        "live", "tv" -> ContentKind.LIVE_TV.label
+        else -> kind.label
+    }
+
+    /** Titre de fiche structuré pour un épisode, titre d'origine sinon. */
+    fun seriesDisplayTitle(): String? = seriesTitle?.let {
+        "$it — S${season ?: 1} E${episode ?: 1}"
+    }
 
     /** Extrait court de description affiché directement sous le titre de la carte. */
     private fun cardExcerpt(text: String, maxChars: Int = 68): String {

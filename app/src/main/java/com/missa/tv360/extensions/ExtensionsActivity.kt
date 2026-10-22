@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.missa.tv360.DeviceForm
 import com.missa.tv360.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,8 +35,10 @@ class ExtensionsActivity : FragmentActivity() {
     private lateinit var refreshButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(if (DeviceForm.isTelevision(this)) R.style.Theme_MissaTv_Extensions else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_extensions)
+        findViewById<Button>(R.id.extensions_back).setOnClickListener { finish() }
         ExtensionManager.init(this)
 
         statusView = findViewById(R.id.extensions_status)

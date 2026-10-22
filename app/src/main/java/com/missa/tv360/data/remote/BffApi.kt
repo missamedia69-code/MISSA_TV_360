@@ -66,6 +66,8 @@ data class ItemDto(
         episode = episodeNumber,
         durationSec = durationSec,
         format = format,
+        audioOnly = audioOnly == true,
+        originalKind = kind,
     )
 }
 
@@ -87,6 +89,7 @@ data class StreamDto(
             streamUrl = url,
             kind = kindEnum,
             format = format ?: if (kindEnum.isAudioOnly) "mp3" else "mp4",
+            originalKind = kind,
         )
     }
 }

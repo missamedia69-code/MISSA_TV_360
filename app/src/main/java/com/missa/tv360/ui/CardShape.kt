@@ -33,6 +33,13 @@ enum class CardShape(
         gridColumns = 5,
     );
 
+    val ratio: Float
+        get() = when (this) {
+            LANDSCAPE -> 16f / 9f
+            POSTER -> 2f / 3f
+            SQUARE -> 1f
+        }
+
     companion object {
         fun forKind(kind: ContentKind): CardShape = when (kind) {
             ContentKind.MOVIE, ContentKind.SERIES -> POSTER

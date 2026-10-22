@@ -30,12 +30,7 @@ class GameCardPresenter : Presenter() {
         card.setOnFocusChangeListener { view, focused ->
             // Zoom « actif » 1,05 / 160 ms (§10) : aucune élévation (§12 évite
             // les grandes ombres et garde une famille de focus cohérente).
-            view.animate().cancel()
-            view.animate()
-                .scaleX(if (focused) 1.05f else 1f)
-                .scaleY(if (focused) 1.05f else 1f)
-                .setDuration(160)
-                .start()
+            com.missa.tv360.ui.FocusMotion.apply(view, focused)
             BrandCardFocus.apply(card, focused)
         }
         return ViewHolder(card)

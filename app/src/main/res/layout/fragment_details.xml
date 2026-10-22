@@ -1,238 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Fiche détail MISSA TV 360 — maquette « Fiche détail » (1280×720, dp = px × 0,75). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/missa_navy_deep">
+    android:background="@drawable/bg_missa_night">
 
-    <!-- Fond plein écran : visuel du contenu + dégradés marine -->
     <ImageView
         android:id="@+id/details_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_details_scrim"
         android:importantForAccessibility="no" />
-
-    <View
-        android:id="@+id/details_scrim_h"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/scrim_horizontal" />
-
-    <View
-        android:id="@+id/details_scrim_v"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/scrim_vertical" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:scrollbars="none">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:clipChildren="false"
-            android:clipToPadding="false"
-            android:paddingLeft="48dp"
-            android:paddingRight="48dp"
-            android:paddingTop="20dp"
-            android:paddingBottom="24dp">
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="32dp">
 
-            <!-- Fil d'Ariane : retour + Catégorie › Titre -->
-            <LinearLayout
-                android:id="@+id/details_breadcrumb"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/details_back"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingRight="10dp"
-                    android:text="‹"
-                    android:textSize="22sp"
-                    android:textColor="@color/missa_text"
-                    android:focusable="true"
-                    android:clickable="true"
-                    android:contentDescription="@string/details_back" />
-
-                <!-- Icône du pack d'icônes : catégorie (cachée si inconnue). -->
-                <ImageView
-                    android:id="@+id/details_category_icon"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_marginRight="6dp"
-                    android:scaleType="fitCenter"
-                    android:visibility="gone"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/details_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp"
-                    android:textColor="@color/missa_text_secondary" />
-
-                <TextView
-                    android:id="@+id/details_crumb_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:maxWidth="520dp"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/missa_white" />
-            </LinearLayout>
-
-            <!-- Bloc principal : illustration à gauche, métadonnées à droite -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:layout_marginTop="19dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <FrameLayout
-                    android:layout_width="@dimen/details_art_w"
-                    android:layout_height="@dimen/details_art_h"
-                    android:layout_marginRight="@dimen/details_art_gap">
+                <Button
+                    android:id="@+id/details_back"
+                    style="@style/MissaButton.Secondary"
+                    android:layout_width="wrap_content"
+                    android:text="@string/details_back" />
 
-                    <ImageView
-                        android:id="@+id/details_art"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:background="@drawable/bg_art_rounded"
-                        android:clipToOutline="true"
-                        android:contentDescription="@string/details_play" />
-
-                    <TextView
-                        android:id="@+id/details_play"
-                        android:layout_width="@dimen/details_play_size"
-                        android:layout_height="@dimen/details_play_size"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_play_circle"
-                        android:gravity="center"
-                        android:text="▶"
-                        android:textSize="16sp"
-                        android:textColor="@color/missa_on_yellow"
-                        android:focusable="true"
-                        android:clickable="true"
-                        android:contentDescription="@string/details_play" />
-                </FrameLayout>
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/details_crumb_title"
+                    style="@style/MissaText.Metadata"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:clipChildren="false"
-                    android:clipToPadding="false">
+                    android:ellipsize="end"
+                    android:maxLines="2" />
+            </LinearLayout>
 
-                    <!-- Badges : EN DIRECT, catégorie, HD, licence -->
+            <FrameLayout
+                android:id="@+id/details_art_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp">
+
+                <com.missa.tv360.ui.mobile.RatioImageView
+                    android:id="@+id/details_art"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop" />
+
+                <ImageButton
+                    android:id="@+id/details_play"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/bg_play_circle"
+                    android:contentDescription="@string/action_play"
+                    android:padding="18dp"
+                    android:src="@drawable/ic_play" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/details_category_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:tint="@color/missa_yellow" />
+
+                <HorizontalScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:scrollbars="none">
+
                     <LinearLayout
                         android:id="@+id/details_badges"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical" />
-
-                    <TextView
-                        android:id="@+id/details_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:textSize="34sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-black"
-                        android:textColor="@color/missa_white" />
-
-                    <TextView
-                        android:id="@+id/details_desc"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:maxWidth="@dimen/details_desc_width"
-                        android:maxLines="3"
-                        android:ellipsize="end"
-                        android:textSize="16sp"
-                        android:lineSpacingExtra="3dp"
-                        android:textColor="@color/missa_text_secondary" />
-
-                    <TextView
-                        android:id="@+id/details_source"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:maxLines="2"
-                        android:textSize="13sp"
-                        android:textColor="@color/missa_text_secondary" />
-
-                    <!-- Actions : principal + Ma liste + Signaler.
-                         clipChildren=false : le zoom 1,05 au focus déborde de
-                         ~6px, sinon le coin arrondi et la bordure blanche du
-                         bouton principal sont rognés à gauche. -->
-                    <LinearLayout
-                        android:id="@+id/details_actions"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:clipChildren="false"
-                        android:clipToPadding="false" />
-                </LinearLayout>
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
             </LinearLayout>
 
-            <!-- Contenus similaires -->
+            <TextView
+                android:id="@+id/details_title"
+                style="@style/MissaText.ScreenTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="@dimen/text_screen_title" />
+
+            <TextView
+                android:id="@+id/details_description"
+                style="@style/MissaText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:maxLines="4"
+                android:textColor="@color/missa_text_secondary" />
+
+            <Button
+                android:id="@+id/details_description_toggle"
+                style="@style/MissaButton.Secondary"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/details_read_more"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/details_source"
+                style="@style/MissaText.Metadata"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/details_actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical" />
+
             <LinearLayout
                 android:id="@+id/details_similar_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/details_similar_title"
+                    style="@style/MissaText.SectionTitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:text="@string/details_similar" />
 
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="18dp"
-                        android:background="@color/missa_yellow" />
-
-                    <TextView
-                        android:id="@+id/details_similar_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/missa_white" />
-                </LinearLayout>
-
-                <!-- 240dp : carte affiche 177dp + titre sur 2 lignes + marge
-                     pour le zoom 1,05 au focus (sinon la rangée est rognée). -->
                 <androidx.leanback.widget.HorizontalGridView
                     android:id="@+id/details_similar_grid"
                     android:layout_width="match_parent"
-                    android:layout_height="240dp"
-                    android:layout_marginTop="10dp"
-                    android:focusable="true" />
+                    android:layout_height="280dp"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

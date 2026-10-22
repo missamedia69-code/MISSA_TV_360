@@ -1,38 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="screen_margin">48dp</dimen>
-    <dimen name="topbar_height">40dp</dimen>
+    <dimen name="screen_margin_compact">16dp</dimen>
+    <dimen name="topbar_height">56dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
 
-    <!-- Familles de cartes régularisées selon le type de contenu (cahier des charges) -->
-    <!-- 16:9 Paysage (TV Direct, Sport, Films courts, Jeunesse) -->
+    <dimen name="text_screen_title">28sp</dimen>
+    <dimen name="text_section_title">20sp</dimen>
+    <dimen name="text_content_title">16sp</dimen>
+    <dimen name="text_body">16sp</dimen>
+    <dimen name="text_meta">14sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+
     <dimen name="card16_w">260dp</dimen>
     <dimen name="card16_h">146dp</dimen>
-
-    <!-- 2:3 Affiche verticale (Films, Séries) -->
     <dimen name="poster_w">130dp</dimen>
     <dimen name="poster_h">195dp</dimen>
-
-    <!-- 1:1 Carré (Radio, Podcasts, Musique, Jeux vidéo) : hauteur 146dp alignée sur le 16:9 -->
     <dimen name="square">146dp</dimen>
-
     <dimen name="card_gap">16dp</dimen>
+    <dimen name="card_gap_compact">8dp</dimen>
     <dimen name="card_radius">10dp</dimen>
     <dimen name="focus_stroke">3dp</dimen>
-    <dimen name="progress_h">3dp</dimen>
+    <dimen name="progress_h">4dp</dimen>
 
-    <!-- Espacements normalisés (§12) -->
     <dimen name="missa_space_xs">4dp</dimen>
     <dimen name="missa_space_sm">8dp</dimen>
     <dimen name="missa_space_md">16dp</dimen>
     <dimen name="missa_space_lg">24dp</dimen>
     <dimen name="missa_space_xl">32dp</dimen>
-
-    <!-- Rayons de coin cohérents -->
     <dimen name="missa_radius_sm">8dp</dimen>
     <dimen name="missa_radius_md">14dp</dimen>
     <dimen name="missa_radius_lg">20dp</dimen>
 
-    <!-- Grille « matrice » : dimensions régularisées par type de contenu -->
     <dimen name="grid_landscape_w">180dp</dimen>
     <dimen name="grid_landscape_h">101dp</dimen>
     <dimen name="grid_poster_w">120dp</dimen>
@@ -42,13 +41,20 @@
     <dimen name="grid_card_w">148dp</dimen>
     <dimen name="grid_card_h">83dp</dimen>
 
-    <!-- Fiche détail (valeurs maquette 1280×720, dp = px × 0,75) -->
+    <dimen name="mobile_card_landscape_w">200dp</dimen>
+    <dimen name="mobile_card_poster_w">136dp</dimen>
+    <dimen name="mobile_card_square_w">140dp</dimen>
+    <dimen name="mobile_grid_landscape_min">200dp</dimen>
+    <dimen name="mobile_grid_poster_min">144dp</dimen>
+    <dimen name="mobile_grid_square_min">148dp</dimen>
+
     <dimen name="details_art_w">264dp</dimen>
     <dimen name="details_art_h">148dp</dimen>
     <dimen name="details_art_radius">12dp</dimen>
     <dimen name="details_art_gap">27dp</dimen>
     <dimen name="details_desc_width">450dp</dimen>
-    <dimen name="details_play_size">36dp</dimen>
+    <dimen name="details_play_size">48dp</dimen>
     <dimen name="details_similar_card_w">136dp</dimen>
     <dimen name="details_similar_card_h">76dp</dimen>
+    <dimen name="details_similar_row_h">300dp</dimen>
 </resources>

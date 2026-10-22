@@ -10,16 +10,11 @@ import androidx.core.content.ContextCompat
 import androidx.leanback.widget.Presenter
 import com.missa.tv360.R
 import com.missa.tv360.data.ContentKind
+import com.missa.tv360.data.Video
+import com.missa.tv360.data.WatchProgressStore
 
-/** Une action de la fiche détail : libellé, icône et rôle (principale ou secondaire). */
-data class MissaAction(
-    val id: Long,
-    val label: String,
-    @DrawableRes val iconRes: Int,
-    val primary: Boolean,
-)
+data class MissaAction(val id: Long, val label: String, @DrawableRes val iconRes: Int, val primary: Boolean)
 
-/** Libellé du bouton principal selon le type de contenu (sans majuscules forcées). */
 @StringRes
 fun primaryLabelRes(kind: ContentKind): Int = when {
     kind.isLive -> R.string.action_watch_live
@@ -27,41 +22,35 @@ fun primaryLabelRes(kind: ContentKind): Int = when {
     else -> R.string.action_play
 }
 
-/** Variante prête à afficher, qui délègue à [primaryLabelRes]. */
-fun primaryLabel(kind: ContentKind, ctx: Context): String =
-    ctx.getString(primaryLabelRes(kind))
+fun primaryLabel(kind: ContentKind, ctx: Context): String = ctx.getString(primaryLabelRes(kind))
 
-/** Présente les boutons d'action de la fiche : zoom « actif » 1,05 / 160 ms. */
+/** Libellé calculé sur l'état réel du contenu, pas seulement sur sa catégorie. */
+fun primaryLabel(video: Video, ctx: Context): String = when {
+    video.streamUrl.isBlank() -> ctx.getString(R.string.action_unavailable)
+    !video.isLive && WatchProgressStore.position(ctx, video.id) != null -> ctx.getString(R.string.action_resume)
+    video.isLive -> ctx.getString(R.string.action_watch_live)
+    video.isAudioOnly -> ctx.getString(R.string.action_listen)
+    else -> ctx.getString(R.string.action_play)
+}
+
 class MissaActionPresenter : Presenter() {
-
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val b = LayoutInflater.from(parent.context).inflate(R.layout.action_button, parent, false)
-        b.setOnFocusChangeListener { v, focused ->
-            v.animate().cancel()
-            v.animate()
-                .scaleX(if (focused) 1.05f else 1f)
-                .scaleY(if (focused) 1.05f else 1f)
-                .setDuration(160)
-                .start()
-        }
-        return ViewHolder(b)
+        val button = LayoutInflater.from(parent.context).inflate(R.layout.action_button, parent, false)
+        button.setOnFocusChangeListener { view, focused -> FocusMotion.apply(view, focused) }
+        return ViewHolder(button)
     }
 
     override fun onBindViewHolder(vh: ViewHolder, item: Any?) {
-        val a = item as? MissaAction ?: return
+        val action = item as? MissaAction ?: return
         (vh.view as Button).apply {
-            text = a.label
-            contentDescription = a.label
-            if (a.iconRes != 0) {
-                setCompoundDrawablesWithIntrinsicBounds(a.iconRes, 0, 0, 0)
-            } else {
-                setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-            }
-            setBackgroundResource(if (a.primary) R.drawable.bg_btn_primary else R.drawable.bg_btn_secondary)
+            text = action.label
+            contentDescription = action.label
+            setCompoundDrawablesWithIntrinsicBounds(action.iconRes, 0, 0, 0)
+            setBackgroundResource(if (action.primary) R.drawable.bg_btn_primary else R.drawable.bg_btn_secondary)
             setTextColor(
-                ContextCompat.getColor(
+                ContextCompat.getColorStateList(
                     context,
-                    if (a.primary) R.color.missa_on_yellow else R.color.missa_text,
+                    if (action.primary) R.color.button_primary_text else R.color.button_secondary_text,
                 ),
             )
         }

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Palette MISSA TV 360 : bleu nuit + jaune de marque (cahier des charges design).
-     Valeurs alignées sur le document d'amélioration de design ; les noms existants
-     sont conservés (valeurs ajustées) pour ne pas créer de doublons. -->
+<!-- Palette MISSA TV 360 : bleu nuit, surfaces bleu-gris et jaune de marque. -->
 <resources>
-    <!-- Couleurs principales de la marque -->
     <color name="missa_yellow">#FFD400</color>
     <color name="missa_yellow_focus">#FFE45C</color>
     <color name="missa_blue">#2787F5</color>
@@ -11,7 +8,6 @@
     <color name="missa_green_deep">#123D2B</color>
     <color name="missa_white">#FFFFFF</color>
 
-    <!-- Fonds / surfaces -->
     <color name="missa_bg_top">#07111F</color>
     <color name="missa_bg_bottom">#060E22</color>
     <color name="missa_navy">#07111F</color>
@@ -22,26 +18,28 @@
     <color name="missa_border">#263A50</color>
     <color name="missa_on_yellow">#07111F</color>
 
-    <!-- Texte -->
     <color name="missa_text">#FFFFFF</color>
     <color name="missa_text_secondary">#B8C5D6</color>
-    <color name="missa_text_muted">#718096</color>
+    <!-- 6,62:1 sur missa_card_bg : lisible pour les métadonnées normales. -->
+    <color name="missa_text_muted">#9AA9BB</color>
+    <color name="missa_text_disabled">#718096</color>
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#B8C5D6</color>
     <color name="text_on_yellow">#07111F</color>
 
-    <!-- Focus / sélection / états -->
     <color name="focus_highlight">#FFD400</color>
-    <color name="badge_live">#FF3B4F</color>
-    <color name="missa_live">#FF3B4F</color>
+    <!-- 6,34:1 avec du texte blanc, y compris pour les petits badges. -->
+    <color name="badge_live">#B91F35</color>
+    <color name="missa_live">#B91F35</color>
     <color name="missa_error">#FF5C69</color>
-    <color name="player_title_bg">#B307111F</color>
+    <color name="player_title_bg">#D907111F</color>
 
-    <!-- Contours / transparences (fiches, badges) -->    <color name="chip_stroke">#59FFFFFF</color>
+    <color name="chip_stroke">#59FFFFFF</color>
     <color name="btn_secondary_bg">#1AFFFFFF</color>
     <color name="btn_secondary_bg_focused">#33FFFFFF</color>
     <color name="btn_secondary_stroke">#59FFFFFF</color>
-
-    <!-- Carte « Tout voir » (fin de rangée → grille complète) -->
+    <color name="btn_disabled_bg">#101B29</color>
+    <color name="status_bg">#F0182B40</color>
+    <color name="scrim_dark">#B3060E22</color>
     <color name="card_more_bg">#122338</color>
 </resources>
