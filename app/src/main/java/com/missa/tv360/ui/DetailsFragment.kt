@@ -188,25 +188,14 @@ class DetailsFragment : Fragment() {
     private fun buildActions(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.details_actions)
         val compact = resources.getBoolean(R.bool.is_compact_layout)
-        val twoColumn = resources.getBoolean(R.bool.details_two_column)
         container.orientation = LinearLayout.HORIZONTAL
-        if (compact && twoColumn) {
-            val availableWidth = (
-                resources.displayMetrics.widthPixels -
-                    resources.getDimensionPixelSize(R.dimen.screen_margin_compact) * 2
-                ).coerceAtLeast(0)
-            container.layoutParams = container.layoutParams.apply {
-                width = minOf(resources.getDimensionPixelSize(R.dimen.details_action_row_width), availableWidth)
-            }
-            (container.layoutParams as? LinearLayout.LayoutParams)?.gravity = Gravity.CENTER_HORIZONTAL
-        }
         val actionHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         val actions = listOf(
             MissaAction(1, primaryLabel(video, requireContext()), playIcon(video), true),
             MissaAction(2, myListLabel(), if (MyListStore.contains(requireContext(), video.id)) R.drawable.ic_remove else R.drawable.ic_add, false),
             MissaAction(3, getString(R.string.action_report), R.drawable.ic_report, false),
         )
-        actions.forEach { action ->
+        actions.forEachIndexed { index, action ->
             val button = LayoutInflater.from(requireContext())
                 .inflate(R.layout.action_button, container, false) as Button
             button.text = action.label
@@ -235,11 +224,12 @@ class DetailsFragment : Fragment() {
                 }
                 else -> button.setOnClickListener { showReportDialog() }
             }
-            val params = if (compact) {
-                LinearLayout.LayoutParams(0, actionHeight, 1f).apply { marginEnd = 4.dp }
-            } else {
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, actionHeight)
-                    .apply { marginEnd = 8.dp }
+            val params = LinearLayout.LayoutParams(0, actionHeight, 1f).apply {
+                marginEnd = if (index < actions.lastIndex) {
+                    if (compact) 4.dp else 8.dp
+                } else {
+                    0
+                }
             }
             container.addView(button, params)
         }

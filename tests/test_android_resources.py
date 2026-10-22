@@ -38,28 +38,34 @@ class AndroidResourceTests(unittest.TestCase):
         default = (RES / "layout" / "fragment_details.xml").read_text()
         wide = (RES / "layout-sw600dp" / "fragment_details.xml").read_text()
         landscape = (RES / "layout-land" / "fragment_details.xml").read_text()
+        wide_landscape = (RES / "layout-sw600dp-land" / "fragment_details.xml").read_text()
         required = {
             "details_back", "details_art", "details_title",
             "details_description", "details_metadata", "details_description_toggle", "details_actions",
             "details_similar_grid", "details_similar_section",
         }
-        for variant in (default, wide, landscape):
+        for variant in (default, wide, landscape, wide_landscape):
             for name in required:
                 self.assertIn(f'@+id/{name}', variant)
             self.assertIn('android:clipChildren="false"', variant)
             self.assertNotIn('@+id/details_play', variant)
         self.assertIn("RatioImageView", default)
-        self.assertIn("LinearLayout", wide)
-        self.assertIn("details_primary_row", landscape)
-        landscape_root = ET.fromstring(landscape)
         android_id = "{http://schemas.android.com/apk/res/android}id"
-        by_id = {element.attrib.get(android_id): element for element in landscape_root.iter()}
-        parent_by_child = {child: parent for parent in landscape_root.iter() for child in parent}
-        self.assertIs(
-            parent_by_child[by_id["@+id/details_actions"]],
-            parent_by_child[by_id["@+id/details_primary_row"]],
-            "Les actions paysage doivent être sous le bloc principal, pas dans la colonne descriptive.",
-        )
+        for variant in (landscape, wide_landscape):
+            root = ET.fromstring(variant)
+            by_id = {element.attrib.get(android_id): element for element in root.iter()}
+            parent_by_child = {child: parent for parent in root.iter() for child in parent}
+            actions_parent = parent_by_child[by_id["@+id/details_actions"]]
+            self.assertIs(
+                actions_parent,
+                parent_by_child[by_id["@+id/details_description"]],
+                "Les actions doivent partager l’alignement de la description dans la colonne de droite.",
+            )
+            self.assertIs(
+                parent_by_child[actions_parent],
+                by_id["@+id/details_primary_row"],
+                "La colonne descriptive et les actions doivent rester à côté de la vignette.",
+            )
 
     def test_orientation_is_not_locked_and_touch_target_is_at_least_48dp(self):
         manifest = MANIFEST.read_text()
