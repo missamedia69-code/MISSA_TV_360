@@ -44,6 +44,8 @@ Le workflow exécute la compilation debug, `:app:testDebugUnitTest` et l’uploa
 - Run `39849079645` : **succès** — Build debug APK, Run Android unit tests, Upload debug APK ; release/preview sautés.
 - Run `39849536238` : **succès** — compilation et tests du lot de durcissement du catalogue/recherche et du presenter d’en-têtes.
 - Run `39849777990` : **succès** — compilation, tests unitaires Android et upload du commit `f7e8209` ; release/preview sautés.
+- Run `39851203932` : **échec de test après un build réussi** — `PrimaryLabelTest` attendait encore « Regarder » pour `MUSIC`, alors que le modèle corrigé expose désormais « Écouter ». L’assertion a été déplacée dans le cas audio, sans supprimer le test ; upload/release/preview sautés.
+- Run `39851591672` : **succès final** — Build debug APK, Run Android unit tests et Upload debug APK du commit `724e2d4` ; release/preview sautés.
 
 Les exécutions CI ne constituent pas des tests visuels, tactiles, audio, D-pad ou de lecture sur appareil.
 
