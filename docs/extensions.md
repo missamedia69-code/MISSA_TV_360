@@ -18,9 +18,24 @@ repo.json                    (pointeur stable, que l'utilisateur colle)
 
 | Fichier | Rôle | Où il vit |
 |---|---|---|
-| `site/extensions/repo.json` | nom, description, `manifestVersion`, liste de `pluginLists` | publié par GitHub Pages |
-| `site/extensions/plugins.json` | tableau d'extensions (`url`, `internalName`, `version`, `fileHash`…) | généré par `extension-tools/build_extension_repo.py` |
-| `*.msa` | archive ZIP : `manifest.json` + `classes.dex` | `site/extensions/builds/` |
+| `site/extensions/repo.json` | nom, description, `manifestVersion`, liste de `pluginLists` | versionné, publié par GitHub Pages |
+| `plugins.json` | tableau d'extensions (`url`, `internalName`, `version`, `fileHash`…) | **généré par la CI**, asset de la release `extensions` |
+| `*.msa` | archive ZIP : `manifest.json` + `classes.dex` | asset de la même release |
+
+Pourquoi la release plutôt qu'un fichier versionné : le champ `fileHash` doit
+correspondre **octet pour octet** à l'archive réellement produite par Gradle.
+Un `plugins.json` commité à la main se désynchronise au premier rebuild, et
+l'application refuserait alors l'installation (hash invalide). La CI calcule
+donc les deux ensemble et les publie ensemble :
+
+```
+https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/plugins.json
+https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/hello-provider.msa
+```
+
+Le tag `extensions` est **stable** : chaque build vert remplace les assets
+(`--clobber`) et déplace le tag sur le commit courant, donc l'URL ne change
+jamais côté application.
 
 L'application ne connaît **qu'une seule URL** par défaut :
 `BuildConfig.EXTENSION_REPO_URL`, construite à partir de `bffBaseUrl` :
@@ -142,29 +157,30 @@ vide).
 # 1. Archive .msa + métadonnées (nécessite JDK 17 et le SDK Android pour d8)
 ./gradlew :extensions-src:hello-provider:packagePlugin
 
-# 2. Copier dans le dossier publié
-mkdir -p site/extensions/builds
-cp extensions-src/hello-provider/build/plugin/hello-provider.msa \
-   extensions-src/hello-provider/build/plugin/hello-provider.json \
-   site/extensions/builds/
-
-# 3. Régénérer la liste publiée (calcule sha256 + taille)
+# 2. Générer la liste publiée (calcule sha256 + taille)
+mkdir -p /tmp/builds
+cp extensions-src/hello-provider/build/plugin/hello-provider.msa /tmp/builds/
 python3 extension-tools/build_extension_repo.py \
-  --builds-dir site/extensions/builds \
-  --base-url https://missamedia69-code.github.io/MISSA_TV_360/extensions/builds \
-  --out site/extensions/plugins.json
-
-# 4. Vérifier que le fichier publié est à jour (à faire en CI)
-python3 extension-tools/build_extension_repo.py --check \
-  --builds-dir site/extensions/builds \
-  --base-url https://missamedia69-code.github.io/MISSA_TV_360/extensions/builds \
-  --out site/extensions/plugins.json
+  --builds-dir /tmp/builds \
+  --base-url https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions \
+  --out /tmp/plugins.json
 ```
 
-Le workflow `.github/workflows/extensions.yml` exécute les étapes 1 à 4,
-téléverse l'archive en artefact et **échoue** si `plugins.json` n'est pas à
-jour. Le commit reste une décision humaine (aucune écriture automatique sur
-`main`).
+Le workflow `.github/workflows/extensions.yml` fait tout cela : tests, jar du
+contrat plugin, `packagePlugin`, génération de `plugins.json`, puis — sur un
+push uniquement — création/mise à jour de la release `extensions` et
+téléversement des assets (`*.msa` + `plugins.json`, `--clobber`).
+
+```bash
+# publier à la demande (après un changement d'extension)
+gh workflow run extensions.yml --ref main
+gh release view extensions --json assets \
+  -q '.assets[] | "\(.name)\t\(.size) o\t\(.updatedAt)"'
+```
+
+Rien n'est écrit dans le dépôt : ni binaire, ni `plugins.json`, aucun commit
+automatique. L'option `--check` de l'outil reste disponible pour qui préfère
+héberger la liste statiquement (GitHub Pages).
 
 ---
 
@@ -242,6 +258,11 @@ Un `version` supérieur déclenche la mise à jour automatique (si
   ./gradlew :extensions-src:hello-provider:packagePlugin
   ```
 
-* `site/extensions/plugins.json` est volontairement **vide** tant qu'aucune
-  archive n'a été construite : le bootstrap ne peut donc pas installer
-  d'extension avant la première publication d'un `.msa`.
+* La première publication est faite par la CI : au 2026-10-22, la chaîne
+  `repo.json` → `plugins.json` → `hello-provider.msa` est servie depuis la
+  release `extensions`, et `site/extensions/repo.json` (Pages) ne devient
+  accessible qu'après fusion sur `main`.
+* Tant que `repo.json` n'est pas servi (Pages pas encore déployé), le
+  bootstrap échoue proprement : aucune exception visible, message d'état
+  « dépôt injoignable », 5 tentatives maximum, puis abandon silencieux — c'est
+  le comportement attendu, pas un bug.

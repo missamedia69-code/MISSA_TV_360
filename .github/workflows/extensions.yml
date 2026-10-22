@@ -1,10 +1,12 @@
 name: Extensions
 
-# Construit l'extension d'exemple, vérifie la cohérence de `plugins.json`
-# et publie l'archive en artefact.
+# Construit l'extension d'exemple, la publie comme asset de la release
+# `extensions` avec un `plugins.json` généré (sha256 + taille réels), et
+# l'expose donc immédiatement à l'application.
 #
-# Aucune écriture automatique sur `main` : le commit de l'archive et de
-# `plugins.json` reste une décision humaine (voir docs/extensions.md §4).
+# Aucune écriture dans le dépôt : la publication passe uniquement par des
+# assets de release, ce qui évite tout commit automatique sur `main`
+# (voir docs/extensions.md §4).
 on:
   push:
     branches:
@@ -29,11 +31,15 @@ permissions:
 
 env:
   JAVA_VERSION: "17"
+  # Tag de release servant d'hébergement stable aux .msa et à plugins.json.
+  EXTENSION_RELEASE_TAG: "extensions"
 
 jobs:
   build-extensions:
     name: Build .msa and validate plugins.json
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # création/mise à jour de la release `extensions`
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,24 +77,41 @@ jobs:
           cp extensions-src/hello-provider/build/plugin/*.json "$RUNNER_TEMP/builds/"
           ls -l "$RUNNER_TEMP/builds"
 
-      - name: Vérifier que plugins.json est à jour
+      - name: Générer plugins.json (sha256 + taille réels)
         run: |
-          python3 extension-tools/build_extension_repo.py --check \
-            --builds-dir "$RUNNER_TEMP/builds" \
-            --base-url https://missamedia69-code.github.io/MISSA_TV_360/extensions/builds \
-            --out site/extensions/plugins.json
-        continue-on-error: true
-
-      - name: Publier le diagnostic de publication
-        run: |
+          set -euo pipefail
           python3 extension-tools/build_extension_repo.py \
             --builds-dir "$RUNNER_TEMP/builds" \
-            --base-url https://missamedia69-code.github.io/MISSA_TV_360/extensions/builds \
-            --out "$RUNNER_TEMP/plugins.generated.json"
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${EXTENSION_RELEASE_TAG}" \
+            --out "$RUNNER_TEMP/plugins.json"
           echo "--- plugins.json généré ---"
-          cat "$RUNNER_TEMP/plugins.generated.json"
-          echo "--- plugins.json publié ---"
-          cat site/extensions/plugins.json
+          cat "$RUNNER_TEMP/plugins.json"
+          python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(f'{len(d)} extension(s) publiée(s)')" "$RUNNER_TEMP/plugins.json"
+
+      # Sur un push uniquement (jamais depuis une PR) : la release devient la
+      # source servie à l'application, donc l'installation au premier
+      # démarrage a immédiatement quelque chose à installer.
+      - name: Publier la release « extensions »
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ env.EXTENSION_RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          notes="Archive d'extension compilée + plugins.json généré par la CI.
+          Build : ${GITHUB_REF_NAME} @ ${GITHUB_SHA:0:7} (run ${GITHUB_RUN_ID}).
+          Ne pas modifier à la main : contenu régénéré à chaque build vert."
+
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --target "$GITHUB_SHA" \
+                 --title "Extensions MISSA TV 360" --prerelease \
+                 --notes "$notes"
+          gh release edit "$TAG" --target "$GITHUB_SHA" --notes "$notes"
+
+          gh release upload "$TAG" "$RUNNER_TEMP"/builds/*.msa --clobber
+          gh release upload "$TAG" "$RUNNER_TEMP/plugins.json" --clobber
+
+          echo "Publié : https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/plugins.json"
 
       - name: Téléverser l'archive
         uses: actions/upload-artifact@v4
