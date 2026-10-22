@@ -85,10 +85,17 @@ class DetailsFragment : Fragment() {
         val twoColumn = resources.getBoolean(R.bool.details_two_column)
         when {
             twoColumn -> {
-                val (width, height) = when (shape) {
+                var (width, height) = when (shape) {
                     CardShape.POSTER -> if (compact) 160.dp to 240.dp else 180.dp to 270.dp
                     CardShape.SQUARE -> 180.dp to 180.dp
                     CardShape.LANDSCAPE -> if (compact) 240.dp to 135.dp else 264.dp to 148.dp
+                }
+                // L'affiche ne doit jamais empiéter sur la colonne de description :
+                // on la borne à la largeur réservée par le layout.
+                val reserved = artContainer.layoutParams.width
+                if (reserved > 0 && width > reserved) {
+                    height = (height * reserved / width.toFloat()).toInt()
+                    width = reserved
                 }
                 artContainer.layoutParams = artContainer.layoutParams.apply {
                     this.width = width
@@ -225,11 +232,7 @@ class DetailsFragment : Fragment() {
                 else -> button.setOnClickListener { showReportDialog() }
             }
             val params = LinearLayout.LayoutParams(0, actionHeight, 1f).apply {
-                marginEnd = if (index < actions.lastIndex) {
-                    if (compact) 4.dp else 8.dp
-                } else {
-                    0
-                }
+                marginEnd = if (index < actions.lastIndex) 8.dp else 0
             }
             container.addView(button, params)
         }
