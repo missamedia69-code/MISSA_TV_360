@@ -26,11 +26,13 @@ object JsonSourceRepository {
         loadBlocking(context.applicationContext)
     }
 
-    fun cachedCatalog(context: Context): MergedJsonCatalog? = try {
-        val raw = preferences(context).getString(KEY_AGGREGATE, null) ?: return null
-        gson.fromJson(raw, MergedJsonCatalog::class.java)
-    } catch (_: Exception) {
-        null
+    fun cachedCatalog(context: Context): MergedJsonCatalog? {
+        return try {
+            val raw = preferences(context).getString(KEY_AGGREGATE, null) ?: return null
+            gson.fromJson(raw, MergedJsonCatalog::class.java)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun loadBlocking(context: Context): LoadResult {

@@ -17,6 +17,7 @@ import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
 import com.missa.tv360.data.Video
 import com.missa.tv360.ui.DetailsFragment
+import kotlinx.coroutines.launch
 
 class MobileCategoryFragment : Fragment() {
     private lateinit var adapter: MobileVideoAdapter
