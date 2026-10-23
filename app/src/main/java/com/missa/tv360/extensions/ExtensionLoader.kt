@@ -8,13 +8,14 @@ import com.missa.tv360.api.PLUGIN_API_VERSION
 import com.missa.tv360.api.PLUGIN_MANIFEST_ENTRY
 import com.missa.tv360.api.PluginManifest
 import com.missa.tv360.api.PluginRegistry
+import dalvik.system.DexFile
 import dalvik.system.PathClassLoader
 import java.io.File
 import java.util.zip.ZipFile
 
 /**
  * Chargement des extensions dans le processus de l'application.
- * Gère la résolution robuste multi-candidats des classes de plugins (compatibilité Cloudstream / Lagradost).
+ * Inspection dynamique du DEX (DexFile) pour découvrir et charger toute classe de plugin (.msa / Cloudstream / Lagradost).
  */
 internal object ExtensionLoader {
 
@@ -55,29 +56,50 @@ internal object ExtensionLoader {
             )
         }
 
-        val className = manifest.pluginClassName?.takeIf { it.isNotBlank() }
-            ?: "com.lagradost.UnJourUnFilmProvider"
-
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
-        val candidateNames = mutableListOf<String>()
-        candidateNames.add(className)
-        if (className.endsWith("Plugin")) {
-            candidateNames.add(className.removeSuffix("Plugin"))
-        } else {
-            candidateNames.add(className + "Plugin")
+        val discoveredClassNames = mutableListOf<String>()
+        try {
+            val dexFile = DexFile(file)
+            val entries = dexFile.entries()
+            while (entries.hasMoreElements()) {
+                val entryName = entries.nextElement()
+                if (!entryName.startsWith("android.") &&
+                    !entryName.startsWith("java.") &&
+                    !entryName.startsWith("kotlin.") &&
+                    !entryName.startsWith("com.google.") &&
+                    !entryName.startsWith("androidx.")
+                ) {
+                    discoveredClassNames.add(entryName)
+                }
+            }
+            dexFile.close()
+        } catch (t: Throwable) {
+            Log.w(TAG, "Inspection DexFile impossible pour ${file.name}", t)
         }
-        val simpleName = className.substringAfterLast('.')
-        candidateNames.add("com.lagradost.$simpleName")
-        candidateNames.add("com.lagradost.cloudstream3.plugins.$simpleName")
-        candidateNames.add("com.lagradost.UnJourUnFilmProvider")
-        candidateNames.add("com.lagradost.UnJourUnFilmProviderPlugin")
+
+        // Ajout des candidats du manifeste si présents
+        manifest.pluginClassName?.takeIf { it.isNotBlank() }?.let {
+            if (!discoveredClassNames.contains(it)) discoveredClassNames.add(0, it)
+        }
+
+        // Priorisation des classes (Plugin, Provider, etc.)
+        val prioritizedNames = discoveredClassNames.sortedWith(compareBy({
+            when {
+                it == manifest.pluginClassName -> 0
+                it.endsWith("Plugin") -> 1
+                it.endsWith("Provider") -> 2
+                it.contains("Provider") -> 3
+                else -> 4
+            }
+        }, { it.length }))
 
         var pluginClass: Class<*>? = null
         var lastError: Throwable? = null
 
-        for (cand in candidateNames) {
+        for (cand in prioritizedNames) {
             try {
-                pluginClass = classLoader.loadClass(cand)
+                val cls = classLoader.loadClass(cand)
+                pluginClass = cls
                 break
             } catch (t: Throwable) {
                 lastError = t
@@ -85,7 +107,7 @@ internal object ExtensionLoader {
         }
 
         if (pluginClass == null) {
-            throw ExtensionException("Classe introuvable dans ${file.name} (tentatives : $candidateNames)", lastError)
+            throw ExtensionException("Classe introuvable dans ${file.name} (${discoveredClassNames.size} classes analysées)", lastError)
         }
 
         val plugin = try {
