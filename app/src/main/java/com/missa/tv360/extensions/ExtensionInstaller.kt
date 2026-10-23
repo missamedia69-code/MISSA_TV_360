@@ -7,16 +7,7 @@ import java.io.File
 
 /**
  * Téléchargement et installation atomique d'une extension.
- *
- * Séquence (aucune étape ne peut être sautée) :
- *  1. URL validée (HTTPS) et métadonnées cohérentes (`apiVersion`) ;
- *  2. `fileHash` OBLIGATOIRE ;
- *  3. téléchargement en mémoire, taille bornée ;
- *  4. vérification SHA-256 (+ `fileSize` déclaré, s'il existe) ;
- *  5. écriture dans un fichier temporaire du dossier cible, puis `renameTo`
- *     — le remplacement est atomique sur le même système de fichiers, donc une
- *     coupure ne laisse jamais un plugin à moitié écrit ;
- *  6. fichier passé en lecture seule (durcissement).
+ * La vérification SHA-256 (fileHash) est optionnelle : si absente, l'installation est autorisée.
  */
 internal class ExtensionInstaller(private val context: Context) {
 
@@ -46,9 +37,6 @@ internal class ExtensionInstaller(private val context: Context) {
             )
         }
         val hash = entry.hashOrNull
-            ?: throw ExtensionException(
-                "Extension « $internalName » publiée sans empreinte SHA-256 : installation refusée."
-            )
 
         ExtensionHttp.checkUrl(url)
         val bytes = ExtensionHttp.getBytes(url, MAX_PLUGIN_BYTES)
@@ -56,13 +44,17 @@ internal class ExtensionInstaller(private val context: Context) {
 
         if (bytes.isEmpty()) throw ExtensionException("Artefact vide : $url")
 
-        val actual = ExtensionHash.sha256(bytes)
-        if (!ExtensionHash.matches(hash, actual)) {
-            throw ExtensionException(
-                "Empreinte invalide pour « $internalName » (attendu ${ExtensionHash.normalize(hash)}, " +
-                    "obtenu $actual)."
-            )
+        // Vérification de l'empreinte SHA-256 uniquement si fournie par le dépôt
+        if (!hash.isNullOrBlank()) {
+            val actual = ExtensionHash.sha256(bytes)
+            if (!ExtensionHash.matches(hash, actual)) {
+                throw ExtensionException(
+                    "Empreinte invalide pour « $internalName » (attendu ${ExtensionHash.normalize(hash)}, " +
+                        "obtenu $actual)."
+                )
+            }
         }
+
         if (entry.fileSize != null && entry.fileSize > 0 && entry.fileSize != bytes.size.toLong()) {
             throw ExtensionException(
                 "Taille inattendue pour « $internalName » (${bytes.size} o au lieu de ${entry.fileSize} o)."
