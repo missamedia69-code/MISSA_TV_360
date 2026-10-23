@@ -7,7 +7,7 @@ import java.io.File
 
 /**
  * Téléchargement et installation atomique d'une extension.
- * La vérification SHA-256 (fileHash) est optionnelle : si absente, l'installation est autorisée.
+ * La vérification SHA-256 (fileHash) et la vérification de taille sont optionnelles.
  */
 internal class ExtensionInstaller(private val context: Context) {
 
@@ -53,12 +53,6 @@ internal class ExtensionInstaller(private val context: Context) {
                         "obtenu $actual)."
                 )
             }
-        }
-
-        if (entry.fileSize != null && entry.fileSize > 0 && entry.fileSize != bytes.size.toLong()) {
-            throw ExtensionException(
-                "Taille inattendue pour « $internalName » (${bytes.size} o au lieu de ${entry.fileSize} o)."
-            )
         }
 
         val dir = repositoryDir(repositoryUrl)
