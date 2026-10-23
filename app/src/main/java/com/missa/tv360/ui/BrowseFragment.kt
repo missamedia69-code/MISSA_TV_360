@@ -73,7 +73,11 @@ class BrowseFragment : BrowseSupportFragment() {
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
         adapter = rowsAdapter
         setOnSearchClickedListener { openFilmSearch() }
-        BackgroundManager.getInstance(requireActivity()).attach(requireActivity().window)
+        // Le BackgroundManager est un singleton par activite : rattacher une seconde fois
+        // (retour depuis un detail) leve "Already attached to DecorView".
+        BackgroundManager.getInstance(requireActivity()).let { background ->
+            if (!background.isAttached) background.attach(requireActivity().window)
+        }
 
         onItemViewClickedListener = OnItemViewClickedListener { _, item, _, _ ->
             val video = item as? Video ?: return@OnItemViewClickedListener
