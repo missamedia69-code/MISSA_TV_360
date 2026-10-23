@@ -86,15 +86,15 @@ object ExtensionManager {
         val store = this.store ?: return 0
         var loadedCount = 0
         val updated = store.installed().map { extension ->
-            if (!extension.enabled || extension.status == PluginEntry.STATUS_DOWN) return@map extension
+            if (extension.status == PluginEntry.STATUS_DOWN) return@map extension
             if (ExtensionLoader.isLoaded(extension.internalName)) {
                 loadedCount++
-                return@map extension
+                return@map extension.copy(enabled = true)
             }
             val result = runCatching { ExtensionLoader.load(context, extension) }
             if (result.isSuccess) {
                 loadedCount++
-                extension
+                extension.copy(enabled = true)
             } else {
                 Log.w(TAG, "Chargement impossible : ${extension.internalName}", result.exceptionOrNull())
                 extension.copy(enabled = false)
