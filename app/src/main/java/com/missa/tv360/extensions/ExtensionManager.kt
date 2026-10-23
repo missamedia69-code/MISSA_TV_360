@@ -43,6 +43,9 @@ object ExtensionManager {
     private val mutex = Mutex()
 
     private var appContext: Context? = null
+
+    @Volatile
+    private var hostContext: Context? = null
     private var store: ExtensionStore? = null
     private var installer: ExtensionInstaller? = null
 
@@ -67,8 +70,22 @@ object ExtensionManager {
         )
     }
 
-    /** Providers actuellement chargés (utilisé par le catalogue). */
+    /** Providers MISSA natifs ; les MainAPI Cloudstream sont lus via CloudstreamRuntime. */
     fun providers(): List<Provider> = PluginRegistry.providers()
+
+    /**
+     * Certains plugins Cloudstream historiques exigent une AppCompatActivity dans
+     * load(Context). L'hôte courant est donc préféré au contexte applicatif.
+     */
+    fun attachHost(context: Context) {
+        hostContext = context
+    }
+
+    fun detachHost(context: Context) {
+        if (hostContext === context) hostContext = null
+    }
+
+    private fun loaderContext(): Context? = hostContext ?: appContext
 
     fun isInitialized(): Boolean = store != null
 
@@ -82,26 +99,38 @@ object ExtensionManager {
     suspend fun loadInstalled(): Int = mutex.withLock { loadInstalledLocked() }
 
     private fun loadInstalledLocked(): Int {
-        val context = appContext ?: return 0
+        val context = loaderContext() ?: return 0
         val store = this.store ?: return 0
         var loadedCount = 0
-        val updated = store.installed().map { extension ->
-            if (extension.status == PluginEntry.STATUS_DOWN) return@map extension
-            if (ExtensionLoader.isLoaded(extension.internalName)) {
-                loadedCount++
-                return@map extension.copy(enabled = true)
-            }
-            val result = runCatching { ExtensionLoader.load(context, extension) }
-            if (result.isSuccess) {
-                loadedCount++
+        var lastError: String? = null
+        // Les versions précédentes désactivaient sur simple échec de chargement.
+        // Il n'existe pas de désactivation manuelle dans l'UI : ces entrées sont
+        // donc réessayées, sauf si l'auteur a activé le kill switch (status = 0).
+        val installed = store.installed().map { extension ->
+            if (!extension.enabled && extension.status != PluginEntry.STATUS_DOWN) {
                 extension.copy(enabled = true)
             } else {
-                Log.w(TAG, "Chargement impossible : ${extension.internalName}", result.exceptionOrNull())
-                extension.copy(enabled = false)
+                extension
             }
         }
-        store.saveInstalled(updated)
-        _state.value = _state.value.copy(installed = updated)
+        store.saveInstalled(installed)
+        installed.forEach { extension ->
+            if (!extension.enabled || extension.status == PluginEntry.STATUS_DOWN) return@forEach
+            if (ExtensionLoader.isLoaded(extension.internalName)) {
+                loadedCount++
+                return@forEach
+            }
+            runCatching { ExtensionLoader.load(context, extension) }
+                .onSuccess { loadedCount++ }
+                .onFailure { error ->
+                    // Comme Cloudstream, un échec de chargement ne transforme pas
+                    // l'installation en désactivation permanente : le prochain
+                    // démarrage ou une ouverture de l'écran pourra réessayer.
+                    lastError = error.message
+                    Log.w(TAG, "Chargement impossible : ${extension.internalName}", error)
+                }
+        }
+        _state.value = _state.value.copy(installed = installed, message = lastError)
         return loadedCount
     }
 
@@ -236,7 +265,7 @@ object ExtensionManager {
     }
 
     private fun installLocked(plugin: RemotePlugin): InstalledExtension {
-        val context = appContext ?: throw ExtensionException("Moteur non initialisé")
+        val context = loaderContext() ?: throw ExtensionException("Moteur non initialisé")
         val store = this.store ?: throw ExtensionException("Moteur non initialisé")
         val installer = this.installer ?: throw ExtensionException("Moteur non initialisé")
 
@@ -257,15 +286,11 @@ object ExtensionManager {
         store.saveInstalled(updated)
         _state.value = _state.value.copy(installed = updated)
 
-        // 4) charger ; en cas d'échec on garde le fichier mais on désactive
+        // 4) charger ; en cas d'échec le fichier reste installé et réessayable.
         val loaded = runCatching { ExtensionLoader.load(context, record) }
         if (loaded.isFailure) {
             val failure = loaded.exceptionOrNull()
-            val disabled = updated.map {
-                if (it.internalName == record.internalName) it.copy(enabled = false) else it
-            }
-            store.saveInstalled(disabled)
-            _state.value = _state.value.copy(installed = disabled, busy = false)
+            _state.value = _state.value.copy(installed = updated, busy = false)
             throw ExtensionException(
                 "${plugin.entry.normalizedName} installé mais non chargé : ${failure?.message}",
                 failure,

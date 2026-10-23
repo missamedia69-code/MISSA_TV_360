@@ -10,7 +10,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,7 +28,7 @@ import kotlinx.coroutines.withContext
  * réseau est fait sur le dispatcher IO ; l'écran ne fait qu'observer
  * [ExtensionManager.state].
  */
-class ExtensionsActivity : FragmentActivity() {
+class ExtensionsActivity : AppCompatActivity() {
 
     private lateinit var adapter: ExtensionsAdapter
     private lateinit var statusView: TextView
@@ -38,6 +38,7 @@ class ExtensionsActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(if (DeviceForm.isTelevision(this)) R.style.Theme_MissaTv_Extensions else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
+        ExtensionManager.attachHost(this)
         setContentView(R.layout.activity_extensions)
         SystemBarInsets.apply(findViewById(R.id.extensions_root))
         findViewById<Button>(R.id.extensions_back).setOnClickListener { finish() }
@@ -80,6 +81,11 @@ class ExtensionsActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         if (::adapter.isInitialized) adapter.submit(ExtensionManager.state.value)
+    }
+
+    override fun onDestroy() {
+        ExtensionManager.detachHost(this)
+        super.onDestroy()
     }
 
     // ── Rendu ─────────────────────────────────────────────────────────────

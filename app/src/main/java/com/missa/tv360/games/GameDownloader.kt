@@ -19,13 +19,13 @@ import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 
-/** Téléchargement borné, annulable avec vérification de checksum optionnelle avant installation. */
+/** Téléchargement borné, annulable et vérifié avant toute installation système. */
 class GameDownloader(private val context: Context) {
     companion object {
         private const val MAX_DOWNLOAD_SIZE_BYTES: Long = 500L * 1024 * 1024
     }
 
-    private val allowedHosts = setOf("github.com", "github.io", "githubusercontent.com", "f-droid.org")
+    private val allowedHosts = setOf("github.com", "github.io", "githubusercontent.com")
     private val sha256Pattern = Pattern.compile("^[a-fA-F0-9]{64}$")
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
 
@@ -33,6 +33,7 @@ class GameDownloader(private val context: Context) {
         val gameId: String,
         var progress: Int = 0,
         var running: Boolean = false,
+        /** Le fichier est téléchargé et son SHA-256 est vérifié ; pas une installation confirmée. */
         var done: Boolean = false,
         var failed: String? = null,
         var installed: Boolean = false,
@@ -71,8 +72,8 @@ class GameDownloader(private val context: Context) {
     suspend fun downloadAndInstall(game: Game): String? = withContext(Dispatchers.IO) {
         if (game.downloadUrl.isBlank()) return@withContext "Aucun fichier configuré pour ce jeu."
         val checksum = game.sha256?.trim().orEmpty()
-        if (checksum.isNotBlank() && !sha256Pattern.matcher(checksum).matches()) {
-            return@withContext "Checksum SHA-256 invalide — installation bloquée."
+        if (!sha256Pattern.matcher(checksum).matches()) {
+            return@withContext "Checksum SHA-256 manquant ou invalide — installation bloquée."
         }
         if (!isHostAllowed(game.downloadUrl)) return@withContext "Hôte non autorisé pour le téléchargement."
         cancelled -= game.id
@@ -91,11 +92,9 @@ class GameDownloader(private val context: Context) {
         try {
             downloadToFile(game, partial)
             if (cancelled.contains(game.id)) throw DownloadCancelled
-            if (checksum.isNotBlank()) {
-                val actual = sha256Of(partial)
-                if (!actual.equals(checksum, ignoreCase = true)) {
-                    throw IOException("Checksum incorrect — fichier rejeté.")
-                }
+            val actual = sha256Of(partial)
+            if (!actual.equals(checksum, ignoreCase = true)) {
+                throw IOException("Checksum incorrect — fichier rejeté.")
             }
             if (destination.exists() && !destination.delete()) throw IOException("Impossible de remplacer l’ancien paquet.")
             if (!partial.renameTo(destination)) throw IOException("Impossible de finaliser le téléchargement.")
@@ -173,6 +172,7 @@ class GameDownloader(private val context: Context) {
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
+    /** Ouvre uniquement un paquet vérifié par cette instance, sans nouveau téléchargement. */
     fun openVerified(game: Game): Boolean {
         if (state.value[game.id]?.done != true || !game.packageType.equals("apk", true)) return false
         val safeId = game.id.replace(Regex("[^A-Za-z0-9._-]"), "_")
@@ -191,6 +191,7 @@ class GameDownloader(private val context: Context) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             },
         )
+        // Aucun état « installé » n'est déduit de l'ouverture de l'installeur.
     }
 
     private object DownloadCancelled : Exception()

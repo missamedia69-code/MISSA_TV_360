@@ -6,8 +6,13 @@ import com.missa.tv360.api.PLUGIN_FILE_EXTENSION
 import java.io.File
 
 /**
- * Téléchargement et installation atomique d'une extension.
- * La vérification SHA-256 (fileHash) et la vérification de taille sont optionnelles.
+ * Téléchargement et installation atomique d'une extension MISSA ou Cloudstream.
+ *
+ * Comme Cloudstream, `fileHash` est facultatif dans un dépôt mais est toujours
+ * vérifié lorsqu'il est fourni. `fileSize` sert de métadonnée de dépôt, pas de
+ * preuve d'intégrité : plusieurs dépôts Cloudstream annoncent la taille d'une
+ * autre révision. L'URL HTTPS, la taille maximale et la structure réelle du
+ * paquet restent contrôlées avant tout remplacement du fichier installé.
  */
 internal class ExtensionInstaller(private val context: Context) {
 
@@ -16,8 +21,11 @@ internal class ExtensionInstaller(private val context: Context) {
         File(File(context.filesDir, ROOT_FOLDER), folderName(repositoryUrl))
 
     /** Chemin final du binaire installé. */
-    fun targetFile(repositoryUrl: String, internalName: String): File =
-        File(repositoryDir(repositoryUrl), "${safeName(internalName)}.$PLUGIN_FILE_EXTENSION")
+    fun targetFile(
+        repositoryUrl: String,
+        internalName: String,
+        extension: String = PLUGIN_FILE_EXTENSION,
+    ): File = File(repositoryDir(repositoryUrl), "${safeName(internalName)}.$extension")
 
     fun install(
         entry: PluginEntry,
@@ -32,25 +40,23 @@ internal class ExtensionInstaller(private val context: Context) {
         }
         if (!entry.isCompatible) {
             throw ExtensionException(
-                "Extension « $internalName » compilée pour l'API ${entry.apiVersionInt}, " +
-                    "l'application fournit l'API $PLUGIN_API_VERSION."
+                "Extension « $internalName » compilée pour une API ${entry.apiVersionInt} " +
+                    "non prise en charge (API MISSA $PLUGIN_API_VERSION / manifeste Cloudstream absent)."
             )
         }
-        val hash = entry.hashOrNull
 
         ExtensionHttp.checkUrl(url)
         val bytes = ExtensionHttp.getBytes(url, MAX_PLUGIN_BYTES)
-        onProgress?.invoke(bytes.size.toLong(), entry.fileSize ?: bytes.size.toLong())
+        onProgress?.invoke(bytes.size.toLong(), bytes.size.toLong())
 
         if (bytes.isEmpty()) throw ExtensionException("Artefact vide : $url")
 
-        // Vérification de l'empreinte SHA-256 uniquement si fournie par le dépôt
-        if (!hash.isNullOrBlank()) {
+        entry.hashOrNull?.let { expected ->
             val actual = ExtensionHash.sha256(bytes)
-            if (!ExtensionHash.matches(hash, actual)) {
+            if (!ExtensionHash.matches(expected, actual)) {
                 throw ExtensionException(
-                    "Empreinte invalide pour « $internalName » (attendu ${ExtensionHash.normalize(hash)}, " +
-                        "obtenu $actual)."
+                    "Empreinte invalide pour « $internalName » " +
+                        "(attendu ${ExtensionHash.normalize(expected)}, obtenu $actual)."
                 )
             }
         }
@@ -60,11 +66,18 @@ internal class ExtensionInstaller(private val context: Context) {
             throw ExtensionException("Impossible de créer ${dir.absolutePath}")
         }
 
-        val target = targetFile(repositoryUrl, internalName)
-        // Fichier temporaire dans le MÊME dossier : garantit un rename atomique.
+        val artifactExtension = if (url.substringBefore('?').endsWith(".cs3", ignoreCase = true)) {
+            CLOUDSTREAM_FILE_EXTENSION
+        } else {
+            PLUGIN_FILE_EXTENSION
+        }
+        val target = targetFile(repositoryUrl, internalName, artifactExtension)
+        // Fichier temporaire dans le MÊME dossier : rename atomique et aucun
+        // ancien binaire n'est supprimé avant la validation complète du nouveau.
         val temp = File.createTempFile("install-", ".part", dir)
         try {
             temp.writeBytes(bytes)
+            ExtensionPackageValidator.validate(temp)
             if (target.exists() && !target.delete()) {
                 throw ExtensionException("Ancienne version non remplaçable : ${target.absolutePath}")
             }
@@ -104,8 +117,9 @@ internal class ExtensionInstaller(private val context: Context) {
 
     private companion object {
         const val ROOT_FOLDER = "extensions"
+        const val CLOUDSTREAM_FILE_EXTENSION = "cs3"
 
-        /** 8 Mio : largement suffisant pour une extension de catalogue. */
+        /** 8 Mio : borne anti-saturation, indépendante de la métadonnée fileSize. */
         const val MAX_PLUGIN_BYTES = 8 * 1024 * 1024
     }
 }

@@ -85,6 +85,10 @@ dependencies {
 
     // Extensions : contrat binaire partagé avec les plugins téléchargés.
     implementation(project(":plugin-api"))
+    // API officielle Cloudstream, épinglée à un commit pour un build reproductible.
+    // Ne pas remplacer par -SNAPSHOT : les .cs3 doivent retrouver BasePlugin,
+    // MainAPI, NiceHttp et les extracteurs réellement présents dans l'application.
+    implementation("com.github.recloudstream.cloudstream:library:a7ac454af8")
     // Lecture des JSON du catalogue et des dépôts d'extensions manuels.
     implementation("com.google.code.gson:gson:2.11.0")
     // Écran Extensions (liste pilotable à la télécommande).
