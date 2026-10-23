@@ -5,14 +5,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.view.isVisible
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
-import com.missa.tv360.extensions.ExtensionManager
 import com.missa.tv360.ui.BrowseFragment
 import com.missa.tv360.ui.ThumbnailLoader
 import com.missa.tv360.ui.SystemBarInsets
@@ -21,14 +20,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /** Hôte unique : Leanback sur TV, composants tactiles sur téléphone/tablette. */
-class MainActivity : AppCompatActivity() {
+class MainActivity : FragmentActivity() {
     private lateinit var catalogModel: CatalogViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val television = DeviceForm.isTelevision(this)
         setTheme(if (television) R.style.Theme_MissaTv else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
-        ExtensionManager.attachHost(this)
         setContentView(if (television) R.layout.activity_main else R.layout.activity_mobile_main)
         if (!television) SystemBarInsets.apply(findViewById(R.id.mobile_root))
 
@@ -54,11 +52,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::catalogModel.isInitialized) CatalogStore.refreshUserRows(this)
-    }
-
-    override fun onDestroy() {
-        ExtensionManager.detachHost(this)
-        super.onDestroy()
     }
 
     private fun renderCatalogState(state: CatalogViewModel.UiState) {

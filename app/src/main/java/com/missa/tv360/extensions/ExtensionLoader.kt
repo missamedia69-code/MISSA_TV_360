@@ -1,36 +1,45 @@
 package com.missa.tv360.extensions
 
 import android.content.Context
-import android.content.res.AssetManager
-import android.content.res.Resources
 import android.util.Log
-import com.lagradost.cloudstream3.plugins.BasePlugin
-import com.lagradost.cloudstream3.plugins.Plugin
+import com.google.gson.Gson
 import com.missa.tv360.api.MissaPlugin
 import com.missa.tv360.api.PLUGIN_API_VERSION
+import com.missa.tv360.api.PLUGIN_MANIFEST_ENTRY
 import com.missa.tv360.api.PluginManifest
 import com.missa.tv360.api.PluginRegistry
 import dalvik.system.PathClassLoader
 import java.io.File
+import java.util.zip.ZipFile
 
 /**
- * Chargeur commun MISSA / Cloudstream.
+ * Chargement des extensions dans le processus de l'application.
  *
- * Le nom de classe vient exclusivement du manifeste, comme dans Cloudstream :
- * aucun scan de DEX et aucun nom de provider inventé. Le classloader de l'app
- * est le parent afin que les `.cs3` utilisent la vraie bibliothèque embarquée.
+ * Mécanique (identique à celle d'un moteur d'extensions Android classique) :
+ *  - l'archive `.msa` est un ZIP contenant `manifest.json` + `classes.dex` ;
+ *  - `PathClassLoader(archive, appClassLoader)` fait du classloader de l'app le
+ *    **parent** : l'extension voit donc `com.missa.tv360.api.*` fourni par
+ *    l'application, mais l'app ne voit pas les classes de l'extension ;
+ *  - `manifest.pluginClassName` est instancié par réflexion, puis `load()` est
+ *    appelée : c'est là que l'extension enregistre ses providers.
+ *
+ * Conséquence de sécurité, assumée et documentée : le code de l'extension
+ * s'exécute **avec les permissions de l'application**. C'est pourquoi
+ * l'installateur refuse tout artefact sans SHA-256 et pourquoi seuls des
+ * dépôts explicitement ajoutés sont chargés.
  */
 internal object ExtensionLoader {
 
     private const val TAG = "ExtensionLoader"
+
+    private val gson = Gson()
     private val loaded = LinkedHashMap<String, Loaded>()
 
     class Loaded(
         val internalName: String,
-        val plugin: Any,
+        val plugin: MissaPlugin,
         val classLoader: PathClassLoader,
         val manifest: PluginManifest,
-        val resourceAssets: AssetManager? = null,
     )
 
     fun isLoaded(internalName: String): Boolean = synchronized(loaded) {
@@ -39,131 +48,84 @@ internal object ExtensionLoader {
 
     fun loadedNames(): List<String> = synchronized(loaded) { loaded.keys.toList() }
 
+    /**
+     * Charge (ou recharge) une extension installée.
+     * Toute erreur est remontée en [ExtensionException] : l'appelant décide de
+     * désactiver, réinstaller ou simplement journaliser.
+     */
     fun load(context: Context, extension: InstalledExtension): Loaded {
         if (isLoaded(extension.internalName)) unload(extension.internalName)
 
         val file = File(extension.filePath)
-        if (!file.isFile) {
+        if (!file.exists()) {
             throw ExtensionException("Fichier d'extension absent : ${extension.filePath}")
         }
-        file.setReadOnly()
-        val manifest = ExtensionPackageValidator.validate(file)
-        val className = manifest.pluginClassName?.trim().orEmpty()
+
+        val manifest = readManifest(file)
+            ?: throw ExtensionException("manifest.json absent de ${file.name}")
+
+        if (manifest.apiVersion != PLUGIN_API_VERSION) {
+            throw ExtensionException(
+                "« ${extension.internalName} » : apiVersion ${manifest.apiVersion} " +
+                    "≠ API de l'application $PLUGIN_API_VERSION"
+            )
+        }
+
+        val className = manifest.pluginClassName?.takeIf { it.isNotBlank() }
+            ?: throw ExtensionException("pluginClassName absent du manifeste de ${file.name}")
+
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
         val pluginClass = try {
             classLoader.loadClass(className)
         } catch (t: Throwable) {
-            throw ExtensionException("Classe $className introuvable dans ${file.name} : ${details(t)}", t)
+            throw ExtensionException("Classe $className introuvable dans ${file.name}", t)
         }
 
-        val isMissa = MissaPlugin::class.java.isAssignableFrom(pluginClass)
-        val isCloudstream = BasePlugin::class.java.isAssignableFrom(pluginClass)
-        if (!isMissa && !isCloudstream) {
-            throw ExtensionException(
-                "$className n'étend ni com.missa.tv360.api.MissaPlugin " +
-                    "ni com.lagradost.cloudstream3.plugins.BasePlugin"
-            )
-        }
-        if (isMissa && manifest.apiVersion != PLUGIN_API_VERSION) {
-            throw ExtensionException(
-                "« ${extension.internalName} » : apiVersion ${manifest.apiVersion} " +
-                    "≠ API MISSA $PLUGIN_API_VERSION"
-            )
-        }
-        if (isCloudstream && manifest.apiVersion !in setOf(0, PLUGIN_API_VERSION)) {
-            throw ExtensionException(
-                "« ${extension.internalName} » : apiVersion Cloudstream ${manifest.apiVersion} non pris en charge"
-            )
+        if (!MissaPlugin::class.java.isAssignableFrom(pluginClass)) {
+            throw ExtensionException("$className n'étend pas com.missa.tv360.api.MissaPlugin")
         }
 
         val plugin = try {
-            pluginClass.getDeclaredConstructor().newInstance()
+            pluginClass.getDeclaredConstructor().newInstance() as MissaPlugin
         } catch (t: Throwable) {
-            throw ExtensionException("Instanciation impossible de $className : ${details(t)}", t)
+            throw ExtensionException("Instanciation impossible de $className", t)
         }
 
-        var resourceAssets: AssetManager? = null
+        plugin.filename = file.absolutePath
         try {
-            when (plugin) {
-                is MissaPlugin -> {
-                    plugin.filename = file.absolutePath
-                    plugin.load()
-                }
-                is BasePlugin -> {
-                    plugin.filename = file.absolutePath
-                    if (manifest.requiresResources && plugin is Plugin) {
-                        resourceAssets = createResources(context, file, plugin)
-                    }
-                    // Même distinction que PluginManager.loadPlugin : les anciens
-                    // plugins Android reçoivent le Context, les multiplateformes load().
-                    if (plugin is Plugin) plugin.load(context) else plugin.load()
-                }
-            }
+            plugin.load()
         } catch (t: Throwable) {
-            when (plugin) {
-                is MissaPlugin -> plugin.filename?.let(PluginRegistry::clear)
-                is BasePlugin -> runCatching { CloudstreamRuntime.unload(plugin) }
-            }
-            resourceAssets?.close()
-            val method = if (plugin is Plugin) "load(Context)" else "load()"
-            throw ExtensionException(
-                "$method a échoué pour ${extension.internalName} : ${details(t)}",
-                t,
-            )
+            PluginRegistry.clear(file.absolutePath)
+            throw ExtensionException("load() a échoué pour ${extension.internalName}", t)
         }
 
-        val entry = Loaded(extension.internalName, plugin, classLoader, manifest, resourceAssets)
+        val entry = Loaded(extension.internalName, plugin, classLoader, manifest)
         synchronized(loaded) { loaded[extension.internalName] = entry }
-        val engine = if (plugin is BasePlugin) "Cloudstream" else "MISSA"
-        Log.i(TAG, "Extension $engine chargée : ${extension.internalName} v${manifest.version ?: "?"}")
+        Log.i(TAG, "Extension chargée : ${extension.internalName} v${manifest.version ?: "?"}")
         return entry
     }
 
-    private fun createResources(context: Context, file: File, plugin: Plugin): AssetManager {
-        val assets = AssetManager::class.java.getDeclaredConstructor().newInstance()
-        AssetManager::class.java.getMethod("addAssetPath", String::class.java)
-            .invoke(assets, file.absolutePath)
-        @Suppress("DEPRECATION")
-        plugin.resources = Resources(
-            assets,
-            context.resources.displayMetrics,
-            context.resources.configuration,
-        )
-        return assets
-    }
-
-    /** Décharge une extension et retire tout ce qu'elle a publié. */
+    /** Décharge une extension et retire tous les providers qu'elle a publiés. */
     fun unload(internalName: String) {
         val entry = synchronized(loaded) { loaded.remove(internalName) } ?: return
-        when (val plugin = entry.plugin) {
-            is MissaPlugin -> {
-                runCatching { plugin.beforeUnload() }
-                    .onFailure { Log.w(TAG, "beforeUnload a échoué pour $internalName", it) }
-                plugin.filename?.let(PluginRegistry::clear)
-            }
-            is BasePlugin -> {
-                runCatching { plugin.beforeUnload() }
-                    .onFailure { Log.w(TAG, "beforeUnload a échoué pour $internalName", it) }
-                runCatching { CloudstreamRuntime.unload(plugin) }
-                    .onFailure { Log.w(TAG, "Nettoyage Cloudstream impossible pour $internalName", it) }
-            }
-        }
-        entry.resourceAssets?.close()
+        runCatching { entry.plugin.beforeUnload() }
+            .onFailure { Log.w(TAG, "beforeUnload a échoué pour $internalName", it) }
+        entry.plugin.filename?.let { PluginRegistry.clear(it) }
         Log.i(TAG, "Extension déchargée : $internalName")
     }
 
     fun unloadAll() {
-        loadedNames().forEach(::unload)
+        loadedNames().forEach { unload(it) }
     }
 
-    /** Remonte la cause racine : indispensable pour NoClassDefFoundError/ClassCastException. */
-    private fun details(error: Throwable): String {
-        val chain = generateSequence(error) { it.cause }
-            .distinctBy { "${it::class.java.name}:${it.message}" }
-            .toList()
-        return chain.joinToString(" ← ") { cause ->
-            val message = cause.message?.takeIf(String::isNotBlank) ?: "sans message"
-            "${cause::class.java.simpleName}: $message"
+    private fun readManifest(file: File): PluginManifest? = try {
+        ZipFile(file).use { zip ->
+            val entry = zip.getEntry(PLUGIN_MANIFEST_ENTRY) ?: return null
+            val text = zip.getInputStream(entry).bufferedReader(Charsets.UTF_8).use { it.readText() }
+            gson.fromJson(text, PluginManifest::class.java)
         }
+    } catch (t: Throwable) {
+        Log.e(TAG, "Manifeste illisible : ${file.absolutePath}", t)
+        null
     }
 }

@@ -38,14 +38,12 @@ object ExtensionManager {
     private const val MAX_PLUGIN_LISTS = 10
     private const val MAX_REPO_BYTES = 64 * 1024
     private const val MAX_LIST_BYTES = 512 * 1024
+    private const val MAX_ERROR_DETAILS = 6_000
 
     private val gson = Gson()
     private val mutex = Mutex()
 
     private var appContext: Context? = null
-
-    @Volatile
-    private var hostContext: Context? = null
     private var store: ExtensionStore? = null
     private var installer: ExtensionInstaller? = null
 
@@ -66,71 +64,63 @@ object ExtensionManager {
         val current = store!!.installed()
         _state.value = ExtensionsState(
             installed = current,
+            failures = store!!.failures(),
             lastRefreshAt = store!!.lastRefreshAt,
         )
     }
 
-    /** Providers MISSA natifs ; les MainAPI Cloudstream sont lus via CloudstreamRuntime. */
+    /** Providers actuellement chargés (utilisé par le catalogue). */
     fun providers(): List<Provider> = PluginRegistry.providers()
-
-    /**
-     * Certains plugins Cloudstream historiques exigent une AppCompatActivity dans
-     * load(Context). L'hôte courant est donc préféré au contexte applicatif.
-     */
-    fun attachHost(context: Context) {
-        hostContext = context
-    }
-
-    fun detachHost(context: Context) {
-        if (hostContext === context) hostContext = null
-    }
-
-    private fun loaderContext(): Context? = hostContext ?: appContext
 
     fun isInitialized(): Boolean = store != null
 
     // ── Chargement local ──────────────────────────────────────────────────
 
     /**
-     * Charge les extensions déjà installées.
-     * Une extension qui ne se charge plus est désactivée (le fichier reste sur
-     * l'appareil : réinstallable depuis l'écran Extensions).
+     * Charge les extensions déjà installées. Tout échec est purgé (fichier +
+     * enregistrement) et mémorisé séparément : aucun nouvel essai au démarrage.
      */
     suspend fun loadInstalled(): Int = mutex.withLock { loadInstalledLocked() }
 
     private fun loadInstalledLocked(): Int {
-        val context = loaderContext() ?: return 0
+        val context = appContext ?: return 0
         val store = this.store ?: return 0
         var loadedCount = 0
-        var lastError: String? = null
-        // Les versions précédentes désactivaient sur simple échec de chargement.
-        // Il n'existe pas de désactivation manuelle dans l'UI : ces entrées sont
-        // donc réessayées, sauf si l'auteur a activé le kill switch (status = 0).
-        val installed = store.installed().map { extension ->
-            if (!extension.enabled && extension.status != PluginEntry.STATUS_DOWN) {
-                extension.copy(enabled = true)
-            } else {
-                extension
-            }
-        }
-        store.saveInstalled(installed)
-        installed.forEach { extension ->
-            if (!extension.enabled || extension.status == PluginEntry.STATUS_DOWN) return@forEach
-            if (ExtensionLoader.isLoaded(extension.internalName)) {
-                loadedCount++
+        val retained = mutableListOf<InstalledExtension>()
+
+        store.installed().forEach { extension ->
+            if (extension.status == PluginEntry.STATUS_DOWN) {
+                retained += extension
                 return@forEach
             }
-            runCatching { ExtensionLoader.load(context, extension) }
-                .onSuccess { loadedCount++ }
-                .onFailure { error ->
-                    // Comme Cloudstream, un échec de chargement ne transforme pas
-                    // l'installation en désactivation permanente : le prochain
-                    // démarrage ou une ouverture de l'écran pourra réessayer.
-                    lastError = error.message
-                    Log.w(TAG, "Chargement impossible : ${extension.internalName}", error)
-                }
+            if (!extension.enabled) {
+                // Les anciennes versions désactivaient précisément après un
+                // échec. Il n'existe pas de désactivation manuelle dans l'UI.
+                recordFailureAndPurge(
+                    extension,
+                    ExtensionException("Chargement précédent en échec."),
+                )
+                return@forEach
+            }
+            if (ExtensionLoader.isLoaded(extension.internalName)) {
+                loadedCount++
+                retained += extension
+                return@forEach
+            }
+            try {
+                ExtensionLoader.load(context, extension)
+                loadedCount++
+                retained += extension
+            } catch (error: Throwable) {
+                Log.w(TAG, "Chargement impossible puis purge : ${extension.internalName}", error)
+                recordFailureAndPurge(extension, error)
+            }
         }
-        _state.value = _state.value.copy(installed = installed, message = lastError)
+        store.saveInstalled(retained)
+        _state.value = _state.value.copy(
+            installed = retained,
+            failures = store.failures(),
+        )
         return loadedCount
     }
 
@@ -184,9 +174,11 @@ object ExtensionManager {
             .filter { it.repositoryUrl == url }
             .forEach { uninstallLocked(it.internalName) }
         store.saveRepositories(store.repositories().filterNot { it.url == url })
+        store.saveFailures(store.failures().filterNot { it.repositoryUrl == url })
         _state.value = _state.value.copy(
             repositories = _state.value.repositories.filterNot { it.entry.url == url },
             remote = _state.value.remote.filterNot { it.repositoryUrl == url },
+            failures = store.failures(),
             message = "Dépôt supprimé.",
         )
     }
@@ -235,6 +227,11 @@ object ExtensionManager {
                 val entry = item.entry
                 if (entry.isDisabledByAuthor) return@forEach
                 val key = entry.normalizedInternalName
+                // Une version qui a déjà échoué au chargement n'est jamais
+                // réinstallée automatiquement. Une nouvelle version peut l'être.
+                if (store.failures().any { it.internalName == key && it.version == entry.versionInt }) {
+                    return@forEach
+                }
                 val installed = store.installed().firstOrNull { it.internalName == key }
                 val missing = installed == null
                 val outdated = installed != null && entry.versionInt > installed.version
@@ -250,6 +247,7 @@ object ExtensionManager {
             repositories = states,
             remote = remote,
             installed = store.installed(),
+            failures = store.failures(),
             busy = false,
             lastRefreshAt = store.lastRefreshAt,
             message = messageFor(states, remote),
@@ -265,7 +263,7 @@ object ExtensionManager {
     }
 
     private fun installLocked(plugin: RemotePlugin): InstalledExtension {
-        val context = loaderContext() ?: throw ExtensionException("Moteur non initialisé")
+        val context = appContext ?: throw ExtensionException("Moteur non initialisé")
         val store = this.store ?: throw ExtensionException("Moteur non initialisé")
         val installer = this.installer ?: throw ExtensionException("Moteur non initialisé")
 
@@ -286,21 +284,29 @@ object ExtensionManager {
         store.saveInstalled(updated)
         _state.value = _state.value.copy(installed = updated)
 
-        // 4) charger ; en cas d'échec le fichier reste installé et réessayable.
+        // 4) charger ; tout échec supprime immédiatement le fichier et le record.
         val loaded = runCatching { ExtensionLoader.load(context, record) }
         if (loaded.isFailure) {
             val failure = loaded.exceptionOrNull()
-            _state.value = _state.value.copy(installed = updated, busy = false)
+                ?: ExtensionException("Échec de chargement inconnu")
+            recordFailureAndPurge(record, failure)
+            _state.value = _state.value.copy(
+                installed = store.installed(),
+                failures = store.failures(),
+                busy = false,
+            )
             throw ExtensionException(
-                "${plugin.entry.normalizedName} installé mais non chargé : ${failure?.message}",
+                "${plugin.entry.normalizedName} non chargé ; installation purgée. ${failure.message}",
                 failure,
             )
         }
 
+        store.saveFailures(store.failures().filterNot { it.internalName == record.internalName })
         _state.value = _state.value.copy(
             busy = false,
             message = "${plugin.entry.normalizedName} v${plugin.entry.versionInt} installé.",
             installed = store.installed(),
+            failures = store.failures(),
         )
         return record
     }
@@ -320,7 +326,33 @@ object ExtensionManager {
         runCatching { File(extension.filePath).delete() }
             .onFailure { Log.w(TAG, "Suppression impossible : ${extension.filePath}", it) }
         store.saveInstalled(store.installed().filterNot { it.internalName == internalName })
-        _state.value = _state.value.copy(installed = store.installed())
+        store.saveFailures(store.failures().filterNot { it.internalName == internalName })
+        _state.value = _state.value.copy(
+            installed = store.installed(),
+            failures = store.failures(),
+        )
+    }
+
+    private fun recordFailureAndPurge(extension: InstalledExtension, error: Throwable) {
+        val store = this.store ?: return
+        ExtensionLoader.unload(extension.internalName)
+        val artifact = File(extension.filePath)
+        if (artifact.exists() && !artifact.delete()) {
+            Log.w(TAG, "Artefact en échec non supprimé : ${artifact.absolutePath}")
+        }
+        store.saveInstalled(store.installed().filterNot { it.internalName == extension.internalName })
+
+        val failure = ExtensionFailure(
+            internalName = extension.internalName,
+            repositoryUrl = extension.repositoryUrl,
+            name = extension.name,
+            version = extension.version,
+            message = error.message?.takeIf(String::isNotBlank) ?: "Chargement impossible.",
+            details = Log.getStackTraceString(error).take(MAX_ERROR_DETAILS),
+        )
+        store.saveFailures(
+            store.failures().filterNot { it.internalName == extension.internalName } + failure,
+        )
     }
 
     // ── Interne ───────────────────────────────────────────────────────────

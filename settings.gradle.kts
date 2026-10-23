@@ -10,8 +10,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Bibliothèque d'exécution officielle des extensions Cloudstream.
-        maven("https://jitpack.io")
     }
 }
 

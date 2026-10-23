@@ -94,6 +94,20 @@ data class InstalledExtension(
     val installedAt: Long = System.currentTimeMillis(),
 )
 
+/**
+ * Échec conservé séparément de l'installation : le fichier et l'entrée installée
+ * sont purgés, mais la version en échec ne doit pas être réinstallée automatiquement.
+ */
+data class ExtensionFailure(
+    val internalName: String,
+    val repositoryUrl: String,
+    val name: String,
+    val version: Int,
+    val message: String,
+    val details: String? = null,
+    val failedAt: Long = System.currentTimeMillis(),
+)
+
 /** Dépôt ajouté par l'utilisateur ; builtIn ne sert qu'à la migration des anciennes installations. */
 data class RepositoryEntry(
     val url: String,
@@ -120,6 +134,7 @@ data class ExtensionsState(
     val repositories: List<RepositoryState> = emptyList(),
     val remote: List<RemotePlugin> = emptyList(),
     val installed: List<InstalledExtension> = emptyList(),
+    val failures: List<ExtensionFailure> = emptyList(),
     val busy: Boolean = false,
     val message: String? = null,
     val lastRefreshAt: Long = 0L,

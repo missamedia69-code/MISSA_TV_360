@@ -38,7 +38,6 @@ class ExtensionsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(if (DeviceForm.isTelevision(this)) R.style.Theme_MissaTv_Extensions else R.style.Theme_MissaTv_Mobile)
         super.onCreate(savedInstanceState)
-        ExtensionManager.attachHost(this)
         setContentView(R.layout.activity_extensions)
         SystemBarInsets.apply(findViewById(R.id.extensions_root))
         findViewById<Button>(R.id.extensions_back).setOnClickListener { finish() }
@@ -81,11 +80,6 @@ class ExtensionsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::adapter.isInitialized) adapter.submit(ExtensionManager.state.value)
-    }
-
-    override fun onDestroy() {
-        ExtensionManager.detachHost(this)
-        super.onDestroy()
     }
 
     // ── Rendu ─────────────────────────────────────────────────────────────

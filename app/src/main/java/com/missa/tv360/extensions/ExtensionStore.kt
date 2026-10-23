@@ -31,6 +31,13 @@ internal class ExtensionStore(context: Context) {
 
     fun saveInstalled(list: List<InstalledExtension>) = write(KEY_INSTALLED, list)
 
+    // ── Échecs (sans fichier ni entrée installée) ─────────────────────────
+
+    fun failures(): List<ExtensionFailure> =
+        read(KEY_FAILURES, object : TypeToken<List<ExtensionFailure>>() {}.type)
+
+    fun saveFailures(list: List<ExtensionFailure>) = write(KEY_FAILURES, list)
+
     // ── Drapeaux ──────────────────────────────────────────────────────────
 
     var bootstrapDone: Boolean
@@ -67,6 +74,7 @@ internal class ExtensionStore(context: Context) {
         const val PREFS_NAME = "missa_extensions"
         const val KEY_REPOSITORIES = "repositories"
         const val KEY_INSTALLED = "installed"
+        const val KEY_FAILURES = "failures"
         const val KEY_BOOTSTRAP_DONE = "bootstrap_done"
         const val KEY_AUTO_UPDATE = "auto_update"
         const val KEY_LAST_REFRESH = "last_refresh"

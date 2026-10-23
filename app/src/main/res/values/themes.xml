@@ -3,9 +3,7 @@
      fond navy, jaune pour le focus, bleu/vert pour les accents. -->
 <resources>
 
-    <!-- AppCompat est requis par les plugins Cloudstream historiques qui reçoivent
-         l'activité dans load(Context). Les attributs Leanback restent explicités. -->
-    <style name="Theme.MissaTv" parent="@style/Theme.AppCompat.NoActionBar">
+    <style name="Theme.MissaTv" parent="@style/Theme.Leanback">
         <item name="android:windowBackground">@drawable/bg_missa_night</item>
         <item name="android:colorPrimary">@color/missa_yellow</item>
         <item name="android:colorAccent">@color/missa_yellow</item>
