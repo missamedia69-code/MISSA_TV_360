@@ -2,6 +2,7 @@ package com.missa.tv360
 
 import com.missa.tv360.data.source.FilmEngineManifest
 import com.missa.tv360.data.source.FilmSourceManifest
+import com.missa.tv360.data.source.bundledFilmEngineConfig
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -128,6 +129,19 @@ class FilmSourceManifestTest {
             source().copy(trendingQuery = "movies\nHost: evil.example"),
         ).toRuntimeConfig()!!.sources.single()
         assertTrue(!sanitized.trendingQuery.contains("\n"))
+    }
+
+    @Test
+    fun bundledFallback_activatesEveryCompiledFilmSource() {
+        val config = bundledFilmEngineConfig()
+        assertEquals(2, config.version)
+        assertEquals(listOf("internet_archive", "dailymotion"), config.sources.map { it.id })
+        val dailymotion = config.sources[1]
+        assertEquals("dailymotion", dailymotion.adapter)
+        assertEquals("trending", dailymotion.trendingSort)
+        assertEquals("relevance", dailymotion.searchSort)
+        assertEquals(listOf("hls", "mp4"), dailymotion.playableFormats)
+        assertEquals(listOf("movies", "others"), dailymotion.tvTypes)
     }
 
     /** Le manifeste réellement publié doit passer le validateur de l'app. */

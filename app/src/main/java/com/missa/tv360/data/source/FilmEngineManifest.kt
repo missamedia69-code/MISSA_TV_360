@@ -150,11 +150,25 @@ data class FilmSourceConfig(
             relatedFields = listOf("subject", "creator", "title"),
             tvTypes = listOf("movies"),
         )
+
+        /** Même configuration effective que la source Dailymotion du manifeste. */
+        fun bundledDailymotion() = bundledDefault().copy(
+            id = "dailymotion",
+            adapter = "dailymotion",
+            trendingSort = "trending",
+            searchSort = "relevance",
+            playableFormats = listOf("hls", "mp4"),
+            relatedSort = "relevance",
+            tvTypes = listOf("movies", "others"),
+        )
     }
 }
 
-/** In-memory fallback used only if both the remote package and bundled asset are invalid. */
+/** Repli en mémoire : conserve toutes les sources compilées, même sans manifeste lisible. */
 fun bundledFilmEngineConfig() = FilmEngineConfig(
-    version = 1,
-    sources = listOf(FilmSourceConfig.bundledDefault()),
+    version = 2,
+    sources = listOf(
+        FilmSourceConfig.bundledDefault(),
+        FilmSourceConfig.bundledDailymotion(),
+    ),
 )

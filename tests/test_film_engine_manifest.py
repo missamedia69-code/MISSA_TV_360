@@ -13,11 +13,15 @@ class FilmEngineManifestTests(unittest.TestCase):
         )
         self.assertEqual(delivery, bundled)
 
-    def test_first_source_is_internet_archive_with_film_behaviors(self):
+    def test_internet_archive_and_dailymotion_are_enabled_with_film_behaviors(self):
         manifest = json.loads((ROOT / "engines/films/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["engine_id"], "films")
         self.assertEqual(manifest["schema_version"], 1)
-        self.assertEqual(len(manifest["sources"]), 1)
+        self.assertEqual(
+            [source["id"] for source in manifest["sources"]],
+            ["internet_archive", "dailymotion"],
+        )
+        self.assertTrue(all(source["enabled"] is True for source in manifest["sources"]))
 
         source = manifest["sources"][0]
         self.assertEqual(source["id"], "internet_archive")
@@ -34,6 +38,13 @@ class FilmEngineManifestTests(unittest.TestCase):
         self.assertIn("creator", source["related_fields"])
         self.assertNotIn("license", source)
         self.assertNotIn("rights", source)
+
+        dailymotion = manifest["sources"][1]
+        self.assertEqual(dailymotion["adapter"], "dailymotion")
+        self.assertEqual(dailymotion["media_type"], "movies")
+        self.assertEqual(dailymotion["playable_formats"], ["hls", "mp4"])
+        self.assertGreater(dailymotion["trending_limit"], 0)
+        self.assertGreater(dailymotion["search_limit"], 0)
 
 
 if __name__ == "__main__":

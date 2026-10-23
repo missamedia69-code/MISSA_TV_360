@@ -5,12 +5,16 @@ Il décrit les sources activées et les règles de classement/recherche/similari
 vérifie une nouvelle version à chaque ouverture, conserve la dernière version valide hors ligne,
 puis utilise l'adaptateur natif correspondant.
 
-## Source installée
+## Sources installées et activées
 
 - `internet_archive` : recherche de films indexés, classement des tendances par popularité,
-  résolution des métadonnées et sélection d'un MP4; les recommandations utilisent les sujets
+  résolution des métadonnées et sélection d'un MP4 ; les recommandations utilisent les sujets
   et le créateur quand ces champs existent.
-- Aucun filtre de droits n'est appliqué.
+- `dailymotion` : recherche, tendances et contenus similaires, avec résolution des flux HLS ou
+  MP4 exposés par les métadonnées de la plateforme.
+
+Les deux sources sont déclarées `enabled: true` dans le manifeste de livraison, l'asset Android,
+le site et la preview. Aucun filtre de droits n'est appliqué par ce paquet déclaratif.
 
 Le manifeste ne contient **pas de code exécutable**. L'application n'accepte que les adaptateurs
 et opérations qu'elle connaît, avec validation des limites, champs et formats. Une nouvelle

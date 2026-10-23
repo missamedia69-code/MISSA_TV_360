@@ -114,6 +114,10 @@ jobs:
 
       - name: Generate branch preview catalog
         if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[no-release]') && startsWith(github.ref, 'refs/heads/arena/')
+        env:
+          # Même source Creative Commons optionnelle que la publication Pages.
+          # Sans secret, Jamendo est ignoré et les autres sources restent actives.
+          JAMENDO_CLIENT_ID: ${{ secrets.JAMENDO_CLIENT_ID }}
         run: |
           set -euo pipefail
           pip install pyyaml
