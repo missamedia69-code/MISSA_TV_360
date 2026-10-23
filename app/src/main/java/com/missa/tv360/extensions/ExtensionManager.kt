@@ -120,6 +120,7 @@ object ExtensionManager {
         _state.value = _state.value.copy(
             installed = retained,
             failures = store.failures(),
+            errorDetails = null,
         )
         return loadedCount
     }
@@ -159,9 +160,14 @@ object ExtensionManager {
             store.saveRepositories(repos)
             _state.value = _state.value.copy(
                 message = "Dépôt ajouté : ${manifest.name ?: url}",
+                errorDetails = null,
             )
             Result.success(manifest)
         } catch (t: Throwable) {
+            _state.value = _state.value.copy(
+                message = t.message ?: "Dépôt illisible.",
+                errorDetails = Log.getStackTraceString(t).take(MAX_ERROR_DETAILS),
+            )
             Result.failure(t)
         }
     }
@@ -180,6 +186,7 @@ object ExtensionManager {
             remote = _state.value.remote.filterNot { it.repositoryUrl == url },
             failures = store.failures(),
             message = "Dépôt supprimé.",
+            errorDetails = null,
         )
     }
 
@@ -194,7 +201,7 @@ object ExtensionManager {
     suspend fun refresh(installMissing: Boolean = false): ExtensionsState = mutex.withLock {
         val store = this.store ?: return@withLock _state.value
         val installer = this.installer ?: return@withLock _state.value
-        _state.value = _state.value.copy(busy = true, message = null)
+        _state.value = _state.value.copy(busy = true, message = null, errorDetails = null)
 
         val repos = store.repositories()
         if (repos.isEmpty()) {
@@ -243,6 +250,9 @@ object ExtensionManager {
         }
 
         store.lastRefreshAt = System.currentTimeMillis()
+        val repositoryErrors = states.mapNotNull { state ->
+            state.error?.let { "${state.entry.name} : $it" }
+        }.joinToString("\n\n").take(MAX_ERROR_DETAILS).ifBlank { null }
         _state.value = _state.value.copy(
             repositories = states,
             remote = remote,
@@ -251,6 +261,7 @@ object ExtensionManager {
             busy = false,
             lastRefreshAt = store.lastRefreshAt,
             message = messageFor(states, remote),
+            errorDetails = repositoryErrors,
         )
         _state.value
     }
@@ -259,7 +270,19 @@ object ExtensionManager {
 
     suspend fun install(plugin: RemotePlugin): Result<InstalledExtension> = mutex.withLock {
         runCatching { installLocked(plugin) }
-            .onFailure { _state.value = _state.value.copy(busy = false, message = it.message) }
+            .onFailure { error ->
+                val direct = error as? ExtensionException
+                val nested = error.cause as? ExtensionException
+                val details = direct?.technicalDetails
+                    ?: nested?.technicalDetails
+                    ?: store?.failures()?.maxByOrNull { it.failedAt }?.details
+                    ?: Log.getStackTraceString(error)
+                _state.value = _state.value.copy(
+                    busy = false,
+                    message = error.message,
+                    errorDetails = details.take(MAX_ERROR_DETAILS),
+                )
+            }
     }
 
     private fun installLocked(plugin: RemotePlugin): InstalledExtension {
@@ -270,6 +293,7 @@ object ExtensionManager {
         _state.value = _state.value.copy(
             busy = true,
             message = "Installation de ${plugin.entry.normalizedName}…",
+            errorDetails = null,
         )
 
         // 1) décharger l'ancienne version avant d'écraser son fichier
@@ -307,6 +331,7 @@ object ExtensionManager {
             message = "${plugin.entry.normalizedName} v${plugin.entry.versionInt} installé.",
             installed = store.installed(),
             failures = store.failures(),
+            errorDetails = null,
         )
         return record
     }
@@ -316,6 +341,7 @@ object ExtensionManager {
         _state.value = _state.value.copy(
             installed = store?.installed().orEmpty(),
             message = "Extension supprimée.",
+            errorDetails = null,
         )
     }
 

@@ -109,10 +109,20 @@
     <string name="extensions_install">Installer</string>
     <string name="extensions_update">Mettre à jour</string>
     <string name="extensions_up_to_date">À jour</string>
+    <string name="extensions_active">Active</string>
+    <string name="extensions_not_loaded">Non chargée</string>
+    <string name="extensions_update_available">Mise à jour disponible</string>
     <string name="extensions_unavailable">Indisponible</string>
-    <string name="extensions_incompatible">Version incompatible</string>
+    <string name="extensions_incompatible">Incompatible</string>
     <string name="extensions_local">Locale</string>
     <string name="extensions_disabled">Désactivée</string>
+    <string name="extensions_disabled_author">Désactivée par l’auteur</string>
+    <string name="extensions_error_dependency">Erreur · dépendance</string>
+    <string name="extensions_error_manifest">Erreur · manifeste</string>
+    <string name="extensions_retry">Réessayer</string>
+    <string name="extensions_uninstall">Désinstaller</string>
+    <string name="extensions_details">Détails</string>
+    <string name="extensions_error_details_title">Détails de l’erreur</string>
     <string name="extensions_url_required">Saisissez l’adresse d’un dépôt.</string>
 
     <string name="games_loading">Chargement des jeux…</string>

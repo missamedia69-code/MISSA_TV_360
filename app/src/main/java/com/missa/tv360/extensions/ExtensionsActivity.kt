@@ -8,9 +8,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,8 +33,10 @@ class ExtensionsActivity : AppCompatActivity() {
 
     private lateinit var adapter: ExtensionsAdapter
     private lateinit var statusView: TextView
+    private lateinit var detailsButton: Button
     private lateinit var addButton: Button
     private lateinit var refreshButton: Button
+    private var currentErrorDetails: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(if (DeviceForm.isTelevision(this)) R.style.Theme_MissaTv_Extensions else R.style.Theme_MissaTv_Mobile)
@@ -44,13 +47,20 @@ class ExtensionsActivity : AppCompatActivity() {
         ExtensionManager.init(this)
 
         statusView = findViewById(R.id.extensions_status)
+        detailsButton = findViewById(R.id.extensions_details)
         addButton = findViewById(R.id.extensions_add)
         refreshButton = findViewById(R.id.extensions_refresh)
+        detailsButton.setOnClickListener {
+            currentErrorDetails?.let(::showErrorDetails)
+        }
 
         adapter = ExtensionsAdapter(
-            onPluginClick = { remote -> install(remote) },
-            onPluginLongClick = { installed -> confirmUninstall(installed) },
-            onRepoLongClick = { repo -> confirmRemoveRepository(repo) },
+            onPluginAction = { remote -> install(remote) },
+            onPluginUninstall = { installed -> confirmUninstall(installed) },
+            onRepoRemove = { repo -> confirmRemoveRepository(repo) },
+            onFailureDetails = { failure ->
+                showErrorDetails(failure.details ?: failure.message)
+            },
         )
 
         findViewById<RecyclerView>(R.id.extensions_list).apply {
@@ -96,6 +106,14 @@ class ExtensionsActivity : AppCompatActivity() {
             )
         }
         statusView.text = text
+        currentErrorDetails = state.errorDetails?.takeIf { it.isNotBlank() }
+        detailsButton.isVisible = currentErrorDetails != null && !state.busy
+        statusView.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (currentErrorDetails != null) R.color.missa_error else R.color.missa_yellow,
+            ),
+        )
         addButton.isEnabled = !state.busy
         refreshButton.isEnabled = !state.busy
     }
@@ -111,9 +129,9 @@ class ExtensionsActivity : AppCompatActivity() {
 
     private fun install(remote: RemotePlugin) {
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) { ExtensionManager.install(remote) }
+            withContext(Dispatchers.IO) { ExtensionManager.install(remote) }
             adapter.submit(ExtensionManager.state.value)
-            result.onFailure { toast(it.message ?: getString(R.string.extensions_error)) }
+            // Le StateFlow affiche une seule erreur dans le bandeau ; pas de toast.
             // Une extension installée publie de nouveaux contenus : on relance
             // la lecture du catalogue au retour sur l'accueil.
         }
@@ -155,8 +173,7 @@ class ExtensionsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             statusView.text = getString(R.string.extensions_busy)
             val result = withContext(Dispatchers.IO) { ExtensionManager.addRepository(url) }
-            result.onFailure { toast(it.message ?: getString(R.string.extensions_error)) }
-            refresh()
+            if (result.isSuccess) refresh()
         }
     }
 
@@ -178,7 +195,7 @@ class ExtensionsActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle(R.string.extensions_remove_plugin)
             .setMessage(extension.name)
-            .setPositiveButton(R.string.extensions_remove) { _, _ ->
+            .setPositiveButton(R.string.extensions_uninstall) { _, _ ->
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) { ExtensionManager.uninstall(extension.internalName) }
                     adapter.submit(ExtensionManager.state.value)
@@ -198,7 +215,11 @@ class ExtensionsActivity : AppCompatActivity() {
         return ""
     }
 
-    private fun toast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    private fun showErrorDetails(details: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.extensions_error_details_title)
+            .setMessage(details)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 }

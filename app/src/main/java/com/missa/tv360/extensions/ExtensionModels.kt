@@ -141,5 +141,7 @@ data class ExtensionsState(
     val failures: List<ExtensionFailure> = emptyList(),
     val busy: Boolean = false,
     val message: String? = null,
+    /** Détail de l'opération courante uniquement ; jamais alimenté par l'historique au démarrage. */
+    val errorDetails: String? = null,
     val lastRefreshAt: Long = 0L,
 )
