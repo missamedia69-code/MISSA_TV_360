@@ -14,23 +14,10 @@ import java.util.zip.ZipFile
 
 /**
  * Chargement des extensions dans le processus de l'application.
- *
- * Mécanique (identique à celle d'un moteur d'extensions Android classique) :
- *  - l'archive `.msa` est un ZIP contenant `manifest.json` + `classes.dex` ;
- *  - `PathClassLoader(archive, appClassLoader)` fait du classloader de l'app le
- *    **parent** : l'extension voit donc `com.missa.tv360.api.*` fourni par
- *    l'application, mais l'app ne voit pas les classes de l'extension ;
- *  - `manifest.pluginClassName` est instancié par réflexion, puis `load()` est
- *    appelée : c'est là que l'extension enregistre ses providers.
- *
- * Conséquence de sécurité, assumée et documentée : le code de l'extension
- * s'exécute **avec les permissions de l'application**. C'est pourquoi
- * l'installateur refuse tout artefact sans SHA-256 et pourquoi seuls des
- * dépôts explicitement ajoutés sont chargés.
  */
 internal object ExtensionLoader {
 
-    private const val TAG = "ExtensionLoader"
+    private val TAG = "ExtensionLoader"
 
     private val gson = Gson()
     private val loaded = LinkedHashMap<String, Loaded>()
@@ -48,11 +35,6 @@ internal object ExtensionLoader {
 
     fun loadedNames(): List<String> = synchronized(loaded) { loaded.keys.toList() }
 
-    /**
-     * Charge (ou recharge) une extension installée.
-     * Toute erreur est remontée en [ExtensionException] : l'appelant décide de
-     * désactiver, réinstaller ou simplement journaliser.
-     */
     fun load(context: Context, extension: InstalledExtension): Loaded {
         if (isLoaded(extension.internalName)) unload(extension.internalName)
 
@@ -64,9 +46,10 @@ internal object ExtensionLoader {
         val manifest = readManifest(file)
             ?: throw ExtensionException("manifest.json absent de ${file.name}")
 
-        if (manifest.apiVersion != PLUGIN_API_VERSION) {
+        val manifestApi = manifest.apiVersion ?: 0
+        if (manifestApi != PLUGIN_API_VERSION && manifestApi != 0) {
             throw ExtensionException(
-                "« ${extension.internalName} » : apiVersion ${manifest.apiVersion} " +
+                "« ${extension.internalName} » : apiVersion $manifestApi " +
                     "≠ API de l'application $PLUGIN_API_VERSION"
             )
         }
@@ -105,7 +88,6 @@ internal object ExtensionLoader {
         return entry
     }
 
-    /** Décharge une extension et retire tous les providers qu'elle a publiés. */
     fun unload(internalName: String) {
         val entry = synchronized(loaded) { loaded.remove(internalName) } ?: return
         runCatching { entry.plugin.beforeUnload() }

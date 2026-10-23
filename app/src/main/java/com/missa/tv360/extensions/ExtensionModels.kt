@@ -4,38 +4,22 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * Modèles du dépôt d'extensions.
- *
- * Trois niveaux, comme dans le modèle « repo.json → plugins.json → artefact » :
- *  1. [RepositoryManifest] : le fichier `repo.json` (pointeur) ;
- *  2. [PluginEntry] : une ligne de `plugins.json` (une extension publiée) ;
- *  3. [InstalledExtension] : ce que l'application a réellement installé.
- *
- * IMPORTANT — tous les champs lus depuis le réseau sont DÉCLARÉS NULLABLES :
- * Gson instancie les classes sans appeler leur constructeur, donc les valeurs
- * par défaut Kotlin ne s'appliquent pas à un champ absent du JSON. Les
- * accesseurs de confort (`normalizedName`, `versionInt`, …) centralisent les
- * replis et évitent tout `NullPointerException` sur une réponse incomplète.
  */
-
-/** `repo.json` — petit fichier stable que l'utilisateur colle dans l'application. */
 data class RepositoryManifest(
     @SerializedName("name") val name: String? = null,
     @SerializedName("description") val description: String? = null,
     @SerializedName("manifestVersion") val manifestVersion: Int? = null,
     @SerializedName("pluginLists") val pluginLists: List<String?>? = null,
 ) {
-    /** Listes d'extensions, nettoyées des entrées vides ou nulles. */
     val lists: List<String>
         get() = pluginLists.orEmpty().mapNotNull { it?.trim()?.takeIf(String::isNotEmpty) }
 }
 
-/** Une entrée de `plugins.json`. */
 data class PluginEntry(
     @SerializedName("url") val url: String? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("internalName") val internalName: String? = null,
     @SerializedName("version") val version: Int? = null,
-    /** 0 = désactivée par l'auteur, 1 = ok, 2 = lente, 3 = bêta. */
     @SerializedName("status") val status: Int? = null,
     @SerializedName("apiVersion") val apiVersion: Int? = null,
     @SerializedName("authors") val authors: List<String?>? = null,
@@ -44,7 +28,6 @@ data class PluginEntry(
     @SerializedName("language") val language: String? = null,
     @SerializedName("tvTypes") val tvTypes: List<String?>? = null,
     @SerializedName("fileSize") val fileSize: Long? = null,
-    /** `sha256-<hex>` ou `sha256:<hex>` — OBLIGATOIRE côté MISSA. */
     @SerializedName("fileHash") val fileHash: String? = null,
 ) {
     val normalizedInternalName: String get() = internalName.orEmpty().trim()
@@ -56,7 +39,6 @@ data class PluginEntry(
 
     val statusInt: Int get() = status ?: STATUS_OK
 
-    /** Absent = 0 : une extension qui ne déclare pas son API est refusée. */
     val apiVersionInt: Int get() = apiVersion ?: 0
 
     val authorsList: List<String> get() = authors.orEmpty().filterNotNull()
@@ -69,7 +51,8 @@ data class PluginEntry(
 
     val isDisabledByAuthor: Boolean get() = statusInt == STATUS_DOWN
 
-    val isCompatible: Boolean get() = apiVersionInt == com.missa.tv360.api.PLUGIN_API_VERSION
+    // Tolère apiVersion == 0 ou non spécifié pour charger les extensions existantes
+    val isCompatible: Boolean get() = apiVersionInt == com.missa.tv360.api.PLUGIN_API_VERSION || apiVersionInt == 0
 
     companion object {
         const val STATUS_DOWN = 0
@@ -79,7 +62,6 @@ data class PluginEntry(
     }
 }
 
-/** Extension réellement présente sur l'appareil (écrite par l'application). */
 data class InstalledExtension(
     val internalName: String,
     val repositoryUrl: String,
@@ -92,7 +74,6 @@ data class InstalledExtension(
     val installedAt: Long = System.currentTimeMillis(),
 )
 
-/** Dépôt ajouté par l'utilisateur ; builtIn ne sert qu'à la migration des anciennes installations. */
 data class RepositoryEntry(
     val url: String,
     val name: String,
@@ -100,20 +81,17 @@ data class RepositoryEntry(
     val addedAt: Long = System.currentTimeMillis(),
 )
 
-/** Extension publiée par un dépôt distant, avec son dépôt d'origine. */
 data class RemotePlugin(
     val entry: PluginEntry,
     val repositoryUrl: String,
 )
 
-/** État d'un dépôt après tentative de lecture. */
 data class RepositoryState(
     val entry: RepositoryEntry,
     val manifest: RepositoryManifest? = null,
     val error: String? = null,
 )
 
-/** État exposé à l'interface (StateFlow). */
 data class ExtensionsState(
     val repositories: List<RepositoryState> = emptyList(),
     val remote: List<RemotePlugin> = emptyList(),
