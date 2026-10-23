@@ -47,7 +47,8 @@ jobs:
           api-level: 34
           arch: x86_64
           target: default
-          emulator-boot-timeout: 300
+          disk-size: 4G
+          emulator-boot-timeout: 600
           disable-animations: true
           script: |
             # L'AVD peut être restauré depuis un cache : ne pas conserver un APK
