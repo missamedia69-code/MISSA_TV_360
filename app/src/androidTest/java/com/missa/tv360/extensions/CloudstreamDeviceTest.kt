@@ -3,6 +3,8 @@ package com.missa.tv360.extensions
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.lagradost.cloudstream3.MainAPI
+import com.lagradost.cloudstream3.MainPageRequest
 import com.missa.tv360.cloudstream.compat.CloudstreamCompatRegistry
 import com.missa.tv360.api.Provider
 import kotlinx.coroutines.runBlocking
@@ -56,10 +58,13 @@ class CloudstreamDeviceTest {
                 withTimeout(60_000L) { loadedProvider!!.rows() }
             }
             val items = rows.flatMap { it.items }
-            assertTrue(
-                "BuzzMonclick chargé, mais aucune rangée réelle n'a été produite",
-                rows.isNotEmpty() && items.isNotEmpty(),
-            )
+            if (rows.isEmpty() || items.isEmpty()) {
+                val api = CloudstreamCompatRegistry.providerFor(loadedProvider!!.id)
+                    ?: error("MainAPI introuvable après enregistrement")
+                throw AssertionError(
+                    "BuzzMonclick chargé, mais aucune rangée réelle. " + diagnosePages(api),
+                )
+            }
             assertTrue(
                 "Une page Cloudstream ne doit jamais devenir un flux",
                 items.all { it.stream.url.isBlank() && !it.pageUrl.isNullOrBlank() },
@@ -68,6 +73,26 @@ class CloudstreamDeviceTest {
             ExtensionLoader.unload(record.internalName)
             scenario.close()
             artifact.delete()
+        }
+    }
+
+    private fun diagnosePages(api: MainAPI): String = runBlocking {
+        api.mainPage.take(2).joinToString(" | ") { page ->
+            try {
+                val response = withTimeout(20_000L) {
+                    api.getMainPage(
+                        1,
+                        MainPageRequest(page.name, page.data, page.horizontalImages),
+                    )
+                }
+                val responses = response?.items.orEmpty()
+                val first = responses.flatMap { it.list }.firstOrNull()
+                "${page.name}: réponse=${responses.map { it.list.size }}, " +
+                    "premier=${first?.name}, url=${first?.url}"
+            } catch (error: Throwable) {
+                val root = generateSequence(error) { it.cause }.last()
+                "${page.name}: ${root.javaClass.name}: ${root.message}".take(1_200)
+            }
         }
     }
 }
