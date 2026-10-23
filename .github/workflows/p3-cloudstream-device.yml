@@ -44,8 +44,15 @@ jobs:
       - name: Run the real plugin on an emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 34
           arch: x86_64
-          target: google_apis
+          target: default
+          emulator-boot-timeout: 300
           disable-animations: true
-          script: bash .github/scripts/gradle_ci.sh :app:connectedDebugAndroidTest
+          script: |
+            bash .github/scripts/gradle_ci.sh :app:connectedDebugAndroidTest
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              echo "::error title=P3 Gradle probe::connectedDebugAndroidTest a échoué avec le code $status"
+            fi
+            exit "$status"
