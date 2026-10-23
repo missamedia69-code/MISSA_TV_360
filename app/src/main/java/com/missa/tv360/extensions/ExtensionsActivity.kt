@@ -162,8 +162,14 @@ class ExtensionsActivity : AppCompatActivity() {
             .setView(container)
             .setPositiveButton(R.string.extensions_add) { _, _ ->
                 val url = input.text?.toString().orEmpty().trim()
-                if (url.isBlank()) toast(getString(R.string.extensions_url_required))
-                else addRepository(url)
+                if (url.isBlank()) {
+                    currentErrorDetails = null
+                    detailsButton.isVisible = false
+                    statusView.text = getString(R.string.extensions_url_required)
+                    statusView.setTextColor(ContextCompat.getColor(this, R.color.missa_error))
+                } else {
+                    addRepository(url)
+                }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
