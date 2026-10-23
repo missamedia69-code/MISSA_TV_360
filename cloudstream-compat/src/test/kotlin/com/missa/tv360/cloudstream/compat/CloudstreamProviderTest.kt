@@ -80,9 +80,11 @@ class CloudstreamProviderTest {
         override val hasMainPage: Boolean = true
         override val mainPage: List<MainPageData> = mainPageOf(
             "https://source.example/nouveautes" to "Nouveautés",
+            "https://source.example/hors-ligne" to "Hors ligne",
         )
 
         override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+            if (request.name == "Hors ligne") error("Réponse réseau absente")
             return newHomePageResponse(
                 request.name,
                 listOf(

@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.SearchResponse
 import com.lagradost.cloudstream3.TvType
 import com.missa.tv360.api.Item
 import com.missa.tv360.api.Kind
+import com.missa.tv360.api.PluginLog
+import kotlinx.coroutines.CancellationException
 import com.missa.tv360.api.Provider
 import com.missa.tv360.api.Row
 import com.missa.tv360.api.Stream
@@ -20,10 +22,17 @@ class CloudstreamProvider(private val api: MainAPI) : Provider {
         if (!api.hasMainPage) return emptyList()
         val rows = mutableListOf<Row>()
         api.mainPage.take(MAX_MAIN_PAGES).forEachIndexed { pageIndex, page ->
-            val response = api.getMainPage(
-                1,
-                MainPageRequest(page.name, page.data, page.horizontalImages),
-            ) ?: return@forEachIndexed
+            val response = try {
+                api.getMainPage(
+                    1,
+                    MainPageRequest(page.name, page.data, page.horizontalImages),
+                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                PluginLog.e("Cloudstream ${api.name} : page ${page.name} en échec", error)
+                null
+            } ?: return@forEachIndexed
             rows += response.toRows(pageIndex, page.name)
         }
         return rows
