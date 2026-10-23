@@ -77,8 +77,9 @@ class CloudstreamDeviceTest {
     }
 
     private fun diagnosePages(api: MainAPI): String = runBlocking {
-        api.mainPage.take(2).joinToString(" | ") { page ->
-            try {
+        val diagnostics = mutableListOf<String>()
+        for (page in api.mainPage.take(2)) {
+            val diagnostic = try {
                 val response = withTimeout(20_000L) {
                     api.getMainPage(
                         1,
@@ -93,6 +94,8 @@ class CloudstreamDeviceTest {
                 val root = generateSequence(error) { it.cause }.last()
                 "${page.name}: ${root.javaClass.name}: ${root.message}".take(1_200)
             }
+            diagnostics += diagnostic
         }
+        diagnostics.joinToString(" | ")
     }
 }
