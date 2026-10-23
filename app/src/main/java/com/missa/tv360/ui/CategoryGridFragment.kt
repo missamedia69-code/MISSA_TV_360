@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.leanback.app.VerticalGridSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
+import androidx.leanback.widget.FocusHighlight
 import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
@@ -51,7 +52,7 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
         val sampleKind = row?.videos?.firstOrNull()?.kind ?: ContentKind.MOVIE
         val shape = CardShape.forKind(sampleKind)
 
-        gridPresenter = VerticalGridPresenter().apply {
+        gridPresenter = VerticalGridPresenter(FocusHighlight.ZOOM_FACTOR_NONE, false).apply {
             numberOfColumns = shape.gridColumns
             shadowEnabled = false
         }
@@ -62,10 +63,11 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
         )
         row?.videos?.forEach { adapter.add(it) }
 
-        // Ajout de la carte "Tout voir" en bas de la grille
-        if (rowId != null) {
-            adapter.add(moreCard(rowId, row?.title ?: title, sampleKind))
-        }
+        // Pas de carte « Tout voir » ici : on est déjà dans la grille complète
+        // (et un clic dessus ouvrait une fiche vide).
+
+        // Le titre de la catégorie remplace « MISSA TV 360 » dans l'en-tête.
+        if (title.isNotBlank()) setTitle(title)
 
         if (savedInstanceState != null) {
             selectedPosition = savedInstanceState.getInt(STATE_POSITION, 0)
@@ -89,6 +91,10 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val backgrounds = BackgroundManager.getInstance(requireActivity()).also {
+            if (!it.isAttached) it.attach(requireActivity().window)
+        }
+        var currentRes = 0
         setOnItemViewSelectedListener(
             OnItemViewSelectedListener { _: Presenter.ViewHolder?, item: Any?,
                                          _: RowPresenter.ViewHolder?, _: Row? ->
@@ -97,8 +103,10 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
                     if (pos >= 0) selectedPosition = pos
                 }
                 val video = item as? Video ?: return@OnItemViewSelectedListener
-                BackgroundManager.getInstance(requireActivity())?.drawable =
-                    ContextCompat.getDrawable(requireContext(), fondParDefaut(video.kind.name))
+                val res = fondParDefaut(video.kind.name)
+                if (res == currentRes) return@OnItemViewSelectedListener
+                currentRes = res
+                backgrounds.drawable = ContextCompat.getDrawable(requireContext(), res)
             },
         )
     }
@@ -109,14 +117,4 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
             .addToBackStack("details")
             .commit()
     }
-
-    private fun moreCard(rowId: String, header: String, kind: ContentKind): Video = Video(
-        id = "more-$rowId",
-        title = getString(R.string.row_more),
-        description = header,
-        cardRes = R.drawable.card_more,
-        streamUrl = "",
-        kind = kind,
-        moreTargetRowId = rowId,
-    )
 }

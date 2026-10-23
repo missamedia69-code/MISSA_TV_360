@@ -13,6 +13,7 @@ import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
 import androidx.leanback.widget.RowPresenter
 import androidx.lifecycle.lifecycleScope
+import com.missa.tv360.R
 import com.missa.tv360.data.Game
 import com.missa.tv360.data.GamesRepository
 import kotlinx.coroutines.launch
@@ -55,7 +56,7 @@ class GamesFragment : RowsSupportFragment() {
         ) {
             Toast.makeText(
                 requireContext(),
-                "Autorisez l’installation d’applications inconnues, puis sélectionnez à nouveau le jeu.",
+                R.string.games_allow_unknown_sources,
                 Toast.LENGTH_LONG,
             ).show()
             startActivity(
@@ -68,8 +69,11 @@ class GamesFragment : RowsSupportFragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            Toast.makeText(requireContext(), "Telechargement de ${game.title}…",
-                Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.games_downloading, game.title),
+                Toast.LENGTH_SHORT,
+            ).show()
             val error = downloader.downloadAndInstall(game)
             if (error != null) {
                 Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()

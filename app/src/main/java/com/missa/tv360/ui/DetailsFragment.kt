@@ -164,12 +164,12 @@ class DetailsFragment : Fragment() {
 
     private fun addChip(container: LinearLayout, text: String, live: Boolean = false) {
         val density = resources.displayMetrics.density
-        val padH = (8 * density).toInt()
-        val padV = (3 * density).toInt()
+        val padH = (10 * density).toInt()
+        val padV = (4 * density).toInt()
         val marginEnd = (8 * density).toInt()
         TextView(requireContext()).apply {
             this.text = text
-            textSize = 12f
+            textSize = 14f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setTextColor(
@@ -234,7 +234,7 @@ class DetailsFragment : Fragment() {
             MissaAction(
                 ACTION_MY_LIST,
                 getString(myListLabel()),
-                R.drawable.ic_add,
+                myListIcon(),
                 primary = false,
             ),
             MissaAction(
@@ -270,12 +270,26 @@ class DetailsFragment : Fragment() {
             R.string.action_my_list_add
         }
 
+    private fun myListIcon(): Int =
+        if (MyListStore.contains(requireContext(), video.id)) R.drawable.ic_check else R.drawable.ic_add
+
     private fun performAction(id: Long) {
         when (id) {
             ACTION_PLAY -> openPlayer()
             ACTION_MY_LIST -> {
+                val nowInList = !MyListStore.contains(requireContext(), video.id)
                 MyListStore.toggle(requireContext(), video.id)
-                myListButton?.text = getString(myListLabel())
+                myListButton?.apply {
+                    text = getString(myListLabel())
+                    contentDescription = text
+                    setCompoundDrawablesWithIntrinsicBounds(myListIcon(), 0, 0, 0)
+                }
+                // Retour d'information explicite : le changement de libellé seul passe inaperçu.
+                Toast.makeText(
+                    requireContext(),
+                    if (nowInList) R.string.my_list_added else R.string.my_list_removed,
+                    Toast.LENGTH_SHORT,
+                ).show()
             }
             ACTION_REPORT -> showReportDialog()
         }
@@ -285,7 +299,7 @@ class DetailsFragment : Fragment() {
     private fun showReportDialog() {
         val reasons = resources.getStringArray(R.array.report_reasons)
         var selected = 0
-        AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext(), R.style.MissaAlertDialog)
             .setTitle(R.string.action_report)
             .setSingleChoiceItems(reasons, selected) { _, which -> selected = which }
             .setPositiveButton(R.string.report_send) { _, _ ->

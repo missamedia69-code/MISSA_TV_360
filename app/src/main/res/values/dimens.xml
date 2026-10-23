@@ -18,8 +18,9 @@
     <dimen name="card_gap">16dp</dimen>
     <dimen name="card_radius">10dp</dimen>
     <dimen name="focus_stroke">3dp</dimen>
-    <dimen name="progress_h">3dp</dimen>
-
+    <dimen name="progress_h">4dp</dimen>
+    <!-- Libellés lisibles à ~3 m (Android TV : éviter < 14sp) -->
+    <dimen name="card_title_size">16sp</dimen>
     <!-- Espacements normalisés (§12) -->
     <dimen name="missa_space_xs">4dp</dimen>
     <dimen name="missa_space_sm">8dp</dimen>

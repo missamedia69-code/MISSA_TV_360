@@ -13,6 +13,21 @@
         <!-- Barres système discrètes et sombres (restent lisibles sur fond bleu nuit) -->
         <item name="android:statusBarColor">@color/missa_navy_deep</item>
         <item name="android:navigationBarColor">@color/missa_navy_deep</item>
+        <!-- Titres de rangée plus lisibles à distance -->
+        <item name="rowHeaderStyle">@style/MissaRowHeader</item>
+    </style>
+
+    <style name="MissaRowHeader" parent="@style/Widget.Leanback.Row.HeaderStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Boîtes de dialogue (ex. « Signaler un problème ») : sombre, focus jaune -->
+    <style name="MissaAlertDialog" parent="@android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">@color/missa_yellow</item>
+        <item name="android:colorBackground">@color/missa_surface_elevated</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
     </style>
 
     <!-- PlayerActivity extends AppCompatActivity => thème dérivé d'AppCompat

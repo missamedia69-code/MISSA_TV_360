@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MISSA TV 360</string>
+    <string name="offline_catalog">Hors connexion : catalogue intégré affiché.</string>
     <string name="catalog_loading">Préparation de votre catalogue…</string>
 
     <!-- En-têtes des 10 lignes de contenu -->
@@ -27,11 +28,13 @@
     <string name="action_watch">Regarder</string>
     <string name="action_watch_live">Regarder en direct</string>
     <string name="action_listen">Écouter</string>
-    <string name="action_my_list_add">+ Ma liste</string>
-    <string name="action_my_list_remove">✓ Dans ma liste</string>
+    <string name="action_my_list_add">Ma liste</string>
+    <string name="action_my_list_remove">Dans ma liste</string>
+    <string name="my_list_added">Ajouté à votre liste.</string>
+    <string name="my_list_removed">Retiré de votre liste.</string>
     <string name="action_report">Signaler un problème</string>
     <string name="details_description">Aucune description disponible.</string>
-    <string name="details_similar">Chaînes similaires</string>
+    <string name="details_similar">Dans la même catégorie</string>
     <string name="details_source">Source : %1$s</string>
     <string name="details_back">Retour</string>
     <string name="details_play">Lire</string>
@@ -53,6 +56,8 @@
     <string name="search_results_header">Résultats pour « %1$s » (%2$d)</string>
     <string name="search_resolving">Récupération des informations du film…</string>
     <string name="search_unplayable">Aucun flux MP4 lisible trouvé pour ce film.</string>
+    <string name="games_allow_unknown_sources">Autorisez l’installation d’applications inconnues, puis sélectionnez à nouveau le jeu.</string>
+    <string name="games_downloading">Téléchargement de %1$s…</string>
     <string name="settings_title">Paramètres</string>
     <!-- Extensions (dépôts + plugins téléchargés) -->
     <string name="extensions_title">Extensions</string>

@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Carte MISSA : visuel + un seul libellé (sous l'image, lisible à 3 m).
+     L'ancien titre superposé à l'image doublait le libellé : supprimé. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:clipChildren="false"
+    android:clipToPadding="false"
     android:layout_marginStart="@dimen/card_gap"
     android:layout_marginEnd="@dimen/card_gap">
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_card_focus"
+        android:clipChildren="false"
         android:duplicateParentState="true">
 
         <ImageView
@@ -19,53 +22,36 @@
             android:layout_height="@dimen/card16_h"
             android:background="@drawable/bg_card_image"
             android:clipToOutline="true"
+            android:importantForAccessibility="no"
             android:scaleType="centerCrop" />
-
-        <View
-            android:id="@+id/card_scrim"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/scrim_vertical" />
-
-        <TextView
-            android:id="@+id/card_overlay_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="8dp"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="@color/missa_white"
-            android:shadowColor="#CC000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="3" />
 
         <TextView
             android:id="@+id/badge_live"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="6dp"
+            android:layout_margin="8dp"
             android:background="@drawable/bg_badge_live"
-            android:text="LIVE"
+            android:text="@string/badge_live"
             android:textColor="@color/missa_white"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:paddingHorizontal="6dp"
+            android:letterSpacing="0.06"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
             android:visibility="gone" />
 
+        <!-- Progression de lecture : piste translucide + barre jaune,
+             posée en bas de l'image (coins du bas arrondis par l'anneau). -->
         <ProgressBar
             android:id="@+id/card_progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="@dimen/progress_h"
             android:layout_gravity="bottom"
+            android:max="100"
+            android:progressBackgroundTint="#66FFFFFF"
             android:progressTint="@color/missa_yellow"
+            android:importantForAccessibility="no"
             android:visibility="gone" />
 
         <!-- Anneau de focus jaune : fond posé par MissaCardPresenter au focus. -->
@@ -80,10 +66,10 @@
         android:id="@+id/card_title"
         android:layout_width="@dimen/card16_w"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:maxLines="2"
         android:ellipsize="end"
-        android:textSize="14sp"
+        android:textSize="@dimen/card_title_size"
         android:textColor="@color/missa_text_secondary" />
 
     <TextView
@@ -93,7 +79,7 @@
         android:layout_marginTop="2dp"
         android:maxLines="2"
         android:ellipsize="end"
-        android:textSize="11sp"
-        android:textColor="@color/missa_text_muted"
+        android:textSize="13sp"
+        android:textColor="@color/missa_text_muted_on_dark"
         android:visibility="gone" />
 </LinearLayout>

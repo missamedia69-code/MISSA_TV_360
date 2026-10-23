@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Surcharge de lb_row_header (leanback) : titre de rangée (icône de
-     catégorie optionnelle + libellé, sans barre d'accent). Les IDs
-     row_header et row_header_description sont requis par RowHeaderPresenter. -->
+<!-- Surcharge de lb_row_header (leanback) : icône de catégorie à GAUCHE du
+     titre de rangée. L'icône reste sœur de row_header (BrowseFragment la
+     retrouve via parent.findViewById). Les IDs row_header et
+     row_header_description sont requis par RowHeaderPresenter. -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
@@ -9,36 +10,28 @@
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/row_header_icon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
+
+    <androidx.leanback.widget.RowHeaderView
+        android:id="@+id/row_header"
+        android:importantForAccessibility="no"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        style="?rowHeaderStyle" />
 
-        <!-- Icône de catégorie (même couplage que lb_header : frère du titre). -->
-        <ImageView
-            android:id="@+id/row_header_icon"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:layout_marginBottom="2dp"
-            android:layout_gravity="start"
-            android:scaleType="fitCenter"
-            android:visibility="gone"
-            android:importantForAccessibility="no" />
-
-        <androidx.leanback.widget.RowHeaderView
-            android:id="@+id/row_header"
-            android:importantForAccessibility="no"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="?rowHeaderStyle" />
-
-        <TextView
-            android:id="@+id/row_header_description"
-            android:importantForAccessibility="no"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="?rowHeaderDescriptionStyle" />
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/row_header_description"
+        android:importantForAccessibility="no"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        style="?rowHeaderDescriptionStyle" />
 
 </LinearLayout>

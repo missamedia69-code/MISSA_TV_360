@@ -1,6 +1,6 @@
 package com.missa.tv360.ui
 
-import android.content.res.Resources
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +18,12 @@ import com.missa.tv360.data.WatchProgressStore
 /**
  * Présentateur des cartes de contenu régularisé par type de contenu.
  *
+ * Un seul libellé (sous l'image) : le titre n'est plus répété sur le visuel.
+ * Les marges latérales viennent uniquement de `card_missa.xml` (card_gap) ;
+ * l'ancien code les rajoutait en Kotlin, et son cast vers
+ * `LinearLayout.LayoutParams` échouait dans un RecyclerView, ce qui
+ * interrompait tout le bind (carte sans image ni titre).
+ *
  * @param fixedWidthRes      largeur imposée (0 = taille dynamique selon le type)
  * @param fixedHeightRes     hauteur imposée (0 = taille dynamique selon le type)
  * @param useGridDimensions  true pour appliquer les tailles régularisées de grille matrice
@@ -28,6 +34,11 @@ class MissaCardPresenter(
     private val useGridDimensions: Boolean = false,
 ) : Presenter() {
 
+    private companion object {
+        const val FOCUS_SCALE = 1.08f
+        const val FOCUS_ANIM_MS = 160L
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
         // Une seule fois par rangée : désactivation de l'animator par défaut de RecyclerView
         (parent as? RecyclerView)?.itemAnimator = null
@@ -37,13 +48,21 @@ class MissaCardPresenter(
         v.setOnFocusChangeListener { view, focused ->
             view.animate().cancel()
             view.animate()
-                .scaleX(if (focused) 1.05f else 1f)
-                .scaleY(if (focused) 1.05f else 1f)
-                .setDuration(160L)
+                .scaleX(if (focused) FOCUS_SCALE else 1f)
+                .scaleY(if (focused) FOCUS_SCALE else 1f)
+                .setDuration(FOCUS_ANIM_MS)
                 .start()
-            view.findViewById<TextView>(R.id.card_title)
-                .setTextColor(ContextCompat.getColor(view.context,
-                    if (focused) R.color.missa_yellow_focus else R.color.missa_text_secondary))
+            // Le focus passe devant les voisines : le zoom ne passe pas sous la carte suivante.
+            view.translationZ = if (focused) 8f else 0f
+            view.findViewById<TextView>(R.id.card_title).apply {
+                setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        if (focused) R.color.missa_yellow_focus else R.color.missa_text_secondary,
+                    ),
+                )
+                setTypeface(null, if (focused) Typeface.BOLD else Typeface.NORMAL)
+            }
             val ring = view.findViewById<View>(R.id.card_focus_ring)
             if (focused) {
                 ring.setBackgroundResource(R.drawable.bg_card_focus_ring)
@@ -57,17 +76,7 @@ class MissaCardPresenter(
     override fun onBindViewHolder(vh: ViewHolder, item: Any?) {
         val video = item as? Video ?: return
         val v = vh.view
-        // Les marges se posent sur la classe de base commune à tous les
-        // ViewGroup : la carte est inflatée dans le RecyclerView de Leanback,
-        // dont les layoutParams ne sont PAS des LinearLayout.LayoutParams
-        // (un cast vers cette classe faisait échouer tout le binding : ni
-        // image, ni titre, ni description sur les tuiles).
-        val params = v.layoutParams as? ViewGroup.MarginLayoutParams
-        if (params != null) {
-            val gap = dpToPx(16)
-            params.setMargins(gap, 0, gap, 0)
-            v.layoutParams = params
-        }
+        val res = v.resources
 
         val shape = CardShape.forVideo(video)
         val image = v.findViewById<ImageView>(R.id.card_image)
@@ -75,26 +84,27 @@ class MissaCardPresenter(
         val defaultWRes = if (useGridDimensions) shape.gridWidthRes else shape.widthRes
         val defaultHRes = if (useGridDimensions) shape.gridHeightRes else shape.heightRes
 
-        val w = v.resources.getDimensionPixelSize(
-            fixedWidthRes.takeIf { it != 0 } ?: defaultWRes)
-        val h = v.resources.getDimensionPixelSize(
-            fixedHeightRes.takeIf { it != 0 } ?: defaultHRes)
+        val w = res.getDimensionPixelSize(fixedWidthRes.takeIf { it != 0 } ?: defaultWRes)
+        val h = res.getDimensionPixelSize(fixedHeightRes.takeIf { it != 0 } ?: defaultHRes)
 
         image.layoutParams = image.layoutParams.apply { width = w; height = h }
 
         val ring = v.findViewById<View>(R.id.card_focus_ring)
         ring.layoutParams = ring.layoutParams.apply { width = w; height = h }
-        ring.background = null
+        // Le bind peut survenir pendant que la carte garde le focus (mise à jour en place).
+        if (v.isFocused) ring.setBackgroundResource(R.drawable.bg_card_focus_ring) else ring.background = null
 
-        v.findViewById<TextView>(R.id.card_title).apply {
+        val title = v.findViewById<TextView>(R.id.card_title)
+        title.apply {
             text = video.title
-            setTextColor(ContextCompat.getColor(context, R.color.missa_text_secondary))
-            isVisible = video.moreTargetRowId == null || video.title.isNotBlank()
+            isVisible = video.title.isNotBlank()
             layoutParams = layoutParams.apply { width = w }
+            if (!v.isFocused) {
+                setTextColor(ContextCompat.getColor(context, R.color.missa_text_secondary))
+                setTypeface(null, Typeface.NORMAL)
+            }
         }
-        // Description courte sous le titre : l'utilisateur voit l'affiche ET
-        // le resume du contenu sans avoir a ouvrir la fiche. [Video.subtitle]
-        // ajoute les badges utiles (saison/episode, DIRECT, audio).
+        // Description courte sous le titre (saison/épisode, direct, audio).
         v.findViewById<TextView>(R.id.card_subtitle).apply {
             val subtitle = video.subtitle()
             text = subtitle
@@ -102,33 +112,24 @@ class MissaCardPresenter(
             layoutParams = layoutParams.apply { width = w }
         }
         v.findViewById<TextView>(R.id.badge_live).isVisible = video.kind.isLive
+
         val progress = v.findViewById<ProgressBar>(R.id.card_progress)
-        val frac = WatchProgressStore.fraction(v.context, video.id)
+        val frac = if (video.moreTargetRowId == null) WatchProgressStore.fraction(v.context, video.id) else null
         progress.isVisible = frac != null
         progress.progress = ((frac ?: 0f) * 100).toInt()
-        progress.layoutParams = progress.layoutParams.apply { width = w }
 
         v.tag = video.id
-        val overlayTitle = v.findViewById<TextView>(R.id.card_overlay_title)
-        val scrim = v.findViewById<View>(R.id.card_scrim)
 
         if (video.moreTargetRowId != null) {
             image.setImageResource(R.drawable.card_more)
-            image.contentDescription =
-                v.context.getString(R.string.row_more_description, video.title)
-            v.contentDescription = v.context.getString(R.string.row_more_description, video.title)
-            overlayTitle?.isVisible = false
-            scrim?.isVisible = false
-            v.findViewById<TextView>(R.id.card_subtitle).isVisible = false
+            val description = v.context.getString(R.string.row_more_description, video.description)
+            image.contentDescription = description
+            v.contentDescription = description
             return
         }
         v.contentDescription = video.title
-        overlayTitle?.text = video.title
-        overlayTitle?.isVisible = video.title.isNotBlank()
-        scrim?.isVisible = video.title.isNotBlank()
 
-        // Affichage immédiat de l'illustration locale, sinon de l'affiche de
-        // repli du type de contenu (320×180, format des tuiles).
+        // Affichage immédiat de l'illustration locale ou du fond par défaut
         if (video.cardRes != 0) {
             image.setImageResource(video.cardRes)
         } else {
@@ -147,7 +148,4 @@ class MissaCardPresenter(
         vh.view.tag = null
         vh.view.findViewById<ImageView>(R.id.card_image).setImageDrawable(null)
     }
-
-    private fun dpToPx(dp: Int): Int =
-        (dp * Resources.getSystem().displayMetrics.density).toInt()
 }

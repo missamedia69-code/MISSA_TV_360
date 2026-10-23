@@ -26,6 +26,9 @@
     <color name="missa_text">#FFFFFF</color>
     <color name="missa_text_secondary">#B8C5D6</color>
     <color name="missa_text_muted">#718096</color>
+    <!-- #718096 (missa_text_muted) ≈ 4,2:1 sur marine : sous le seuil AA pour du texte
+         courant. Variante éclaircie (≈ 6,6:1) pour les métadonnées. -->
+    <color name="missa_text_muted_on_dark">#94A3B8</color>
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#B8C5D6</color>
     <color name="text_on_yellow">#07111F</color>
@@ -37,7 +40,8 @@
     <color name="missa_error">#FF5C69</color>
     <color name="player_title_bg">#B307111F</color>
 
-    <!-- Contours / transparences (fiches, badges) -->    <color name="chip_stroke">#59FFFFFF</color>
+    <!-- Contours / transparences (fiches, badges) -->
+    <color name="chip_stroke">#59FFFFFF</color>
     <color name="btn_secondary_bg">#1AFFFFFF</color>
     <color name="btn_secondary_bg_focused">#33FFFFFF</color>
     <color name="btn_secondary_stroke">#59FFFFFF</color>

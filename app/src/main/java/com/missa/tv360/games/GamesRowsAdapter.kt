@@ -2,6 +2,7 @@ package com.missa.tv360.games
 
 import android.view.ViewGroup
 import androidx.leanback.widget.ArrayObjectAdapter
+import androidx.leanback.widget.FocusHighlight
 import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
@@ -13,7 +14,7 @@ import com.missa.tv360.data.GamesRow
  * chaque carte etant rendue par [GameCardPresenter].
  */
 class GamesRowsAdapter : ArrayObjectAdapter(
-    ListRowPresenter().apply { shadowEnabled = false }
+    ListRowPresenter(FocusHighlight.ZOOM_FACTOR_NONE).apply { shadowEnabled = false }
 ) {
 
     fun bind(rows: List<GamesRow>) {

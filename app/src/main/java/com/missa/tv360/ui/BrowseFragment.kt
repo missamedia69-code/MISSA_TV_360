@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.leanback.app.BackgroundManager
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
+import androidx.leanback.widget.FocusHighlight
 import androidx.leanback.widget.HeaderItem
 import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
@@ -55,7 +56,10 @@ import kotlinx.coroutines.withTimeout
  */
 class BrowseFragment : BrowseSupportFragment() {
 
-    private val rowPresenter = ListRowPresenter().apply {
+    // ZOOM_FACTOR_NONE : MissaCardPresenter anime déjà le focus (zoom + anneau).
+    // Avec le zoom Leanback par défaut (x1,1) les deux animations se
+    // battaient sur scaleX/scaleY et la carte « tremblait ».
+    private val rowPresenter = ListRowPresenter(FocusHighlight.ZOOM_FACTOR_NONE).apply {
         selectEffectEnabled = false
         // Pas d'ombre Leanback autour des cartes focalisées : elle dessine un
         // cadre noir flou (ShadowOverlayContainer / Z-shadow) sur le fond marine.
@@ -71,6 +75,8 @@ class BrowseFragment : BrowseSupportFragment() {
         const val EXTENSIONS_TIMEOUT_MS = 15_000L
     }
     private var headerIconObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
+    private var backgroundManager: BackgroundManager? = null
+    private var currentBackgroundRes = 0
 
     override fun onInflateTitleView(
         inflater: LayoutInflater,
@@ -105,8 +111,11 @@ class BrowseFragment : BrowseSupportFragment() {
             }
         }
 
-        // Clic sur le TITRE d'une rangée : ouvre la même grille complète.
-        setOnItemViewSelectedListener(null)
+        // Sans attach(), BackgroundManager.setDrawable() lève une exception :
+        // chaque sélection de carte ferait planter l'écran d'accueil.
+        backgroundManager = BackgroundManager.getInstance(requireActivity()).also {
+            if (!it.isAttached) it.attach(requireActivity().window)
+        }
 
         onItemViewSelectedListener = object : androidx.leanback.widget.OnItemViewSelectedListener {
             override fun onItemSelected(
@@ -116,10 +125,13 @@ class BrowseFragment : BrowseSupportFragment() {
                 row: Row?,
             ) {
                 val video = item as? Video ?: return
+                // « Tout voir » ne change pas l'ambiance ; on ne décode le fond
+                // (webp plein écran) que s'il diffère du précédent.
+                if (video.moreTargetRowId != null) return
                 val res = fondParDefaut(video.kind.name)
-                BackgroundManager.getInstance(requireActivity())?.apply {
-                    drawable = ContextCompat.getDrawable(requireContext(), res)
-                }
+                if (res == currentBackgroundRes) return
+                currentBackgroundRes = res
+                backgroundManager?.drawable = ContextCompat.getDrawable(requireContext(), res)
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
@@ -130,7 +142,9 @@ class BrowseFragment : BrowseSupportFragment() {
             engineConfig = bundledFilmEngineConfig()
 
             // Tentative d'enrichissement en arrière-plan (timeout court).
-            if (isOnline()) {
+            if (!isOnline()) {
+                Toast.makeText(requireContext(), R.string.offline_catalog, Toast.LENGTH_LONG).show()
+            } else {
                 val catalogTask = async {
                     try { withTimeout(4000) { CatalogRepository.loadCatalog(appContext) } }
                     catch (_: Exception) { null }
@@ -354,7 +368,7 @@ class BrowseFragment : BrowseSupportFragment() {
         val row = ListRow(HeaderItem(999L, getString(R.string.row_resume)), adapter)
         // Enrichissement : la ligne revient à sa place (tête de liste) sans
         // toucher aux autres rangées — l'utilisateur peut avoir navigué.
-        if (first) rowsAdapter.add(0, row) else rowsAdapter.add(0, row)
+        rowsAdapter.add(0, row)
     }
 
     /** Rangée affichée portant ce libellé d'en-tête (null si absente). */
@@ -441,6 +455,16 @@ class BrowseFragment : BrowseSupportFragment() {
             .commit()
     }
 
+    /** Position juste après les rangées « Reprendre » et « À la une ». */
+    private fun firstCatalogRowIndex(): Int {
+        val pinned = setOf(getString(R.string.row_resume), getString(R.string.row_hero))
+        var index = 0
+        while (index < rowsAdapter.size() &&
+            (rowsAdapter.get(index) as? ListRow)?.headerItem?.name in pinned
+        ) index++
+        return index
+    }
+
     private fun updateFilmRow(videos: List<Video>) {
         val header = getString(R.string.row_films)
         @Suppress("UNCHECKED_CAST")
@@ -450,7 +474,10 @@ class BrowseFragment : BrowseSupportFragment() {
                 videos.forEach { add(it) }
                 add(moreCard("films", header))
             }
-            rowsAdapter.add(0, ListRow(HeaderItem(rowsAdapter.size().toLong(), header), newAdapter))
+            rowsAdapter.add(
+                firstCatalogRowIndex(),
+                ListRow(HeaderItem(rowsAdapter.size().toLong(), header), newAdapter),
+            )
             filmListAdapter = newAdapter
             return
         }
