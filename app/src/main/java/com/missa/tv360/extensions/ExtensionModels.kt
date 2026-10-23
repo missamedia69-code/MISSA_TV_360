@@ -104,9 +104,13 @@ data class ExtensionFailure(
     val name: String,
     val version: Int,
     val message: String,
+    /** Nullable uniquement pour relire les échecs persistés avant P1. */
+    val type: ExtensionErrorType? = null,
     val details: String? = null,
     val failedAt: Long = System.currentTimeMillis(),
-)
+) {
+    val errorType: ExtensionErrorType get() = type ?: ExtensionErrorType.LOAD_FAILED
+}
 
 /** Dépôt ajouté par l'utilisateur ; builtIn ne sert qu'à la migration des anciennes installations. */
 data class RepositoryEntry(

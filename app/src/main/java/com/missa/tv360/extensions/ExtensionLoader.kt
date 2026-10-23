@@ -2,37 +2,16 @@ package com.missa.tv360.extensions
 
 import android.content.Context
 import android.util.Log
-import com.google.gson.Gson
 import com.missa.tv360.api.MissaPlugin
-import com.missa.tv360.api.PLUGIN_API_VERSION
-import com.missa.tv360.api.PLUGIN_MANIFEST_ENTRY
 import com.missa.tv360.api.PluginManifest
 import com.missa.tv360.api.PluginRegistry
 import dalvik.system.PathClassLoader
 import java.io.File
-import java.util.zip.ZipFile
 
-/**
- * Chargement des extensions dans le processus de l'application.
- *
- * Mécanique (identique à celle d'un moteur d'extensions Android classique) :
- *  - l'archive `.msa` est un ZIP contenant `manifest.json` + `classes.dex` ;
- *  - `PathClassLoader(archive, appClassLoader)` fait du classloader de l'app le
- *    **parent** : l'extension voit donc `com.missa.tv360.api.*` fourni par
- *    l'application, mais l'app ne voit pas les classes de l'extension ;
- *  - `manifest.pluginClassName` est instancié par réflexion, puis `load()` est
- *    appelée : c'est là que l'extension enregistre ses providers.
- *
- * Conséquence de sécurité, assumée et documentée : le code de l'extension
- * s'exécute **avec les permissions de l'application**. C'est pourquoi
- * l'installateur refuse tout artefact sans SHA-256 et pourquoi seuls des
- * dépôts explicitement ajoutés sont chargés.
- */
+/** Chargeur des extensions natives MISSA, avec diagnostic préflight des `.cs3`. */
 internal object ExtensionLoader {
 
     private const val TAG = "ExtensionLoader"
-
-    private val gson = Gson()
     private val loaded = LinkedHashMap<String, Loaded>()
 
     class Loaded(
@@ -48,47 +27,44 @@ internal object ExtensionLoader {
 
     fun loadedNames(): List<String> = synchronized(loaded) { loaded.keys.toList() }
 
-    /**
-     * Charge (ou recharge) une extension installée.
-     * Toute erreur est remontée en [ExtensionException] : l'appelant décide de
-     * désactiver, réinstaller ou simplement journaliser.
-     */
     fun load(context: Context, extension: InstalledExtension): Loaded {
         if (isLoaded(extension.internalName)) unload(extension.internalName)
 
         val file = File(extension.filePath)
-        if (!file.exists()) {
+        if (!file.isFile) {
             throw ExtensionException("Fichier d'extension absent : ${extension.filePath}")
         }
+        file.setReadOnly()
 
-        val manifest = readManifest(file)
-            ?: throw ExtensionException("manifest.json absent de ${file.name}")
-
-        if (manifest.apiVersion != PLUGIN_API_VERSION) {
-            throw ExtensionException(
-                "« ${extension.internalName} » : apiVersion ${manifest.apiVersion} " +
-                    "≠ API de l'application $PLUGIN_API_VERSION"
-            )
-        }
-
-        val className = manifest.pluginClassName?.takeIf { it.isNotBlank() }
-            ?: throw ExtensionException("pluginClassName absent du manifeste de ${file.name}")
-
+        // Dépendances et manifeste sont contrôlés AVANT PathClassLoader. Le nom
+        // exact du manifeste est le seul nom de classe qui sera ensuite chargé.
+        val manifest = ExtensionPackageValidator.validateNative(file)
+        val className = manifest.pluginClassName?.trim().orEmpty()
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
         val pluginClass = try {
             classLoader.loadClass(className)
         } catch (t: Throwable) {
-            throw ExtensionException("Classe $className introuvable dans ${file.name}", t)
+            throw classFailure(className, t)
         }
 
         if (!MissaPlugin::class.java.isAssignableFrom(pluginClass)) {
-            throw ExtensionException("$className n'étend pas com.missa.tv360.api.MissaPlugin")
+            throw ExtensionException(
+                "$className n'étend pas com.missa.tv360.api.MissaPlugin.",
+                type = ExtensionErrorType.INCOMPATIBLE,
+                technicalDetails = "La classe du manifeste ne respecte pas le contrat natif MISSA.",
+            )
         }
 
         val plugin = try {
             pluginClass.getDeclaredConstructor().newInstance() as MissaPlugin
         } catch (t: Throwable) {
-            throw ExtensionException("Instanciation impossible de $className", t)
+            throw dependencyFailure(t)
+                ?: ExtensionException(
+                    "Instanciation impossible de $className : ${rootMessage(t)}.",
+                    t,
+                    ExtensionErrorType.LOAD_FAILED,
+                    Log.getStackTraceString(t),
+                )
         }
 
         plugin.filename = file.absolutePath
@@ -96,7 +72,12 @@ internal object ExtensionLoader {
             plugin.load()
         } catch (t: Throwable) {
             PluginRegistry.clear(file.absolutePath)
-            throw ExtensionException("load() a échoué pour ${extension.internalName}", t)
+            throw ExtensionException(
+                "load() a échoué : ${rootMessage(t)}.",
+                t,
+                ExtensionErrorType.LOAD_FAILED,
+                Log.getStackTraceString(t),
+            )
         }
 
         val entry = Loaded(extension.internalName, plugin, classLoader, manifest)
@@ -104,6 +85,59 @@ internal object ExtensionLoader {
         Log.i(TAG, "Extension chargée : ${extension.internalName} v${manifest.version ?: "?"}")
         return entry
     }
+
+    private fun classFailure(className: String, error: Throwable): ExtensionException {
+        dependencyFailure(error)?.let { return it }
+        val notFound = causes(error).any { it is ClassNotFoundException }
+        return if (notFound) {
+            ExtensionException(
+                "Classe du manifeste introuvable : $className.",
+                error,
+                ExtensionErrorType.BAD_MANIFEST,
+                Log.getStackTraceString(error),
+            )
+        } else {
+            ExtensionException(
+                "Liaison impossible de $className : ${rootMessage(error)}.",
+                error,
+                ExtensionErrorType.LOAD_FAILED,
+                Log.getStackTraceString(error),
+            )
+        }
+    }
+
+    private fun dependencyFailure(error: Throwable): ExtensionException? {
+        val missing = causes(error).firstOrNull { it is NoClassDefFoundError } ?: return null
+        val dependency = missingClassName(missing)
+        return ExtensionException(
+            "Dépendance manquante : $dependency.",
+            error,
+            ExtensionErrorType.MISSING_DEPENDENCY,
+            Log.getStackTraceString(error),
+        )
+    }
+
+    private fun missingClassName(error: Throwable): String {
+        val message = error.message.orEmpty()
+        val descriptor = Regex("L[A-Za-z0-9_$/.-]+;").find(message)?.value
+        val token = descriptor ?: message.split(Regex("\\s+"))
+            .firstOrNull { it.contains('/') || it.startsWith("L") }
+            ?.removePrefix(":")
+        return token
+            ?.removePrefix("L")
+            ?.removeSuffix(";")
+            ?.replace('/', '.')
+            ?.takeIf(String::isNotBlank)
+            ?: error::class.java.simpleName
+    }
+
+    private fun rootMessage(error: Throwable): String {
+        val root = causes(error).lastOrNull() ?: error
+        return root.message?.takeIf(String::isNotBlank) ?: root::class.java.simpleName
+    }
+
+    private fun causes(error: Throwable): List<Throwable> =
+        generateSequence(error) { it.cause }.take(12).toList()
 
     /** Décharge une extension et retire tous les providers qu'elle a publiés. */
     fun unload(internalName: String) {
@@ -115,17 +149,6 @@ internal object ExtensionLoader {
     }
 
     fun unloadAll() {
-        loadedNames().forEach { unload(it) }
-    }
-
-    private fun readManifest(file: File): PluginManifest? = try {
-        ZipFile(file).use { zip ->
-            val entry = zip.getEntry(PLUGIN_MANIFEST_ENTRY) ?: return null
-            val text = zip.getInputStream(entry).bufferedReader(Charsets.UTF_8).use { it.readText() }
-            gson.fromJson(text, PluginManifest::class.java)
-        }
-    } catch (t: Throwable) {
-        Log.e(TAG, "Manifeste illisible : ${file.absolutePath}", t)
-        null
+        loadedNames().forEach(::unload)
     }
 }

@@ -342,13 +342,15 @@ object ExtensionManager {
         }
         store.saveInstalled(store.installed().filterNot { it.internalName == extension.internalName })
 
+        val typed = error as? ExtensionException
         val failure = ExtensionFailure(
             internalName = extension.internalName,
             repositoryUrl = extension.repositoryUrl,
             name = extension.name,
             version = extension.version,
             message = error.message?.takeIf(String::isNotBlank) ?: "Chargement impossible.",
-            details = Log.getStackTraceString(error).take(MAX_ERROR_DETAILS),
+            type = typed?.type ?: ExtensionErrorType.LOAD_FAILED,
+            details = (typed?.technicalDetails ?: Log.getStackTraceString(error)).take(MAX_ERROR_DETAILS),
         )
         store.saveFailures(
             store.failures().filterNot { it.internalName == extension.internalName } + failure,

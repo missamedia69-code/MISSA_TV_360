@@ -5,8 +5,21 @@ import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** Erreur fonctionnelle du moteur d'extensions (message destiné à l'UI/log). */
-class ExtensionException(message: String, cause: Throwable? = null) : Exception(message, cause)
+/** Catégories stables utilisées par le chargeur, les états persistés et l'UI. */
+enum class ExtensionErrorType {
+    INCOMPATIBLE,
+    MISSING_DEPENDENCY,
+    BAD_MANIFEST,
+    LOAD_FAILED,
+}
+
+/** Message court pour l'UI ; la stack et les descripteurs restent dans les détails. */
+class ExtensionException(
+    message: String,
+    cause: Throwable? = null,
+    val type: ExtensionErrorType = ExtensionErrorType.LOAD_FAILED,
+    val technicalDetails: String? = null,
+) : Exception(message, cause)
 
 /**
  * Accès HTTP du moteur d'extensions.
