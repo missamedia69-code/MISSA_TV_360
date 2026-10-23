@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.missa.tv360.BuildConfig
 import com.missa.tv360.api.PluginLog
 import com.missa.tv360.api.PluginRegistry
 import com.missa.tv360.api.Provider
@@ -20,12 +19,11 @@ import java.io.File
  *
  * Cycle de vie :
  *  1. [init] au démarrage de l'application (idempotent) ;
- *  2. [bootstrapIfNeeded] au premier lancement : ajoute le dépôt intégré
- *     (`BuildConfig.EXTENSION_REPO_URL`), lit `repo.json` puis les
- *     `pluginLists`, télécharge et installe les extensions publiées ;
+ *  2. [bootstrapIfNeeded] charge uniquement les extensions déjà installées,
+ *     sans ajouter de dépôt ni de fournisseur préconfiguré ;
  *  3. [loadInstalled] charge les `.msa` déjà installés et enregistre leurs
  *     providers ;
- *  4. [refresh] met à jour la liste, applique le « kill switch » (`status = 0`)
+ *  4. [refresh] met à jour les dépôts ajoutés manuellement, applique le « kill switch » (`status = 0`)
  *     et les mises à jour de version.
  *
  * Toutes les opérations sont sérialisées par un [Mutex] : l'interface, le
@@ -40,8 +38,6 @@ object ExtensionManager {
     private const val MAX_PLUGIN_LISTS = 10
     private const val MAX_REPO_BYTES = 64 * 1024
     private const val MAX_LIST_BYTES = 512 * 1024
-    private const val MAX_AUTO_INSTALL = 16
-    private const val MAX_BOOTSTRAP_ATTEMPTS = 5
 
     private val gson = Gson()
     private val mutex = Mutex()
@@ -109,106 +105,21 @@ object ExtensionManager {
         return loadedCount
     }
 
-    // ── Premier démarrage ─────────────────────────────────────────────────
+    // ── Chargement au démarrage ──────────────────────────────────────────
 
-    /**
-     * Bootstrap : n'exécute quelque chose qu'une seule fois.
-     *
-     * Volontairement tolérant à l'échec : si le dépôt est injoignable, le
-     * drapeau n'est PAS posé et l'application retentera au prochain démarrage
-     * (dans la limite de [MAX_BOOTSTRAP_ATTEMPTS]).
-     */
+    /** Aucun dépôt n'est ajouté automatiquement : seules les installations manuelles sont conservées. */
     suspend fun bootstrapIfNeeded(): Unit = mutex.withLock {
         val store = this.store ?: return@withLock
-        val installer = this.installer ?: return@withLock
-
-        if (store.bootstrapDone) {
-            loadInstalledLocked()
-            return@withLock
+        // Migration depuis l'ancien bootstrap : les dépôts intégrés et leurs
+        // extensions sont retirés, sans toucher aux dépôts ajoutés par l'utilisateur.
+        store.repositories().filter { it.builtIn }.forEach { legacyRepository ->
+            store.installed()
+                .filter { it.repositoryUrl == legacyRepository.url }
+                .forEach { uninstallLocked(it.internalName) }
+            store.saveRepositories(store.repositories().filterNot { it.url == legacyRepository.url })
         }
-        if (store.bootstrapAttempts >= MAX_BOOTSTRAP_ATTEMPTS) {
-            loadInstalledLocked()
-            return@withLock
-        }
-
-        val repoUrl = BuildConfig.EXTENSION_REPO_URL.trim()
-        if (repoUrl.isEmpty()) {
-            store.bootstrapDone = true
-            loadInstalledLocked()
-            return@withLock
-        }
-
-        store.bootstrapAttempts = store.bootstrapAttempts + 1
-        _state.value = _state.value.copy(busy = true, message = null)
-
-        try {
-            // Le manifeste est validé AVANT de marquer le bootstrap comme fait.
-            // L'URL principale peut être indisponible (site pas encore
-            // déployé, coupure) : on essaie alors le miroir publié avec la
-            // même release que les archives.
-            var manifest: RepositoryManifest? = null
-            var chosenUrl: String? = null
-            for (candidate in bootstrapCandidates(repoUrl)) {
-                val fetched = try {
-                    fetchManifest(candidate)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.w(TAG, "Dépôt injoignable : $candidate", e)
-                    null
-                }
-                if (fetched != null) {
-                    manifest = fetched
-                    chosenUrl = candidate
-                    break
-                }
-            }
-            val activeManifest = manifest
-                ?: throw ExtensionException("Aucun dépôt d'extensions joignable.")
-            val activeUrl = chosenUrl ?: repoUrl
-            if (activeUrl != repoUrl) {
-                Log.i(TAG, "Bootstrap via le miroir : $activeUrl")
-            }
-
-            val repos = store.repositories().toMutableList()
-            if (repos.none { it.url == activeUrl }) {
-                repos += RepositoryEntry(
-                    url = activeUrl,
-                    name = activeManifest.name?.takeIf { it.isNotBlank() } ?: "Dépôt intégré",
-                    builtIn = true,
-                )
-                store.saveRepositories(repos)
-            }
-            store.bootstrapDone = true
-
-            val entries = collectPluginEntries(listOf(activeUrl to activeManifest), installer)
-            var installedCount = 0
-            entries.take(MAX_AUTO_INSTALL).forEach { remote ->
-                if (remote.entry.isDisabledByAuthor) return@forEach
-                val name = remote.entry.normalizedInternalName
-                val already = store.installed().firstOrNull { it.internalName == name }
-                if (already != null && already.version >= remote.entry.versionInt) return@forEach
-                runCatching { installLocked(remote) }
-                    .onSuccess { installedCount++ }
-                    .onFailure { Log.w(TAG, "Installation bootstrap échouée : $name", it) }
-            }
-
-            loadInstalledLocked()
-            store.lastRefreshAt = System.currentTimeMillis()
-            _state.value = _state.value.copy(
-                busy = false,
-                message = if (installedCount > 0) {
-                    "$installedCount extension(s) installée(s) au premier démarrage."
-                } else {
-                    "Dépôt d'extensions à jour."
-                },
-                lastRefreshAt = store.lastRefreshAt,
-            )
-            Log.i(TAG, "Bootstrap terminé : $installedCount extension(s), ${PluginRegistry.size()} provider(s)")
-        } catch (t: Throwable) {
-            _state.value = _state.value.copy(busy = false, message = "Bootstrap indisponible : ${t.message}")
-            Log.w(TAG, "Bootstrap impossible ($repoUrl)", t)
-        }
+        store.bootstrapDone = true
+        loadInstalledLocked()
     }
 
     // ── Dépôts ────────────────────────────────────────────────────────────
@@ -257,7 +168,7 @@ object ExtensionManager {
 
     /**
      * Relit tous les dépôts, applique le kill switch et les mises à jour.
-     * @param installMissing installe aussi les extensions absentes (bootstrap).
+     * @param installMissing installe aussi les extensions absentes des dépôts manuels.
      */
     suspend fun refresh(installMissing: Boolean = false): ExtensionsState = mutex.withLock {
         val store = this.store ?: return@withLock _state.value
@@ -427,16 +338,6 @@ object ExtensionManager {
             }
         }
         return out.distinctBy { "${it.repositoryUrl}|${it.entry.normalizedInternalName}" }
-    }
-
-    /**
-     * URL de dépôt à essayer au bootstrap : l'URL configurée d'abord, puis le
-     * miroir de la release si elle est renseignée et différente.
-     */
-    private fun bootstrapCandidates(primary: String): List<String> {
-        val mirror = BuildConfig.EXTENSION_REPO_MIRROR_URL.trim()
-        if (mirror.isEmpty() || mirror == primary) return listOf(primary)
-        return listOf(primary, mirror)
     }
 
     private fun fetchManifest(url: String): RepositoryManifest {

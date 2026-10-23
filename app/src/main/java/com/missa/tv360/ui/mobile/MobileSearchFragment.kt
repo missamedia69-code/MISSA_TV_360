@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -20,9 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
 import com.missa.tv360.data.SearchRepository
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.source.FilmEngineConfig
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.ui.DetailsFragment
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -31,11 +27,9 @@ import kotlinx.coroutines.launch
 
 class MobileSearchFragment : Fragment() {
     private lateinit var adapter: MobileVideoAdapter
-    private var engineConfig: FilmEngineConfig? = null
     private var searchJob: Job? = null
     private var requestVersion = 0L
     private var lastQuery = ""
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_mobile_search, container, false)
@@ -95,9 +89,7 @@ class MobileSearchFragment : Fragment() {
         searchJob = viewLifecycleOwner.lifecycleScope.launch {
             if (!immediate) delay(300)
             try {
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
-                    .also { engineConfig = it }
-                val outcome = SearchRepository.search(requireContext(), clean, config)
+                val outcome = SearchRepository.search(clean)
                 if (!isAdded || version != requestVersion) return@launch
                 renderOutcome(clean, outcome)
             } catch (cancelled: CancellationException) {
@@ -113,22 +105,14 @@ class MobileSearchFragment : Fragment() {
         setLoading(false)
         val status = view?.findViewById<TextView>(R.id.mobile_search_status) ?: return
         val retry = view?.findViewById<Button>(R.id.mobile_search_retry) ?: return
-        when {
-            outcome.remoteFailed -> {
-                status.text = getString(R.string.search_error)
-                status.isVisible = true
-                retry.isVisible = true
-            }
-            outcome.items.isEmpty() -> {
-                status.text = getString(R.string.search_no_results)
-                status.isVisible = true
-                retry.isVisible = false
-            }
-            else -> {
-                status.text = getString(R.string.search_results_header, query, outcome.items.size)
-                status.isVisible = true
-                retry.isVisible = false
-            }
+        if (outcome.items.isEmpty()) {
+            status.text = getString(R.string.search_no_results)
+            status.isVisible = true
+            retry.isVisible = false
+        } else {
+            status.text = getString(R.string.search_results_header, query, outcome.items.size)
+            status.isVisible = true
+            retry.isVisible = false
         }
     }
 
@@ -170,28 +154,8 @@ class MobileSearchFragment : Fragment() {
     private fun openVideo(video: Video) {
         if (video.isGamesLauncher) {
             startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
-            return
-        }
-        if (video.streamUrl.isNotBlank() || video.sourceId == null) {
+        } else {
             openDetails(video)
-            return
-        }
-        if (!resolvingIds.add(video.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
-                    .also { engineConfig = it }
-                FilmSourceRegistry.resolve(video, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(video.id)
-            if (!isAdded) return@launch
-            if (resolved == null) Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            else openDetails(resolved)
         }
     }
 

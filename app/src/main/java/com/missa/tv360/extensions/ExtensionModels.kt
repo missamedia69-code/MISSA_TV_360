@@ -92,7 +92,7 @@ data class InstalledExtension(
     val installedAt: Long = System.currentTimeMillis(),
 )
 
-/** Dépôt ajouté par l'utilisateur (ou injecté par le bootstrap intégré). */
+/** Dépôt ajouté par l'utilisateur ; builtIn ne sert qu'à la migration des anciennes installations. */
 data class RepositoryEntry(
     val url: String,
     val name: String,

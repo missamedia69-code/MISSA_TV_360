@@ -58,7 +58,7 @@ class GamesFragment : RowsSupportFragment() {
         showStatus(getString(R.string.games_loading))
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val rows = withContext(Dispatchers.IO) { GamesRepository.loadGames() }
+                val rows = withContext(Dispatchers.IO) { GamesRepository.loadGames(requireContext().applicationContext) }
                 games = rows.flatMap { it.games }.distinctBy { it.id }
                 rowsAdapter.bind(rows)
                 if (games.isEmpty()) showStatus(getString(R.string.games_empty)) else hideStatus()

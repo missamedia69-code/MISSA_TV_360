@@ -30,7 +30,6 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_AUDIO_ONLY = "extra_audio_only"
         const val EXTRA_COVER_RES = "extra_cover_res"
         const val EXTRA_COVER_URL = "extra_cover_url"
-        const val EXTRA_HEADERS = "extra_headers"
         const val EXTRA_FORMAT = "extra_format"
         private const val USER_AGENT = "MISSA-TV-360/1.0 (Android player)"
         private const val STATE_POSITION = "state_position"
@@ -208,20 +207,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun createDataSourceFactory(): DefaultHttpDataSource.Factory =
         DefaultHttpDataSource.Factory()
             .setUserAgent(USER_AGENT)
-            .setAllowCrossProtocolRedirects(true)
-            .setDefaultRequestProperties(readHeadersExtra())
-
-    @Suppress("UNCHECKED_CAST")
-    private fun readHeadersExtra(): Map<String, String> {
-        val raw = intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<Any?, Any?> ?: return emptyMap()
-        val headers = LinkedHashMap<String, String>()
-        raw.forEach { (key, value) ->
-            val name = key?.toString()?.trim().orEmpty()
-            val content = value?.toString()?.trim().orEmpty()
-            if (name.isNotEmpty() && content.isNotEmpty()) headers[name] = content
-        }
-        return headers
-    }
+            .setAllowCrossProtocolRedirects(false)
 
     private fun releasePlayer() {
         findViewById<PlayerView>(R.id.player_view).player = null

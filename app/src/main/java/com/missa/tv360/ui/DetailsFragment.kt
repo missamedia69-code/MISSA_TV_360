@@ -16,27 +16,19 @@ import androidx.fragment.app.Fragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.HorizontalGridView
 import androidx.leanback.widget.ItemBridgeAdapter
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.MyListStore
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.playback.PlayerActivity
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Fiche partagée : hiérarchie tactile compacte ou composition large TV/tablette. */
 class DetailsFragment : Fragment() {
     private lateinit var video: Video
     private lateinit var primaryButton: Button
     private lateinit var myListButton: Button
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,7 +170,7 @@ class DetailsFragment : Fragment() {
             text = metadata.joinToString("\n")
             isVisible = metadata.isNotEmpty()
         }
-        val sourceName = video.source ?: if (video.sourceId?.contains("archive", true) == true) "Internet Archive" else null
+        val sourceName = video.source
         val sourceParts = listOfNotNull(
             sourceName?.takeIf { it.isNotBlank() }?.let { getString(R.string.details_source, it) },
             video.format?.takeIf { it.isNotBlank() }?.let {
@@ -294,27 +286,7 @@ class DetailsFragment : Fragment() {
             .distinctBy { it.id }
             .take(6)
         if (similar.size >= 3) showSimilar(view, similar)
-        else if (video.kind == ContentKind.MOVIE && !video.originalKind.equals("sport", true)) loadSimilarFilms(view)
         else section.isVisible = false
-
-    }
-
-    private fun loadSimilarFilms(view: View) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val related = try {
-                withContext(Dispatchers.IO) {
-                    val config = FilmEngineRepository.currentOrLoad(requireContext().applicationContext)
-                    FilmSourceRegistry.related(video, config)
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                emptyList()
-            }
-            if (!isAdded) return@launch
-            if (related.isNotEmpty()) showSimilar(view, related)
-            else view.findViewById<View>(R.id.details_similar_section).isVisible = false
-        }
     }
 
     private fun showSimilar(view: View, related: List<Video>) {
@@ -336,32 +308,11 @@ class DetailsFragment : Fragment() {
                     val position = holder.bindingAdapterPosition
                     if (position == RecyclerView.NO_POSITION) return@setOnClickListener
                     val selected = cards[position] as? Video ?: return@setOnClickListener
-                    if (selected.streamUrl.isNotBlank() || selected.sourceId == null) {
-                        openRelatedDetails(selected)
-                    } else resolveAndOpenRelated(selected)
+                    openRelatedDetails(selected)
                 }
             }
         })
         view.findViewById<HorizontalGridView>(R.id.details_similar_grid).adapter = bridge
-    }
-
-    private fun resolveAndOpenRelated(result: Video) {
-        if (!resolvingIds.add(result.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = FilmEngineRepository.currentOrLoad(requireContext())
-                FilmSourceRegistry.resolve(result, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(result.id)
-            if (!isAdded) return@launch
-            if (resolved == null) Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            else openRelatedDetails(resolved)
-        }
     }
 
     private fun openRelatedDetails(video: Video) {
@@ -389,9 +340,6 @@ class DetailsFragment : Fragment() {
                 )
                 putExtra(PlayerActivity.EXTRA_COVER_URL, video.cardUrl)
                 putExtra(PlayerActivity.EXTRA_FORMAT, video.format)
-                if (video.streamHeaders.isNotEmpty()) {
-                    putExtra(PlayerActivity.EXTRA_HEADERS, HashMap(video.streamHeaders))
-                }
             },
         )
     }

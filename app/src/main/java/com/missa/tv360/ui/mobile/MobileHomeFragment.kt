@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -18,8 +17,6 @@ import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
 import com.missa.tv360.extensions.ExtensionCatalogLoader
 import com.missa.tv360.extensions.ExtensionsActivity
 import com.missa.tv360.games.GamesActivity
@@ -31,7 +28,6 @@ class MobileHomeFragment : Fragment() {
     private lateinit var rowsAdapter: MobileRowsAdapter
     private var extensionsStarted = false
     private var refreshExtensionsOnResume = false
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_mobile_home, container, false)
@@ -103,27 +99,7 @@ class MobileHomeFragment : Fragment() {
     private fun openVideo(video: Video) {
         when {
             video.isGamesLauncher -> startActivity(Intent(requireContext(), GamesActivity::class.java))
-            video.sourceId != null && video.streamUrl.isBlank() -> resolveAndOpen(video)
             else -> openDetails(video)
-        }
-    }
-
-    private fun resolveAndOpen(video: Video) {
-        if (!resolvingIds.add(video.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = FilmEngineRepository.currentOrLoad(requireContext())
-                FilmSourceRegistry.resolve(video, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(video.id)
-            if (!isAdded) return@launch
-            if (resolved == null) Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            else openDetails(resolved)
         }
     }
 

@@ -20,28 +20,11 @@ android {
         }.getOrDefault(1).coerceAtLeast(1)
         versionName = "1.0.0"
 
-        // URL du catalogue (clean-room) — le dépôt GitHub / GitHub Pages en
-        // est le « serveur ». Surchargeable au build :
-        //   ./gradlew assembleDebug -PbffBaseUrl=http://10.0.2.2:8765/
-        val bffUrl = (project.findProperty("bffBaseUrl") as String?)
-            ?: "https://missamedia69-code.github.io/MISSA_TV_360/"
-        buildConfigField("String", "BFF_BASE_URL", "\"$bffUrl\"")
-
-        // Dépôt d'extensions interrogé au premier démarrage.
-        //   ./gradlew assembleDebug -PextensionRepoUrl=https://…/extensions/repo.json
-        // Par défaut : le même hôte que le catalogue (GitHub Pages), sous
-        // /extensions/ — le fichier y est publié avec le reste du site.
-        val extensionRepoUrl = (project.findProperty("extensionRepoUrl") as String?)
-            ?: (bffUrl.trimEnd('/') + "/extensions/repo.json")
-        buildConfigField("String", "EXTENSION_REPO_URL", "\"$extensionRepoUrl\"")
-
-        // Miroir de secours, essayé seulement si l'URL principale échoue
-        // (Pages pas encore redéployé, coupure, 404). Même contenu, même
-        // dépôt : `site/extensions/repo.json` est aussi publié comme asset de
-        // la release « extensions » par la CI.
-        val extensionRepoMirrorUrl = (project.findProperty("extensionRepoMirrorUrl") as String?)
-            ?: "https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/repo.json"
-        buildConfigField("String", "EXTENSION_REPO_MIRROR_URL", "\"$extensionRepoMirrorUrl\"")
+        // Répertoire du dépôt contenant index.json et les catalogues JSON.
+        // Aucune source de média n'est incluse dans l'APK : l'index démarre vide.
+        val jsonSourceBaseUrl = (project.findProperty("jsonSourceBaseUrl") as String?)
+            ?: "https://raw.githubusercontent.com/missamedia69-code/MISSA_TV_360/main/sources/"
+        buildConfigField("String", "JSON_SOURCE_BASE_URL", "\"$jsonSourceBaseUrl\"")
     }
 
     buildTypes {
@@ -54,14 +37,6 @@ android {
         }
         debug {
             isMinifyEnabled = false
-        }
-        // Variante isolée pour tester le catalogue de la branche sans modifier
-        // l'application stable ni l'URL publique GitHub Pages.
-        create("preview") {
-            initWith(getByName("debug"))
-            applicationIdSuffix = ".preview"
-            versionNameSuffix = "-preview"
-            resValue("string", "app_name", "MISSA TV 360 Preview")
         }
     }
 
@@ -106,15 +81,11 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.4.1")
     implementation("androidx.media3:media3-session:1.4.1")
 
-    // Couche API BFF (Retrofit + coroutines)
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // Extensions : contrat binaire partagé avec les plugins téléchargés.
     implementation(project(":plugin-api"))
-    // Parsing des manifestes de dépôt (déjà présent via converter-gson, déclaré
-    // explicitement car utilisé directement par le moteur d'extensions).
+    // Lecture des JSON du catalogue et des dépôts d'extensions manuels.
     implementation("com.google.code.gson:gson:2.11.0")
     // Écran Extensions (liste pilotable à la télécommande).
     implementation("androidx.recyclerview:recyclerview:1.3.2")

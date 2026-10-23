@@ -1,301 +1,62 @@
-# Extensions MISSA TV 360 — architecture et exploitation
+# Extensions MISSA TV 360
 
-Ce document décrit le moteur d'extensions ajouté à l'application : dépôts,
-installation, chargement du code, publication et limites de sécurité.
+Le moteur d’extensions est conservé comme une fonctionnalité générique, mais le
+dépôt ne fournit **aucun dépôt, fournisseur ou contenu préconfiguré**. Au
+démarrage, l’application recharge uniquement les extensions déjà installées.
+L’utilisateur doit ajouter explicitement l’URL d’un dépôt depuis l’écran
+Extensions.
 
----
+## Format d’un dépôt
 
-## 1. Vue d'ensemble
-
-Trois niveaux, identiques au modèle des écosystèmes d'extensions Android :
-
-```
-repo.json                    (pointeur stable, que l'utilisateur colle)
-   └── pluginLists[] ─────► plugins.json        (liste des extensions publiées)
-                               └── url ─────►  <internalName>.msa
-                                                (ZIP : manifest.json + classes.dex)
-```
-
-| Fichier | Rôle | Où il vit |
-|---|---|---|
-| `site/extensions/repo.json` | nom, description, `manifestVersion`, liste de `pluginLists` | versionné, publié par GitHub Pages |
-| `plugins.json` | tableau d'extensions (`url`, `internalName`, `version`, `fileHash`…) | **généré par la CI**, asset de la release `extensions` |
-| `*.msa` | archive ZIP : `manifest.json` + `classes.dex` | asset de la même release |
-
-Pourquoi la release plutôt qu'un fichier versionné : le champ `fileHash` doit
-correspondre **octet pour octet** à l'archive réellement produite par Gradle.
-Un `plugins.json` commité à la main se désynchronise au premier rebuild, et
-l'application refuserait alors l'installation (hash invalide). La CI calcule
-donc les deux ensemble et les publie ensemble :
-
-```
-https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/plugins.json
-https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions/hello-provider.msa
-```
-
-Le tag `extensions` est **stable** : chaque build vert remplace les assets
-(`--clobber`) et déplace le tag sur le commit courant, donc l'URL ne change
-jamais côté application.
-
-L'application ne connaît **qu'une seule URL** par défaut :
-`BuildConfig.EXTENSION_REPO_URL`, construite à partir de `bffBaseUrl` :
-
-```
-https://missamedia69-code.github.io/MISSA_TV_360/extensions/repo.json
-```
-
-Surchargeable au build :
-
-```bash
-./gradlew assembleDebug -PextensionRepoUrl=https://mon-serveur/extensions/repo.json
-```
-
-Deux URL sont compilées, jamais plus : l'URL configurée et un miroir
-(`-PextensionRepoMirrorUrl=…`, par défaut l'asset `repo.json` de la release
-`extensions`). Ce miroir n'est essayé **que** si l'URL principale échoue — par
-exemple avant que GitHub Pages n'ait redéployé `site/`, ou pendant une panne
-Pages. Une fois le bootstrap réussi, c'est l'URL réellement utilisée qui est
-enregistrée comme dépôt intégré ; les démarrages suivants ne réessaient pas
-l'autre.
-
-> Aucune URL tierce n'est contactée en dehors de ces deux-là et des dépôts
-> ajoutés explicitement par l'utilisateur.
-
----
-
-## 2. Parcours au premier démarrage
-
-1. `MainActivity` → `BrowseFragment` affiche immédiatement le catalogue embarqué.
-2. `BrowseFragment.loadExtensions()` (non bloquant) :
-   1. `ExtensionManager.init(context)` ;
-   2. `ExtensionManager.bootstrapIfNeeded()` **sur le dispatcher IO** :
-      - si `bootstrap_done` est faux et que le nombre de tentatives est < 5 :
-        - essaie `BuildConfig.EXTENSION_REPO_URL` puis, en cas d'échec,
-          `BuildConfig.EXTENSION_REPO_MIRROR_URL` (asset `repo.json` de la
-          release `extensions`) — le premier manifeste lisible gagne et devient
-          le dépôt intégré ;
-        - lit `repo.json` puis chaque `pluginLists` (max 10) ;
-        - télécharge au plus 16 extensions (`status != 0`), vérifie le SHA-256,
-          installe de façon atomique, charge le DEX ;
-        - pose `bootstrap_done = true` **uniquement si `repo.json` a été lu** :
-          un premier démarrage hors ligne sera retenté ;
-   3. `ExtensionCatalog.rows()` interroge les providers chargés (timeout 8 s
-      chacun) et renvoie des `VideoRow` ;
-   4. `BrowseFragment.appendRows()` ajoute ces rangées à la suite du catalogue,
-      puis ajoute la carte « Extensions ».
-3. Les démarrages suivants : `loadInstalled()` recharge les `.msa` déjà
-   présents ; `refresh()` applique les mises à jour et le *kill switch*.
-
-Une extension **échouée** n'empêche jamais l'affichage : elle est journalisée,
-désactivée, et les autres continuent.
-
----
-
-## 3. Format d'une extension
-
-### 3.1 `plugins.json` (un élément)
+Un dépôt manuel expose un `repo.json` HTTPS :
 
 ```json
 {
-  "url": "https://…/extensions/builds/hello-provider.msa",
-  "name": "Démo — films libres",
-  "internalName": "hello-provider",
-  "version": 1,
-  "status": 1,
-  "apiVersion": 1,
-  "authors": ["MISSA TV 360"],
-  "description": "…",
-  "language": "fr",
-  "tvTypes": ["Movies"],
-  "fileSize": 48123,
-  "fileHash": "sha256-9f2c…"
+  "manifestVersion": 1,
+  "name": "Nom du dépôt",
+  "pluginLists": ["https://depot.example/plugins.json"]
 }
 ```
 
-* `status` : `0` désactivée par l'auteur (kill switch), `1` ok, `2` lente,
-  `3` bêta.
-* `fileHash` : **obligatoire**. Une extension sans empreinte est refusée à
-  l'installation.
-* `apiVersion` : doit être égal à `PLUGIN_API_VERSION` (`plugin-api`).
+Chaque liste contient des entrées d’extension avec notamment `url`,
+`internalName`, `version`, `apiVersion`, `fileSize` et `fileHash`. L’archive
+`.msa` est un ZIP contenant `manifest.json` et `classes.dex`.
 
-### 3.2 `manifest.json` (dans l'archive)
+- `fileHash` est obligatoire et utilise le format `sha256-<empreinte>` ;
+- `apiVersion` doit correspondre à `plugin-api` ;
+- `status = 0` désactive l’extension côté auteur ;
+- les URL et les tailles de manifestes sont validées avant téléchargement.
 
-```json
-{
-  "name": "Démo — films libres",
-  "version": 1,
-  "apiVersion": 1,
-  "pluginClassName": "com.missa.extensions.hello.HelloPlugin",
-  "requiresResources": false
-}
-```
+## Installation et exécution
 
-### 3.3 Code
+1. L’utilisateur ajoute le dépôt dans l’écran Extensions.
+2. Le manifeste et les listes sont lus avec des limites de taille et de temps.
+3. L’archive téléchargée est vérifiée par SHA-256 avant installation atomique.
+4. Le chargeur isole le DEX et enregistre les providers déclarés.
+5. Une extension en échec est désactivée sans empêcher le catalogue JSON de
+   fonctionner.
 
-Une extension étend `MissaPlugin` et enregistre un ou plusieurs `Provider` :
+Aucune extension n’est installée automatiquement au premier lancement.
 
-```kotlin
-class HelloPlugin : MissaPlugin() {
-    override fun load() {
-        registerProvider(HelloProvider())
-    }
-}
+## Outil de publication
 
-class HelloProvider : Provider {
-    override val id = "hello-provider"
-    override val name = "Démo — films libres"
-    override suspend fun rows(): List<Row> = listOf(
-        Row("blender", "Films Blender", listOf(
-            Item(
-                id = "bbb",
-                title = "Big Buck Bunny",
-                kind = Kind.MOVIE,
-                stream = Stream(url = "https://…/BigBuckBunny.mp4", format = "mp4"),
-                source = "Blender Foundation (miroir Google)",
-                license = "CC BY 3.0",
-            )
-        ))
-    )
-}
-```
-
-`rows()` est `suspend` : l'acquisition réseau est autorisée. Les items sans
-`stream.url` sont ignorés par l'application (pas de carte menant à un lecteur
-vide).
-
----
-
-## 4. Construire et publier une extension
+`extension-tools/build_extension_repo.py` construit une `plugins.json` à partir
+d’artefacts `.msa` et de leurs métadonnées. Il calcule la taille et l’empreinte
+SHA-256 afin d’éviter une liste désynchronisée des archives publiées.
 
 ```bash
-# 1. Archive .msa + métadonnées (nécessite JDK 17 et le SDK Android pour d8)
-./gradlew :extensions-src:hello-provider:packagePlugin
-
-# 2. Générer la liste publiée (calcule sha256 + taille)
-mkdir -p /tmp/builds
-cp extensions-src/hello-provider/build/plugin/hello-provider.msa /tmp/builds/
 python3 extension-tools/build_extension_repo.py \
-  --builds-dir /tmp/builds \
-  --base-url https://github.com/missamedia69-code/MISSA_TV_360/releases/download/extensions \
-  --out /tmp/plugins.json
+  --builds-dir extensions-builds \
+  --base-url https://depot.example/extensions/builds \
+  --out plugins.json
 ```
 
-Le workflow `.github/workflows/extensions.yml` fait tout cela : tests, jar du
-contrat plugin, `packagePlugin`, génération de `plugins.json`, puis — sur un
-push uniquement — création/mise à jour de la release `extensions` et
-téléversement des assets (`*.msa` + `plugins.json`, `--clobber`).
+Le mode `--check` vérifie qu’un fichier existant correspond aux artefacts.
+L’outil ne publie ni release ni site : ces opérations restent manuelles et
+relèvent du dépôt d’extensions concerné.
+
+## Tests
 
 ```bash
-# publier à la demande (après un changement d'extension)
-gh workflow run extensions.yml --ref main
-gh release view extensions --json assets \
-  -q '.assets[] | "\(.name)\t\(.size) o\t\(.updatedAt)"'
+python3 -m unittest discover -s extension-tools -p 'test_*.py'
 ```
-
-Rien n'est écrit dans le dépôt : ni binaire, ni `plugins.json`, aucun commit
-automatique. L'option `--check` de l'outil reste disponible pour qui préfère
-héberger la liste statiquement (GitHub Pages).
-
----
-
-## 5. Ajouter un dépôt dans l'application
-
-Écran **Extensions** (carte « Chaînes & extensions » en fin d'accueil) :
-
-* **Ajouter un dépôt** : colle une URL `https://…/repo.json` (pré-remplie
-  depuis le presse-papier si elle y ressemble) ou le format de partage
-  `Nom : https://…/repo.json` ;
-* **Actualiser** : relit les dépôts, applique les mises à jour et le kill switch ;
-* **Clic sur une extension** : installer / mettre à jour ;
-* **Appui long** : supprimer l'extension ou le dépôt (les fichiers et les
-  providers sont retirés).
-
----
-
-## 6. Sécurité — ce qui est protégé, et ce qui ne l'est pas
-
-### Garanties implémentées
-
-| Risque | Mesure |
-|---|---|
-| Exécution de code non vérifié | `fileHash` obligatoire, comparaison SHA-256 à temps constant |
-| Artefact corrompu / partiel | téléchargement en mémoire → écriture temporaire → `renameTo` atomique |
-| Redirection vers HTTP | redirections suivies manuellement, chaque saut revalidé ; HTTPS exigé |
-| Dépôt géant / DoS | `repo.json` ≤ 64 Ko, liste ≤ 512 Ko, artefact ≤ 8 Mio, ≤ 10 listes, ≤ 16 installations automatiques |
-| Plugin compilé pour une autre API | `apiVersion` vérifié avant chargement |
-| Extension cassée qui bloque l'accueil | timeout 8 s par provider, exceptions isolées |
-| Extension retirée par son auteur | `status = 0` → déchargée au prochain rafraîchissement |
-| Chemin de fichier piégé | nom de fichier dérivé de `internalName` (caractères filtrés) + dossier = hash de l'URL du dépôt |
-
-### Ce qui n'est PAS protégé (assumé, à documenter dans toute distribution)
-
-* **Le code de l'extension s'exécute avec les permissions de l'application**
-  (aucun bac à sable, aucune signature). Un dépôt compromis = code arbitraire.
-  Ne jamais ajouter un dépôt dont on ne contrôle pas la publication.
-* Il n'existe **pas de signature cryptographique** des auteurs : seul le hash
-  publié dans `plugins.json` protège contre une altération en transit, pas
-  contre un dépôt malveillant qui publierait son propre hash.
-* Aucune analyse statique n'est faite sur le DEX.
-* Sur un build `release`, R8 conserve le contrat (`proguard-rules.pro`) mais
-  obfusque le reste : une extension qui référencerait des classes internes de
-  l'application casserait. Seul `plugin-api` est un contrat public.
-
-Recommandation : réserver l'ajout de dépôts à des URLs HTTPS du projet, et
-n'activer la fonction que sur des builds dont la source est maîtrisée.
-
----
-
-## 7. Désactivation d'urgence (kill switch)
-
-Pour retirer une extension cassée sans publier d'APK :
-
-1. passer son `status` à `0` dans `plugins.json` (ou retirer son entrée) ;
-2. régénérer / committer ;
-3. au prochain `refresh()`, l'application la décharge immédiatement ;
-4. l'utilisateur peut aussi la supprimer depuis l'écran Extensions.
-
-Un `version` supérieur déclenche la mise à jour automatique (si
-`auto_update` est actif, valeur par défaut).
-
----
-
-## 8. État de vérification
-
-* `extension-tools/test_build_extension_repo.py` : **15 tests, tous verts**
-  (`python3 -m unittest discover -s extension-tools`).
-* **Compilation Kotlin : verte en CI** (2026-10-22), sur le commit `cf95af9` :
-  - `Assemble Android TV debug APK` → `:app:compileDebugKotlin` +
-    `:app:assembleDebug` OK, APK publié dans la release `apk-debug` ;
-  - `Build .msa and validate plugins.json` → `:plugin-api:jar` puis
-    `:extensions-src:hello-provider:packagePlugin` OK.
-
-  Le poste de rédaction n'a ni JDK, ni SDK Android, ni Gradle : la CI est le
-  seul compilateur, et elle est donc la référence. En local :
-
-  ```bash
-  bash ./gradlew :app:assembleDebug :app:testDebugUnitTest
-  bash ./gradlew :extensions-src:hello-provider:packagePlugin
-  ```
-
-* **Chaîne de publication vérifiée** (téléchargement réel des trois assets) :
-
-  | Asset | Taille | Contenu vérifié |
-  |---|---|---|
-  | `repo.json` | 287 o | `pluginLists` → `…/releases/download/extensions/plugins.json` |
-  | `plugins.json` | 580 o | 1 entrée, `fileSize: 2727`, `fileHash: sha256-edf4bb83…fec6` |
-  | `hello-provider.msa` | 2 727 o | ZIP `manifest.json` + `classes.dex` |
-
-  `plugins.json` et l'archive sont produits par le même job à partir du même
-  fichier : le hash publié est, par construction, celui de l'archive
-  téléversée. Il n'a pas été recalculé côté client après téléchargement.
-
-* **Premier démarrage réellement testable dès maintenant** : l'APK debug du
-  dernier build vert est dans la release `apk-debug`
-  (`https://github.com/missamedia69-code/MISSA_TV_360/releases/download/apk-debug/app-debug.apk`).
-  `site/extensions/repo.json` (Pages) n'est servi qu'après fusion sur `main` ;
-  d'ici là, c'est le miroir `releases/download/extensions/repo.json` qui répond,
-  et l'extension d'exemple s'installe au premier lancement.
-* Tant que ni Pages ni le miroir ne répondent (hors ligne, release supprimée),
-  le bootstrap échoue proprement : aucune exception visible, message d'état
-  « aucun dépôt joignable », 5 tentatives maximum, puis abandon silencieux —
-  c'est le comportement attendu, pas un bug.

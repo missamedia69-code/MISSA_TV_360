@@ -1,7 +1,6 @@
 package com.missa.tv360.ui
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.leanback.app.SearchSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.HeaderItem
@@ -12,22 +11,17 @@ import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.SearchRepository
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.source.FilmEngineConfig
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Recherche TV locale et distante avec états explicites et clavier/voix Leanback. */
+/** Recherche TV dans le catalogue JSON fusionné. */
 class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider {
     private val rowsAdapter = ArrayObjectAdapter(ListRowPresenter().apply { shadowEnabled = false })
-    private var engineConfig: FilmEngineConfig? = null
     private var searchJob: Job? = null
     private var requestVersion = 0L
     private var lastQuery = ""
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +41,7 @@ class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.Search
         scheduleSearch(newQuery, submitted = false)
         return true
     }
+
     override fun onQueryTextSubmit(query: String): Boolean {
         scheduleSearch(query, submitted = true)
         return true
@@ -65,10 +60,7 @@ class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.Search
         searchJob = viewLifecycleOwner.lifecycleScope.launch {
             if (!submitted) delay(300)
             try {
-                val appContext = requireContext().applicationContext
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(appContext)
-                    .also { engineConfig = it }
-                val outcome = SearchRepository.search(appContext, query, config)
+                val outcome = SearchRepository.search(query)
                 if (!isAdded || version != requestVersion) return@launch
                 renderOutcome(query, outcome)
             } catch (cancelled: CancellationException) {
@@ -83,11 +75,8 @@ class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.Search
 
     private fun renderOutcome(query: String, outcome: SearchRepository.SearchOutcome) {
         rowsAdapter.clear()
-        if (outcome.remoteFailed) {
-            addStatusRow(SearchStatus(getString(R.string.search_error), retry = true))
-        }
         if (outcome.items.isEmpty()) {
-            if (!outcome.remoteFailed) addStatusRow(SearchStatus(getString(R.string.search_no_results)))
+            addStatusRow(SearchStatus(getString(R.string.search_no_results)))
             return
         }
         val cards = ArrayObjectAdapter(MissaCardPresenter()).apply {
@@ -114,29 +103,8 @@ class FilmSearchFragment : SearchSupportFragment(), SearchSupportFragment.Search
     private fun openSearchResult(result: Video) {
         if (result.isGamesLauncher) {
             startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
-            return
-        }
-        if (result.streamUrl.isNotBlank() || result.sourceId == null) {
+        } else {
             openDetails(result)
-            return
-        }
-        if (!resolvingIds.add(result.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
-                    .also { engineConfig = it }
-                FilmSourceRegistry.resolve(result, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(result.id)
-            if (!isAdded) return@launch
-            if (resolved == null) {
-                Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            } else openDetails(resolved)
         }
     }
 

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.leanback.app.BackgroundManager
@@ -23,19 +22,13 @@ import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
-import com.missa.tv360.data.NetworkStatus
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.VideoRow
-import com.missa.tv360.data.source.FilmEngineConfig
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
-import com.missa.tv360.data.source.bundledFilmEngineConfig
 import com.missa.tv360.extensions.ExtensionsActivity
 import com.missa.tv360.games.GamesActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 /** Accueil Leanback synchronisé avec le catalogue partagé TV/mobile. */
 class BrowseFragment : BrowseSupportFragment() {
@@ -54,9 +47,7 @@ class BrowseFragment : BrowseSupportFragment() {
     private var extensionsStarted = false
     private var lastCatalog: List<VideoRow>? = null
     private var hasPresentedRows = false
-    private var engineConfig: FilmEngineConfig? = null
     private var selectedBackgroundId: String? = null
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onInflateTitleView(
         inflater: LayoutInflater,
@@ -85,7 +76,6 @@ class BrowseFragment : BrowseSupportFragment() {
                 video.id == EXTENSIONS_CARD_ID -> openExtensions()
                 video.moreTargetRowId != null -> openCategoryGrid(video.moreTargetRowId, video.description)
                 video.isGamesLauncher -> openGames()
-                video.sourceId != null && video.streamUrl.isBlank() -> resolveAndOpen(video)
                 else -> openDetails(video)
             }
         }
@@ -103,8 +93,6 @@ class BrowseFragment : BrowseSupportFragment() {
                 }
             }
         }
-        engineConfig = bundledFilmEngineConfig()
-        refreshFilmEngine()
         loadExtensions(bootstrap = true)
     }
 
@@ -204,38 +192,6 @@ class BrowseFragment : BrowseSupportFragment() {
         }
     }
 
-    private fun refreshFilmEngine() {
-        if (!NetworkStatus.isOnline(requireContext())) return
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = try {
-                withTimeout(10_000L) {
-                    val config = FilmEngineRepository.refresh(requireContext().applicationContext)
-                    if (config != null) {
-                        engineConfig = config
-                        FilmSourceRegistry.trending(config)
-                    } else emptyList()
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                emptyList()
-            }
-            if (result.isNotEmpty() && isAdded) {
-                CatalogStore.append(
-                    requireContext(),
-                    listOf(
-                        CatalogStore.DisplayRow(
-                            "films",
-                            getString(R.string.row_films),
-                            result,
-                        ),
-                    ),
-                )
-                syncRows()
-            }
-        }
-    }
-
     private fun loadExtensions(bootstrap: Boolean) {
         if (extensionsStarted && bootstrap) return
         extensionsStarted = true
@@ -270,25 +226,6 @@ class BrowseFragment : BrowseSupportFragment() {
             .replace(R.id.main_browse_container, CategoryFragment.newInstance(rowId, header))
             .addToBackStack("category-grid")
             .commit()
-    }
-
-    private fun resolveAndOpen(searchResult: Video) {
-        if (!resolvingIds.add(searchResult.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = engineConfig ?: FilmEngineRepository.currentOrLoad(requireContext())
-                FilmSourceRegistry.resolve(searchResult, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(searchResult.id)
-            if (!isAdded) return@launch
-            if (resolved == null) Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            else openDetails(resolved)
-        }
     }
 
     private fun openFilmSearch() {

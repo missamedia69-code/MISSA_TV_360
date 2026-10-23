@@ -33,7 +33,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
-                CatalogLoadResult(CatalogRepository.localCatalog(), CatalogSource.DEMO, remoteFailed = true)
+                CatalogLoadResult(emptyList(), CatalogSource.EMPTY, remoteFailed = true)
             }
             publish(initial, initialLoading = false, refreshing = true)
             refreshRemote()
@@ -57,15 +57,15 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
             if (!NetworkStatus.isOnline(app)) {
                 CatalogLoadResult(
                     rows = current.rows,
-                    source = current.source ?: CatalogSource.BUNDLED,
+                    source = current.source ?: CatalogSource.EMPTY,
                     remoteFailed = true,
                     networkFailed = true,
                 )
             } else {
-                withTimeoutOrNull(8_000L) { CatalogRepository.loadCatalogWithStatus(app) }
+                withTimeoutOrNull(20_000L) { CatalogRepository.loadCatalogWithStatus(app) }
                     ?: CatalogLoadResult(
                         rows = current.rows,
-                        source = current.source ?: CatalogSource.BUNDLED,
+                        source = current.source ?: CatalogSource.EMPTY,
                         remoteFailed = true,
                         networkFailed = !NetworkStatus.isOnline(app),
                     )
@@ -75,13 +75,14 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         } catch (_: Exception) {
             CatalogLoadResult(
                 rows = current.rows,
-                source = current.source ?: CatalogSource.BUNDLED,
+                source = current.source ?: CatalogSource.EMPTY,
                 remoteFailed = true,
                 networkFailed = !NetworkStatus.isOnline(app),
             )
         }
+        val rows = if (result.remoteFailed && result.rows.isEmpty()) current.rows else result.rows
         publish(
-            result.copy(rows = result.rows.ifEmpty { current.rows }),
+            result.copy(rows = rows),
             initialLoading = false,
             refreshing = false,
         )

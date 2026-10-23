@@ -42,11 +42,6 @@ internal class ExtensionStore(context: Context) {
         get() = prefs.getBoolean(KEY_AUTO_UPDATE, true)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_UPDATE, value).apply()
 
-    /** Nombre de tentatives de bootstrap (évite de réessayer indéfiniment). */
-    var bootstrapAttempts: Int
-        get() = prefs.getInt(KEY_BOOTSTRAP_ATTEMPTS, 0)
-        set(value) = prefs.edit().putInt(KEY_BOOTSTRAP_ATTEMPTS, value).apply()
-
     var lastRefreshAt: Long
         get() = prefs.getLong(KEY_LAST_REFRESH, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_REFRESH, value).apply()
@@ -73,7 +68,6 @@ internal class ExtensionStore(context: Context) {
         const val KEY_REPOSITORIES = "repositories"
         const val KEY_INSTALLED = "installed"
         const val KEY_BOOTSTRAP_DONE = "bootstrap_done"
-        const val KEY_BOOTSTRAP_ATTEMPTS = "bootstrap_attempts"
         const val KEY_AUTO_UPDATE = "auto_update"
         const val KEY_LAST_REFRESH = "last_refresh"
     }

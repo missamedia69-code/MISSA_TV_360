@@ -25,7 +25,7 @@ class GameDownloader(private val context: Context) {
         private const val MAX_DOWNLOAD_SIZE_BYTES: Long = 500L * 1024 * 1024
     }
 
-    private val allowedHosts = setOf("f-droid.org", "github.com", "releases.github.com", "github.io")
+    private val allowedHosts = setOf("github.com", "github.io", "githubusercontent.com")
     private val sha256Pattern = Pattern.compile("^[a-fA-F0-9]{64}$")
     private val cancelled = ConcurrentHashMap.newKeySet<String>()
 
@@ -60,8 +60,10 @@ class GameDownloader(private val context: Context) {
     }
 
     private fun isHostAllowed(rawUrl: String): Boolean = try {
-        val host = URL(rawUrl).host.orEmpty()
-        allowedHosts.any { host.equals(it, true) || host.endsWith(".${it.lowercase()}") }
+        val url = URL(rawUrl)
+        val host = url.host.orEmpty()
+        url.protocol.equals("https", true) &&
+            allowedHosts.any { host.equals(it, true) || host.endsWith(".${it.lowercase()}") }
     } catch (_: Exception) {
         false
     }

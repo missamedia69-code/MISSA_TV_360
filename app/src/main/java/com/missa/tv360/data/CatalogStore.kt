@@ -21,7 +21,7 @@ object CatalogStore {
     fun replaceCatalog(context: Context, catalog: List<VideoRow>) {
         val appContext = context.applicationContext
         val core = catalog.mapIndexedNotNull { index, row ->
-            val videos = row.videos.filterNot { it.title.contains("Emplacement", true) }
+            val videos = row.videos
             if (videos.isEmpty()) return@mapIndexedNotNull null
             val title = row.headerTitle
                 ?: if (row.headerRes != 0) appContext.getString(row.headerRes) else ""

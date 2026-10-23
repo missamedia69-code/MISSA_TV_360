@@ -54,19 +54,17 @@ class VideoModelTest {
     }
 
     @Test
-    fun sourceHeadersAndShapeHintSurviveModelCopy() {
+    fun shapeHintSurvivesModelCopy() {
         val video = Video(
-            id = "source",
-            title = "Source",
+            id = "sport",
+            title = "Sport",
             description = "",
             cardRes = 0,
             streamUrl = "",
             shapeHint = com.missa.tv360.data.CardShapeHint.LANDSCAPE,
-            streamHeaders = mapOf("Referer" to "https://source.invalid/"),
         )
-        val resolved = video.copy(streamUrl = "https://cdn.invalid/video.mp4")
-        assertEquals("https://source.invalid/", resolved.streamHeaders["Referer"])
-        assertEquals(CardShape.LANDSCAPE, CardShape.forVideo(resolved))
+        val updated = video.copy(streamUrl = "https://cdn.invalid/video.mp4")
+        assertEquals(CardShape.LANDSCAPE, CardShape.forVideo(updated))
     }
 
     @Test

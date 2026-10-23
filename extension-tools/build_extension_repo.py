@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Construit `site/extensions/plugins.json` à partir des artefacts `.msa`.
+"""Construit `plugins.json` à partir des artefacts `.msa`.
 
 Ce script est l'équivalent du `makePluginsJson` d'un dépôt d'extensions
 classique : il transforme des fichiers compilés en une liste publiée, en
@@ -15,15 +15,15 @@ Contrat attendu par l'application (`PluginEntry`, voir
 Convention de dépôt de build :
 
     extensions-builds/
-        hello-provider.msa     <- artefact (ZIP : manifest.json + classes.dex)
-        hello-provider.json    <- métadonnées (name, version, authors, …)
+        sample-plugin.msa     <- artefact (ZIP : manifest.json + classes.dex)
+        sample-plugin.json    <- métadonnées (name, version, authors, …)
 
 Usage :
 
     python3 extension-tools/build_extension_repo.py \
         --builds-dir extensions-builds \
         --base-url https://exemple.tld/extensions/builds \
-        --out site/extensions/plugins.json
+        --out plugins.json
 
     # Vérifie que le fichier publié est à jour (code de sortie 1 sinon) :
     python3 extension-tools/build_extension_repo.py --check …

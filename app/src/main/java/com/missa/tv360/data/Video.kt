@@ -27,7 +27,7 @@ enum class ContentKind(val label: String) {
     val isAudioOnly: Boolean get() = this == RADIO || this == PODCAST || this == MUSIC
 
     companion object {
-        /** Mapping depuis la valeur textuelle du BFF (tolère les inconnus). */
+        /** Mapping depuis la valeur textuelle du JSON (tolère les inconnus). */
         fun fromApi(value: String?): ContentKind =
             entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
                 ?: when (value?.lowercase()) {
@@ -86,13 +86,11 @@ data class Video(
     val moreTargetRowId: String? = null,
     /** Vignette distante (catalogue du dépôt). Si présente, remplace cardRes. */
     val cardUrl: String? = null,
-    /** Source brute à résoudre au clic (ex. recherche Internet Archive). */
-    val sourceId: String? = null,
-    /** Métadonnées normalisées utilisées par le moteur pour trouver des contenus similaires. */
+    /** Métadonnées normalisées utilisées pour trouver des contenus similaires. */
     val tags: List<String> = emptyList(),
     val creator: String? = null,
     val releaseYear: String? = null,
-    /** Origine du contenu affichée sur la fiche (« Internet Archive », « NASA »…). */
+    /** Origine éditoriale facultative, affichée sur la fiche. */
     val source: String? = null,
     /** Licence du contenu (« Domaine public », « CC BY »…) — null si inconnue. */
     val license: String? = null,
@@ -107,12 +105,6 @@ data class Video(
      * [ContentKind.MOVIE]. Null = forme déduite du kind.
      */
     val shapeHint: CardShapeHint? = null,
-    /**
-     * En-têtes HTTP à appliquer au flux (Referer, User-Agent…).
-     * Vide pour un flux qui n'en exige aucun. Rempli par le registre de
-     * sources au moment de la résolution, jamais par le catalogue.
-     */
-    val streamHeaders: Map<String, String> = emptyMap(),
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive || forceLive

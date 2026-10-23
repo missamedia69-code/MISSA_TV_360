@@ -68,7 +68,7 @@ class MobileGamesFragment : Fragment() {
         showStatus(getString(R.string.games_loading))
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val rows = withContext(Dispatchers.IO) { GamesRepository.loadGames() }
+                val rows = withContext(Dispatchers.IO) { GamesRepository.loadGames(requireContext().applicationContext) }
                 games = rows.flatMap { it.games }.distinctBy { it.id }
                 adapter.submitList(games)
                 if (games.isEmpty()) showStatus(getString(R.string.games_empty))

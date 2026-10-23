@@ -57,9 +57,9 @@ class NominalTests(BuilderTestCase):
     def test_publishes_hash_size_and_url(self) -> None:
         payload = b"dex-payload"
         self.add_artifact(
-            "hello-provider",
+            "sample-plugin",
             payload,
-            {"name": "Hello", "version": 2, "authors": ["MISSA"]},
+            {"name": "Sample", "version": 2, "authors": ["MISSA"]},
         )
 
         self.assertEqual(0, self.run_main())
@@ -67,15 +67,15 @@ class NominalTests(BuilderTestCase):
         entries = json.loads(self.out.read_text(encoding="utf-8"))
         self.assertEqual(1, len(entries))
         entry = entries[0]
-        self.assertEqual("hello-provider", entry["internalName"])
-        self.assertEqual("Hello", entry["name"])
+        self.assertEqual("sample-plugin", entry["internalName"])
+        self.assertEqual("Sample", entry["name"])
         self.assertEqual(2, entry["version"])
         self.assertEqual(repo.API_VERSION, entry["apiVersion"])
         self.assertEqual(len(payload), entry["fileSize"])
         self.assertEqual(
             "sha256-" + hashlib.sha256(payload).hexdigest(), entry["fileHash"]
         )
-        self.assertEqual(f"{BASE}/hello-provider.msa", entry["url"])
+        self.assertEqual(f"{BASE}/sample-plugin.msa", entry["url"])
 
     def test_entries_are_sorted_by_internal_name(self) -> None:
         for name in ("zulu", "alpha", "mike"):
@@ -93,12 +93,12 @@ class NominalTests(BuilderTestCase):
         self.assertEqual([], json.loads(self.out.read_text(encoding="utf-8")))
 
     def test_check_detects_up_to_date_file(self) -> None:
-        self.add_artifact("hello", b"x", {"name": "Hello", "version": 1})
+        self.add_artifact("sample", b"x", {"name": "Sample", "version": 1})
         self.assertEqual(0, self.run_main())
         self.assertEqual(0, self.run_main("--check"))
 
     def test_check_detects_stale_file(self) -> None:
-        self.add_artifact("hello", b"x", {"name": "Hello", "version": 1})
+        self.add_artifact("sample", b"x", {"name": "Sample", "version": 1})
         self.assertEqual(0, self.run_main())
         # Nouvel artefact non publié : --check doit échouer.
         self.add_artifact("second", b"y", {"name": "Second", "version": 1})
@@ -114,7 +114,7 @@ class RejectionTests(BuilderTestCase):
         self.assertEqual(2, self.run_main())
 
     def test_http_base_url_is_rejected(self) -> None:
-        self.add_artifact("hello", b"x", {"name": "Hello", "version": 1})
+        self.add_artifact("sample", b"x", {"name": "Sample", "version": 1})
         code = repo.main(
             [
                 "--builds-dir",
@@ -181,7 +181,7 @@ class ContractTests(BuilderTestCase):
     }
 
     def test_published_entry_exposes_every_field_the_app_reads(self) -> None:
-        self.add_artifact("hello", b"x", {"name": "Hello", "version": 1})
+        self.add_artifact("sample", b"x", {"name": "Sample", "version": 1})
         self.assertEqual(0, self.run_main())
         entry = json.loads(self.out.read_text(encoding="utf-8"))[0]
         self.assertEqual(self.EXPECTED_KEYS, set(entry.keys()))

@@ -1,22 +1,17 @@
-# Fichiers d'abstraction Python des moteurs (un par catégorie)
-# Générés par engines/*/engine.py puis publiés via GitHub Pages.
-# On versionne le manifeste des engines mais pas les JSON produits ? Non :
-# ici les JSON publiés sont la source de vérité consommée par l'app, on les
-# commit afin que le dépôt reste utilisable même sans CI (Pages les sert tels quels).
-!site/data/*.json
-
-# Dépendances locales
+# Fichiers locaux Python
 __pycache__/
 *.pyc
 .venv/
 
-# APK de jeu téléchargeable : à publier via les Releases, pas dans le git
+# Paquets téléchargés ou générés localement
 *.apk
 *.obb
 *.zip
+*.msa
 games-cache/
+extensions-builds/
 
-# Build Android (si le dépôt contient aussi le code de l'app)
+# Build Android / Gradle
 *.iml
 .gradle/
 build/
@@ -26,14 +21,12 @@ captures/
 .externalNativeBuild/
 .cxx/
 
-# Screenshots temporaires et dumps UI
+# Captures et diagnostics temporaires
 *.png
 !app/src/main/**/*.png
 win_*.xml
 window*.xml
 tools/
-
-# Logs et sorties de build locales
+.thumbs*
 .build_*.log
 .build_*.txt
-.thumbs*

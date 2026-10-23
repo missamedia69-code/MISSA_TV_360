@@ -1,9 +1,11 @@
 # Règles ProGuard/R8 — MISSA TV 360
 -keepattributes Signature, *Annotation*, InnerClasses, EnclosingMethod
--keep class com.missa.tv360.data.remote.** { *; }
--dontwarn okhttp3.**
--dontwarn retrofit2.**
--dontwarn org.conscrypt.**
+# DTO Gson du chargeur JSON et modèles du cache agrégé.
+-keep class com.missa.tv360.data.json.** { *; }
+-keep class com.missa.tv360.data.Video* { *; }
+-keep class com.missa.tv360.data.Game* { *; }
+-keep class com.missa.tv360.data.ContentKind { *; }
+-keep class com.missa.tv360.data.CardShapeHint { *; }
 
 # ── Extensions ────────────────────────────────────────────────────────────
 # Le contrat plugin <-> application est chargé par le classloader parent du

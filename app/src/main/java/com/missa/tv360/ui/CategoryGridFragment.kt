@@ -2,27 +2,20 @@ package com.missa.tv360.ui
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.leanback.app.BackgroundManager
 import androidx.leanback.app.VerticalGridSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.VerticalGridPresenter
-import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.source.FilmEngineRepository
-import com.missa.tv360.data.source.FilmSourceRegistry
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
 /** Grille TV d'une catégorie, sans carte récursive ni faux contenu. */
 class CategoryGridFragment : VerticalGridSupportFragment() {
     private val cards = ArrayObjectAdapter(MissaCardPresenter(useGridDimensions = true))
     private var selectedPosition = 0
     private var selectedVideoId: String? = null
-    private val resolvingIds = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,28 +60,8 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
     private fun openVideo(video: Video) {
         if (video.isGamesLauncher) {
             startActivity(android.content.Intent(requireContext(), com.missa.tv360.games.GamesActivity::class.java))
-            return
-        }
-        if (video.sourceId == null || video.streamUrl.isNotBlank()) {
+        } else {
             openDetails(video)
-            return
-        }
-        if (!resolvingIds.add(video.id)) return
-        Toast.makeText(requireContext(), R.string.search_resolving, Toast.LENGTH_SHORT).show()
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = try {
-                val config = FilmEngineRepository.currentOrLoad(requireContext())
-                FilmSourceRegistry.resolve(video, config)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                null
-            }
-            resolvingIds.remove(video.id)
-            if (!isAdded) return@launch
-            if (resolved == null) {
-                Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
-            } else openDetails(resolved)
         }
     }
 
