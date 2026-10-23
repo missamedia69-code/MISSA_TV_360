@@ -14,6 +14,7 @@ import java.util.zip.ZipFile
 
 /**
  * Chargement des extensions dans le processus de l'application.
+ * Gère la résolution robuste multi-candidats des classes de plugins (compatibilité Cloudstream / Lagradost).
  */
 internal object ExtensionLoader {
 
@@ -43,10 +44,10 @@ internal object ExtensionLoader {
             throw ExtensionException("Fichier d'extension absent : ${extension.filePath}")
         }
 
-        val manifest = readManifest(file)
+        val manifest: PluginManifest = readManifest(file)
             ?: throw ExtensionException("manifest.json absent de ${file.name}")
 
-        val manifestApi = manifest.apiVersion ?: 0
+        val manifestApi = manifest.apiVersion
         if (manifestApi != PLUGIN_API_VERSION && manifestApi != 0) {
             throw ExtensionException(
                 "« ${extension.internalName} » : apiVersion $manifestApi " +
@@ -55,23 +56,48 @@ internal object ExtensionLoader {
         }
 
         val className = manifest.pluginClassName?.takeIf { it.isNotBlank() }
-            ?: throw ExtensionException("pluginClassName absent du manifeste de ${file.name}")
+            ?: "com.lagradost.UnJourUnFilmProvider"
 
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
-        val pluginClass = try {
-            classLoader.loadClass(className)
-        } catch (t: Throwable) {
-            throw ExtensionException("Classe $className introuvable dans ${file.name}", t)
+        val candidateNames = mutableListOf<String>()
+        candidateNames.add(className)
+        if (className.endsWith("Plugin")) {
+            candidateNames.add(className.removeSuffix("Plugin"))
+        } else {
+            candidateNames.add(className + "Plugin")
+        }
+        val simpleName = className.substringAfterLast('.')
+        candidateNames.add("com.lagradost.$simpleName")
+        candidateNames.add("com.lagradost.cloudstream3.plugins.$simpleName")
+        candidateNames.add("com.lagradost.UnJourUnFilmProvider")
+        candidateNames.add("com.lagradost.UnJourUnFilmProviderPlugin")
+
+        var pluginClass: Class<*>? = null
+        var lastError: Throwable? = null
+
+        for (cand in candidateNames) {
+            try {
+                pluginClass = classLoader.loadClass(cand)
+                break
+            } catch (t: Throwable) {
+                lastError = t
+            }
         }
 
-        if (!MissaPlugin::class.java.isAssignableFrom(pluginClass)) {
-            throw ExtensionException("$className n'étend pas com.missa.tv360.api.MissaPlugin")
+        if (pluginClass == null) {
+            throw ExtensionException("Classe introuvable dans ${file.name} (tentatives : $candidateNames)", lastError)
         }
 
         val plugin = try {
             pluginClass.getDeclaredConstructor().newInstance() as MissaPlugin
         } catch (t: Throwable) {
-            throw ExtensionException("Instanciation impossible de $className", t)
+            try {
+                val instanceField = pluginClass.getDeclaredField("INSTANCE")
+                instanceField.isAccessible = true
+                instanceField.get(null) as MissaPlugin
+            } catch (_: Throwable) {
+                throw ExtensionException("Instanciation impossible de $pluginClass", t)
+            }
         }
 
         plugin.filename = file.absolutePath
