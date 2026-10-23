@@ -54,7 +54,7 @@ class CloudstreamProviderTest {
     @Test
     fun `helper Anime conserve sa signature default`() {
         val found = Class.forName("com.lagradost.cloudstream3.MainAPIKt").declaredMethods.any { method ->
-            method.name == "newAnimeSearchResponse$default" && method.parameterTypes.size == 8
+            method.name == "newAnimeSearchResponse\$default" && method.parameterTypes.size == 8
         }
         assertTrue(found)
     }
