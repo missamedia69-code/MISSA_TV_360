@@ -8,6 +8,7 @@ __pycache__/
 *.obb
 *.zip
 *.msa
+app/src/androidTest/assets/*.cs3
 games-cache/
 extensions-builds/
 

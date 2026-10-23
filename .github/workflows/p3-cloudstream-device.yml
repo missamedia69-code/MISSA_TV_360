@@ -1,0 +1,51 @@
+name: P3 Cloudstream device probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "arena/**"
+    paths:
+      - ".github/workflows/p3-cloudstream-device.yml"
+      - "app/src/androidTest/**"
+      - "app/src/main/java/com/missa/tv360/extensions/**"
+      - "cloudstream-compat/**"
+
+permissions:
+  contents: read
+
+jobs:
+  device:
+    name: BuzzMonclick on Android emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch pinned BuzzMonclick fixture
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            'https://api.github.com/repos/zzikozz/frenchCS/contents/BuzzMonclick.cs3?ref=90fbd7d9baa7579be4a6a804e02db6324b0cb1f1' \
+            -o app/src/androidTest/assets/BuzzMonclick.cs3
+          echo '4024270cb486b718f58bbaa03b8cc9db1e14b94af0a758083e1bcb722dbb2293  app/src/androidTest/assets/BuzzMonclick.cs3' | sha256sum -c -
+
+      - name: Run the real plugin on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash .github/scripts/gradle_ci.sh :app:connectedDebugAndroidTest

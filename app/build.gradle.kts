@@ -11,6 +11,7 @@ android {
         applicationId = "com.missa.tv360"
         minSdk = 21
         targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = runCatching {
             val proc = ProcessBuilder("git", "rev-list", "--count", "HEAD")
                 .directory(rootDir)
@@ -67,6 +68,9 @@ android {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     // AndroidX de base
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
