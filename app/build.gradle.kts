@@ -85,6 +85,7 @@ dependencies {
 
     // Extensions : contrat binaire partagé avec les plugins téléchargés.
     implementation(project(":plugin-api"))
+    implementation(project(":cloudstream-compat"))
     // Lecture des JSON du catalogue et des dépôts d'extensions manuels.
     implementation("com.google.code.gson:gson:2.11.0")
     // Écran Extensions (liste pilotable à la télécommande).

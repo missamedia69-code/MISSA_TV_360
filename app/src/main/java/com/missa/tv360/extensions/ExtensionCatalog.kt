@@ -17,8 +17,8 @@ import kotlinx.coroutines.withTimeout
  * Règles :
  *  - une extension qui lève une exception est isolée : elle ne produit
  *    simplement aucune rangée, les autres continuent ;
- *  - un item sans URL de flux est ignoré (jamais de carte menant à un lecteur
- *    vide — défaut B-06 de l'audit) ;
+ *  - un item sans URL de flux ni page externe est ignoré ; une carte Cloudstream
+ *    peut avoir une page sans flux, mais reste explicitement non lisible ;
  *  - l'identifiant est préfixé par le provider pour rester unique entre
  *    extensions et avec le catalogue du dépôt ;
  *  - les identifiants de rangée sont préfixés `ext:` pour ne pas entrer en
@@ -63,7 +63,8 @@ object ExtensionCatalog {
 
     private fun Item.toVideo(provider: Provider): Video? {
         val url = stream.url.trim()
-        if (url.isEmpty()) return null
+        val externalPage = pageUrl?.trim().orEmpty()
+        if (url.isEmpty() && externalPage.isEmpty()) return null
         if (id.isBlank() || title.isBlank()) return null
         return Video(
             id = "ext:${provider.id}:$id",
@@ -80,6 +81,8 @@ object ExtensionCatalog {
             audioOnly = stream.audioOnly,
             forceLive = stream.live,
             originalKind = kind.name.lowercase(),
+            pageUrl = externalPage.ifBlank { null },
+            providerId = provider.id,
             cardUrl = thumbnailUrl,
             source = source ?: provider.name,
             license = license,

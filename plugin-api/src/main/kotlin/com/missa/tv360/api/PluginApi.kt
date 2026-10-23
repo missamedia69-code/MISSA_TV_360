@@ -66,7 +66,14 @@ data class Item(
     val durationSec: Int? = null,
     val source: String? = null,
     val license: String? = null,
-)
+) {
+    /**
+     * Page à résoudre plus tard par un moteur externe. Propriété hors
+     * constructeur pour préserver la signature binaire des plugins natifs.
+     * [stream.url] reste vide tant qu'aucun flux réel n'a été résolu.
+     */
+    var pageUrl: String? = null
+}
 
 /** Une rangée (catégorie) publiée par une extension. */
 data class Row(

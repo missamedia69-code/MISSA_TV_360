@@ -2,11 +2,13 @@ package com.missa.tv360.extensions
 
 import android.content.Context
 import android.util.Log
+import androidx.fragment.app.FragmentActivity
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.missa.tv360.api.PluginLog
 import com.missa.tv360.api.PluginRegistry
 import com.missa.tv360.api.Provider
+import com.missa.tv360.cloudstream.compat.CloudstreamCompatRegistry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +46,7 @@ object ExtensionManager {
     private val mutex = Mutex()
 
     private var appContext: Context? = null
+    private var hostActivity: FragmentActivity? = null
     private var store: ExtensionStore? = null
     private var installer: ExtensionInstaller? = null
 
@@ -53,6 +56,10 @@ object ExtensionManager {
     // ── Initialisation ────────────────────────────────────────────────────
 
     fun init(context: Context) {
+        // Le contexte d'activité est nécessaire aux anciens Plugin Cloudstream
+        // (BuzzMonclick y accède réellement), tandis que les préférences et les
+        // fichiers continuent d'utiliser l'application.
+        (context as? FragmentActivity)?.let { hostActivity = it }
         if (store != null) return
         val ctx = context.applicationContext
         appContext = ctx
@@ -70,7 +77,7 @@ object ExtensionManager {
     }
 
     /** Providers actuellement chargés (utilisé par le catalogue). */
-    fun providers(): List<Provider> = PluginRegistry.providers()
+    fun providers(): List<Provider> = PluginRegistry.providers() + CloudstreamCompatRegistry.providers()
 
     fun isInitialized(): Boolean = store != null
 
@@ -83,7 +90,7 @@ object ExtensionManager {
     suspend fun loadInstalled(): Int = mutex.withLock { loadInstalledLocked() }
 
     private fun loadInstalledLocked(): Int {
-        val context = appContext ?: return 0
+        val context = hostActivity ?: appContext ?: return 0
         val store = this.store ?: return 0
         var loadedCount = 0
         val retained = mutableListOf<InstalledExtension>()
@@ -286,7 +293,8 @@ object ExtensionManager {
     }
 
     private fun installLocked(plugin: RemotePlugin): InstalledExtension {
-        val context = appContext ?: throw ExtensionException("Moteur non initialisé")
+        val context = hostActivity ?: appContext
+            ?: throw ExtensionException("Moteur non initialisé")
         val store = this.store ?: throw ExtensionException("Moteur non initialisé")
         val installer = this.installer ?: throw ExtensionException("Moteur non initialisé")
 

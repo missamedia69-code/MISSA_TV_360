@@ -1,14 +1,20 @@
 package com.missa.tv360.extensions
 
 import android.content.Context
+import android.content.res.AssetManager
+import android.content.res.Resources
 import android.util.Log
+import com.lagradost.cloudstream3.AcraApplication
+import com.lagradost.cloudstream3.plugins.BasePlugin
+import com.lagradost.cloudstream3.plugins.Plugin
 import com.missa.tv360.api.MissaPlugin
 import com.missa.tv360.api.PluginManifest
 import com.missa.tv360.api.PluginRegistry
+import com.missa.tv360.cloudstream.compat.CloudstreamCompatRegistry
 import dalvik.system.PathClassLoader
 import java.io.File
 
-/** Chargeur des extensions natives MISSA, avec diagnostic préflight des `.cs3`. */
+/** Chargeur des extensions natives MISSA et du prototype Cloudstream. */
 internal object ExtensionLoader {
 
     private const val TAG = "ExtensionLoader"
@@ -16,7 +22,7 @@ internal object ExtensionLoader {
 
     class Loaded(
         val internalName: String,
-        val plugin: MissaPlugin,
+        val plugin: Any,
         val classLoader: PathClassLoader,
         val manifest: PluginManifest,
     )
@@ -36,8 +42,21 @@ internal object ExtensionLoader {
         }
         file.setReadOnly()
 
-        // Dépendances et manifeste sont contrôlés AVANT PathClassLoader. Le nom
-        // exact du manifeste est le seul nom de classe qui sera ensuite chargé.
+        // Un seul nom de classe est lu depuis le manifeste. Le marqueur DEX
+        // choisit le contrat, sans essayer une liste de noms de classes.
+        return if (ExtensionPackageValidator.cloudstreamDependency(file) != null) {
+            loadCloudstream(context, extension, file)
+        } else {
+            loadNative(context, extension, file)
+        }
+    }
+
+    private fun loadNative(
+        context: Context,
+        extension: InstalledExtension,
+        file: File,
+    ): Loaded {
+        // Dépendances et manifeste sont contrôlés AVANT PathClassLoader.
         val manifest = ExtensionPackageValidator.validateNative(file)
         val className = manifest.pluginClassName?.trim().orEmpty()
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
@@ -80,6 +99,85 @@ internal object ExtensionLoader {
             )
         }
 
+        return remember(extension, plugin, classLoader, manifest)
+    }
+
+    private fun loadCloudstream(
+        context: Context,
+        extension: InstalledExtension,
+        file: File,
+    ): Loaded {
+        // Les .cs3 n'ont pas d'apiVersion MISSA : leur contrat est BasePlugin.
+        val manifest = ExtensionPackageValidator.validate(file)
+        val className = manifest.pluginClassName?.trim().orEmpty()
+        AcraApplication.setContext(context)
+        val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
+        val pluginClass = try {
+            classLoader.loadClass(className)
+        } catch (t: Throwable) {
+            throw classFailure(className, t)
+        }
+
+        if (!BasePlugin::class.java.isAssignableFrom(pluginClass)) {
+            throw ExtensionException(
+                "$className n'étend pas BasePlugin Cloudstream.",
+                type = ExtensionErrorType.INCOMPATIBLE,
+                technicalDetails = "La classe du manifeste ne respecte pas le contrat Cloudstream pris en charge.",
+            )
+        }
+
+        val plugin = try {
+            pluginClass.getDeclaredConstructor().newInstance() as BasePlugin
+        } catch (t: Throwable) {
+            throw dependencyFailure(t)
+                ?: ExtensionException(
+                    "Instanciation Cloudstream impossible de $className : ${rootMessage(t)}.",
+                    t,
+                    ExtensionErrorType.LOAD_FAILED,
+                    Log.getStackTraceString(t),
+                )
+        }
+
+        plugin.filename = file.absolutePath
+        try {
+            if (plugin is Plugin && manifest.requiresResources) {
+                attachResources(context, plugin, file)
+            }
+            // Ne pas remplacer ce dispatch par BasePlugin.load() : les plugins
+            // Cloudstream qui reçoivent un Context l'utilisent réellement.
+            if (plugin is Plugin) plugin.load(context) else plugin.load()
+        } catch (t: Throwable) {
+            CloudstreamCompatRegistry.unload(file.absolutePath)
+            throw dependencyFailure(t)
+                ?: ExtensionException(
+                    "Chargement Cloudstream impossible : ${rootMessage(t)}.",
+                    t,
+                    ExtensionErrorType.LOAD_FAILED,
+                    Log.getStackTraceString(t),
+                )
+        }
+
+        return remember(extension, plugin, classLoader, manifest)
+    }
+
+    private fun attachResources(context: Context, plugin: Plugin, file: File) {
+        val assets = AssetManager::class.java.getDeclaredConstructor().newInstance()
+        val cookie = AssetManager::class.java.getMethod("addAssetPath", String::class.java)
+            .invoke(assets, file.absolutePath) as Int
+        if (cookie == 0) throw IllegalStateException("Ressources Cloudstream illisibles")
+        plugin.resources = Resources(
+            assets,
+            context.resources.displayMetrics,
+            context.resources.configuration,
+        )
+    }
+
+    private fun remember(
+        extension: InstalledExtension,
+        plugin: Any,
+        classLoader: PathClassLoader,
+        manifest: PluginManifest,
+    ): Loaded {
         val entry = Loaded(extension.internalName, plugin, classLoader, manifest)
         synchronized(loaded) { loaded[extension.internalName] = entry }
         Log.i(TAG, "Extension chargée : ${extension.internalName} v${manifest.version ?: "?"}")
@@ -142,9 +240,18 @@ internal object ExtensionLoader {
     /** Décharge une extension et retire tous les providers qu'elle a publiés. */
     fun unload(internalName: String) {
         val entry = synchronized(loaded) { loaded.remove(internalName) } ?: return
-        runCatching { entry.plugin.beforeUnload() }
-            .onFailure { Log.w(TAG, "beforeUnload a échoué pour $internalName", it) }
-        entry.plugin.filename?.let { PluginRegistry.clear(it) }
+        when (val plugin = entry.plugin) {
+            is MissaPlugin -> {
+                runCatching { plugin.beforeUnload() }
+                    .onFailure { Log.w(TAG, "beforeUnload a échoué pour $internalName", it) }
+                plugin.filename?.let { PluginRegistry.clear(it) }
+            }
+            is BasePlugin -> {
+                runCatching { plugin.beforeUnload() }
+                    .onFailure { Log.w(TAG, "beforeUnload Cloudstream a échoué pour $internalName", it) }
+                plugin.filename?.let { CloudstreamCompatRegistry.unload(it) }
+            }
+        }
         Log.i(TAG, "Extension déchargée : $internalName")
     }
 

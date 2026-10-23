@@ -199,7 +199,7 @@ class BrowseFragment : BrowseSupportFragment() {
         extensionJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val rows = com.missa.tv360.extensions.ExtensionCatalogLoader.load(
-                    requireContext().applicationContext,
+                    requireContext(),
                     bootstrap,
                 )
                 if (!isAdded) return@launch

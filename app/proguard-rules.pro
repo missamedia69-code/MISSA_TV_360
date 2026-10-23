@@ -21,3 +21,10 @@
     public <init>();
 }
 -keepnames class * implements com.missa.tv360.api.Provider
+
+# Prototype Cloudstream : les .cs3 résolvent ces classes par leurs noms binaires.
+-keep class com.lagradost.cloudstream3.** { *; }
+-keep interface com.lagradost.cloudstream3.** { *; }
+-keepclassmembers class * extends com.lagradost.cloudstream3.plugins.BasePlugin {
+    public <init>();
+}

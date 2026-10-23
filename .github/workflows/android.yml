@@ -40,7 +40,7 @@ jobs:
         run: python3 -m unittest discover -s extension-tools -p 'test_*.py'
 
       - name: Run Android unit tests
-        run: bash .github/scripts/gradle_ci.sh :app:testDebugUnitTest
+        run: bash .github/scripts/gradle_ci.sh :app:testDebugUnitTest :cloudstream-compat:testDebugUnitTest
 
       - name: Build debug APK
         run: bash .github/scripts/gradle_ci.sh :app:assembleDebug

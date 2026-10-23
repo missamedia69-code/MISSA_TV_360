@@ -105,6 +105,10 @@ data class Video(
      * [ContentKind.MOVIE]. Null = forme déduite du kind.
      */
     val shapeHint: CardShapeHint? = null,
+    /** Page externe à résoudre par le moteur de l'extension, jamais un flux. */
+    val pageUrl: String? = null,
+    /** Provider ayant publié la carte, conservé pour la résolution ultérieure. */
+    val providerId: String? = null,
 ) : Serializable {
 
     val isLive: Boolean get() = kind.isLive || forceLive
