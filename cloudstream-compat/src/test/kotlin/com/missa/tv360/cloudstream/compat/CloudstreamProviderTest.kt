@@ -12,6 +12,8 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.missa.tv360.api.Kind
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,6 +40,19 @@ class CloudstreamProviderTest {
         assertEquals(Kind.MOVIE, TvType.Movie.toMissaKind())
         assertEquals(Kind.SERIES, TvType.TvSeries.toMissaKind())
         assertEquals(Kind.LIVE_TV, TvType.Live.toMissaKind())
+    }
+
+    @Test
+    fun `registre accepte puis retire un provider local`() {
+        val api = FakeMainAPI()
+        val id = CloudstreamProvider.idFor(api)
+        try {
+            CloudstreamCompatRegistry.register(null, api)
+            assertNotNull(CloudstreamCompatRegistry.providerFor(id))
+        } finally {
+            CloudstreamCompatRegistry.unload(null)
+        }
+        assertNull(CloudstreamCompatRegistry.providerFor(id))
     }
 
     @Test

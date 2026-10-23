@@ -28,3 +28,9 @@
 -keepclassmembers class * extends com.lagradost.cloudstream3.plugins.BasePlugin {
     public <init>();
 }
+-keep class com.lagradost.nicehttp.** { *; }
+-keep interface com.lagradost.nicehttp.** { *; }
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-keep class org.jsoup.** { *; }
+-keep class com.fasterxml.jackson.** { *; }

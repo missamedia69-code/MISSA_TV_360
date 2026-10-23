@@ -17,7 +17,7 @@ object CloudstreamCompatRegistry {
 
     @Synchronized
     fun register(filename: String?, api: MainAPI) {
-        val file = filename ?: return
+        val file = filename ?: "local"
         val provider = CloudstreamProvider(api)
         entries["$file::${provider.id}"] = Entry(file, api, provider)
     }
@@ -41,8 +41,8 @@ object CloudstreamCompatRegistry {
 
     @Synchronized
     fun unload(filename: String?) {
-        val file = filename ?: return
+        val file = filename ?: "local"
         entries.entries.removeAll { it.value.filename == file }
-        extractors.removeAll { it.sourcePlugin == file }
+        extractors.removeAll { (it.sourcePlugin ?: "local") == file }
     }
 }
