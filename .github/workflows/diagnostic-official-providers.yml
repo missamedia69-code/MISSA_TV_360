@@ -116,5 +116,6 @@ jobs:
           target: default
           disk-size: 4G
           emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -dns-server 8.8.8.8
           disable-animations: true
           script: bash .github/scripts/p3_cloudstream_device.sh
