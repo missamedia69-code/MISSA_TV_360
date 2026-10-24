@@ -1,8 +1,12 @@
 package com.lagradost.cloudstream3
 
 import com.lagradost.cloudstream3.utils.Event
+import com.missa.tv360.api.PluginLog
 import com.lagradost.nicehttp.Requests
 import com.lagradost.nicehttp.ResponseParser
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import kotlin.reflect.KClass
 
 private const val CLOUDSTREAM_USER_AGENT =
@@ -22,8 +26,39 @@ private val jsonResponseParser = object : ResponseParser {
     override fun writeValueAsString(obj: Any): String = mapper.writeValueAsString(obj)
 }
 
+class HttpDiagnosticsInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val host = request.url.host
+        val start = System.currentTimeMillis()
+        val response = try {
+            chain.proceed(request)
+        } catch (t: Throwable) {
+            val duration = System.currentTimeMillis() - start
+            PluginLog.e("HTTP EXCEPTION $host (${duration}ms) :: ${t::class.java.simpleName}: ${t.message}")
+            throw t
+        }
+        val duration = System.currentTimeMillis() - start
+        val code = response.code
+        PluginLog.i("HTTP $code $host (${duration}ms)")
+
+        if (code == 403 || code == 503) {
+            val bodySnippet = response.peekBody(2048).string()
+            if (bodySnippet.contains("cloudflare", ignoreCase = true) || bodySnippet.contains("Just a moment", ignoreCase = true)) {
+                PluginLog.e("Cloudflare détecté sur $host")
+            }
+        }
+        return response
+    }
+}
+
+private val okHttpClient = OkHttpClient.Builder()
+    .addInterceptor(HttpDiagnosticsInterceptor())
+    .build()
+
 /** Client NiceHttp réel attendu par le DEX ; les requêtes ne sont pas simulées. */
 val app: Requests = Requests(responseParser = jsonResponseParser).apply {
+    baseClient = okHttpClient
     defaultHeaders = mapOf("user-agent" to CLOUDSTREAM_USER_AGENT)
 }
 
