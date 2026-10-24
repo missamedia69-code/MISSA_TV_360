@@ -94,6 +94,9 @@ internal fun TvType?.toMissaKind(): Kind = when (this) {
     TvType.Movie,
     TvType.AnimeMovie,
     TvType.Others,
+    TvType.Torrent,
+    TvType.Documentary,
+    TvType.Music,
     null,
     -> Kind.MOVIE
 }

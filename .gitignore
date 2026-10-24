@@ -27,7 +27,7 @@ captures/
 !app/src/main/**/*.png
 win_*.xml
 window*.xml
-tools/
+tools/cs3/
 .thumbs*
 .build_*.log
 .build_*.txt
