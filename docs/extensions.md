@@ -32,6 +32,13 @@ contenant `manifest.json` et `classes.dex`.
 - `status = 0` désactive l’extension côté auteur ;
 - les URL et les tailles de manifestes sont validées avant téléchargement.
 
+La boîte d’ajout accepte aussi les formats de partage Cloudstream saisis
+explicitement : un code court tel que `cloudstreamrepo`, un code `!code`, ou un
+lien `cloudstreamrepo://…` / `https://cs.repo/?…`. Un code court n’est pas un
+nom de domaine : sa redirection est résolue puis sa cible est validée avant la
+lecture du manifeste. Aucun de ces codes n’est préconfiguré ni ajouté au
+démarrage.
+
 ## Installation et exécution
 
 1. L’utilisateur ajoute le dépôt dans l’écran Extensions.

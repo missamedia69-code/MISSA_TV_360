@@ -90,7 +90,7 @@
     <string name="extensions_card_description">Ajouter un dépôt d\'extensions et installer des sources</string>
     <string name="extensions_add_repo">Ajouter un dépôt</string>
     <string name="extensions_refresh">Actualiser</string>
-    <string name="extensions_repo_hint">https://exemple.tld/extensions/repo.json</string>
+    <string name="extensions_repo_hint">URL HTTPS ou code Cloudstream</string>
     <string name="extensions_add">Ajouter</string>
     <string name="extensions_remove">Supprimer</string>
     <string name="extensions_remove_repo">Supprimer ce dépôt et ses extensions ?</string>
@@ -123,7 +123,7 @@
     <string name="extensions_uninstall">Désinstaller</string>
     <string name="extensions_details">Détails</string>
     <string name="extensions_error_details_title">Détails de l’erreur</string>
-    <string name="extensions_url_required">Saisissez l’adresse d’un dépôt.</string>
+    <string name="extensions_url_required">Saisissez l’adresse ou le code d’un dépôt.</string>
 
     <string name="games_loading">Chargement des jeux…</string>
     <string name="games_empty">Aucun jeu disponible pour le moment.</string>

@@ -72,6 +72,46 @@ internal object ExtensionHttp {
     fun getText(url: String, maxBytes: Int): String =
         String(getBytes(url, maxBytes), Charsets.UTF_8)
 
+    /**
+     * Résout un code court Cloudstream sans suivre automatiquement la redirection.
+     * L'URL obtenue est soumise à la même politique HTTPS que tout autre dépôt.
+     */
+    fun resolveShortLink(rawUrl: String): String {
+        checkUrl(rawUrl)
+        val connection = (URL(rawUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = CONNECT_TIMEOUT_MS
+            readTimeout = READ_TIMEOUT_MS
+            instanceFollowRedirects = false
+            requestMethod = "GET"
+            setRequestProperty("Accept", "text/html, application/json, */*")
+            setRequestProperty("User-Agent", "MISSA-TV-360/${BuildConfig.VERSION_NAME}")
+        }
+
+        try {
+            val code = connection.responseCode
+            if (code !in 300..399) {
+                throw ExtensionException("Code de dépôt non résolu (HTTP $code).")
+            }
+            val location = connection.getHeaderField("Location")
+                ?: throw ExtensionException("Code de dépôt sans adresse de redirection.")
+            val target = URL(URL(rawUrl), location).toString()
+            checkUrl(target)
+
+            // cutt.ly et py.md signalent un code inconnu par leur page 404 ou
+            // leur racine. Ces réponses ne doivent pas devenir un faux dépôt.
+            val source = URL(rawUrl)
+            val destination = URL(target)
+            if (destination.host.equals(source.host, ignoreCase = true) &&
+                (destination.path == "/" || destination.path.startsWith("/404"))
+            ) {
+                throw ExtensionException("Code de dépôt inconnu.")
+            }
+            return target
+        } finally {
+            connection.disconnect()
+        }
+    }
+
     fun getBytes(rawUrl: String, maxBytes: Int): ByteArray {
         var current = rawUrl
         var redirects = 0

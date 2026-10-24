@@ -155,8 +155,11 @@ object ExtensionManager {
     suspend fun addRepository(rawUrl: String): Result<RepositoryManifest> = mutex.withLock {
         val store = this.store
             ?: return@withLock Result.failure(ExtensionException("Moteur non initialisé"))
-        val url = normalizeRepositoryUrl(rawUrl)
         try {
+            val url = when (val input = parseRepositoryInput(rawUrl)) {
+                is RepositoryInput.Direct -> input.url
+                is RepositoryInput.ShortLink -> ExtensionHttp.resolveShortLink(input.url)
+            }
             ExtensionHttp.checkUrl(url)
             val manifest = fetchManifest(url)
             val repos = store.repositories().filterNot { it.url == url } +
@@ -172,7 +175,7 @@ object ExtensionManager {
             Result.success(manifest)
         } catch (t: Throwable) {
             _state.value = _state.value.copy(
-                message = t.message ?: "Dépôt illisible.",
+                message = repositoryErrorMessage(t),
                 errorDetails = Log.getStackTraceString(t).take(MAX_ERROR_DETAILS),
             )
             Result.failure(t)
@@ -225,7 +228,7 @@ object ExtensionManager {
                 states += RepositoryState(repo, manifest)
                 sources += repo.url to manifest
             }.onFailure { t ->
-                states += RepositoryState(repo, null, t.message ?: "Dépôt illisible")
+                states += RepositoryState(repo, null, repositoryErrorMessage(t))
             }
         }
 
@@ -461,18 +464,6 @@ object ExtensionManager {
         } catch (e: Exception) {
             throw ExtensionException("plugins.json illisible : $url", e)
         }
-    }
-
-    /** Accepte une URL nue ou le format de partage « Nom : URL ». */
-    private fun normalizeRepositoryUrl(raw: String): String {
-        var value = raw.trim()
-        if (value.contains(" : ")) {
-            value = value.substringAfter(" : ").trim()
-        }
-        if (!value.startsWith("http://") && !value.startsWith("https://")) {
-            value = "https://$value"
-        }
-        return value
     }
 
     private fun messageFor(states: List<RepositoryState>, remote: List<RemotePlugin>): String {
