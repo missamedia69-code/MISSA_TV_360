@@ -1,20 +1,32 @@
 package com.missa.tv360.cloudstream.compat
 
+import com.lagradost.cloudstream3.AnimeLoadResponse
 import com.lagradost.cloudstream3.HomePageResponse
 import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.MainPageRequest
+import com.lagradost.cloudstream3.MovieLoadResponse
 import com.lagradost.cloudstream3.SearchResponse
+import com.lagradost.cloudstream3.SubtitleFile
+import com.lagradost.cloudstream3.TvSeriesLoadResponse
 import com.lagradost.cloudstream3.TvType
+import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.missa.tv360.api.Item
 import com.missa.tv360.api.Kind
 import com.missa.tv360.api.PluginLog
-import kotlinx.coroutines.CancellationException
-import com.missa.tv360.api.Provider
+import com.missa.tv360.api.ResolvingProvider
+import com.missa.tv360.api.Resolution
+import com.missa.tv360.api.ResolvedEpisode
+import com.missa.tv360.api.ResolvedStream
+import com.missa.tv360.api.ResolvedSubtitle
 import com.missa.tv360.api.Row
 import com.missa.tv360.api.Stream
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
-/** Pont d'une seule MainAPI vers le contrat Provider natif. */
-class CloudstreamProvider(private val api: MainAPI) : Provider {
+/** Pont d'une seule MainAPI vers le contrat ResolvingProvider natif. */
+class CloudstreamProvider(private val api: MainAPI) : ResolvingProvider {
     override val id: String = idFor(api)
     override val name: String get() = api.name
 
@@ -36,6 +48,89 @@ class CloudstreamProvider(private val api: MainAPI) : Provider {
             rows += response.toRows(pageIndex, page.name)
         }
         return rows
+    }
+
+    override suspend fun resolve(pageUrl: String, episodeData: String?): Resolution = withContext(Dispatchers.IO) {
+        try {
+            withTimeout(45_000) {
+                val data = if (episodeData != null) {
+                    episodeData
+                } else {
+                    val loadRes = api.load(pageUrl) ?: return@withTimeout Resolution(error = "Page introuvable ou load() null")
+                    when (loadRes) {
+                        is MovieLoadResponse -> {
+                            if (loadRes.dataUrl.isBlank()) {
+                                loadRes.url.ifBlank { pageUrl }
+                            } else {
+                                loadRes.dataUrl
+                            }
+                        }
+                        is TvSeriesLoadResponse -> {
+                            val eps = loadRes.episodes.map { ep ->
+                                ResolvedEpisode(
+                                    title = ep.name ?: "Episode",
+                                    season = ep.season,
+                                    episode = ep.episode,
+                                    data = ep.data
+                                )
+                            }
+                            return@withTimeout Resolution(episodes = eps)
+                        }
+                        is AnimeLoadResponse -> {
+                            val eps = loadRes.episodes.map { ep ->
+                                ResolvedEpisode(
+                                    title = ep.name ?: "Episode",
+                                    season = ep.season,
+                                    episode = ep.episode,
+                                    data = ep.data
+                                )
+                            }
+                            return@withTimeout Resolution(episodes = eps)
+                        }
+                        else -> {
+                            loadRes.url.ifBlank { pageUrl }
+                        }
+                    }
+                }
+
+                val links = mutableListOf<ExtractorLink>()
+                val subs = mutableListOf<SubtitleFile>()
+
+                api.loadLinks(data, false, { subs += it }, { links += it })
+
+                val streams = links.filter { it.url.isNotBlank() }.map { link ->
+                    val url = link.url
+                    val format = when {
+                        link.isM3u8 || url.contains(".m3u8", ignoreCase = true) -> "hls"
+                        url.contains(".mpd", ignoreCase = true) -> "dash"
+                        else -> "mp4"
+                    }
+                    val headers = runCatching { link.getAllHeaders() }.getOrDefault(emptyMap())
+                    val quality = link.quality
+                    val label = buildString {
+                        if (!link.source.isNullOrBlank()) append("${link.source} ")
+                        if (quality > 0) append("${quality}p")
+                    }.trim().ifBlank { format.uppercase() }
+
+                    ResolvedStream(
+                        url = url,
+                        format = format,
+                        headers = headers,
+                        quality = quality,
+                        label = label,
+                    )
+                }.sortedByDescending { it.quality }.distinctBy { it.url }
+
+                val resolvedSubs = subs.map { ResolvedSubtitle(it.lang, it.url) }
+
+                Resolution(streams = streams, subtitles = resolvedSubs)
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (t: Throwable) {
+            PluginLog.e("Cloudstream ${api.name} : resolve($pageUrl) en échec", t)
+            Resolution(error = "${t::class.java.simpleName}: ${t.message ?: "Erreur inconnue"}")
+        }
     }
 
     private fun HomePageResponse.toRows(pageIndex: Int, fallbackTitle: String): List<Row> =

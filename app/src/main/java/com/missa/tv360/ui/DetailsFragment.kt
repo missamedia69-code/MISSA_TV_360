@@ -1,5 +1,7 @@
 package com.missa.tv360.ui
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -16,19 +18,26 @@ import androidx.fragment.app.Fragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.HorizontalGridView
 import androidx.leanback.widget.ItemBridgeAdapter
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.MyListStore
+import com.missa.tv360.data.ReportStore
 import com.missa.tv360.data.Video
+import com.missa.tv360.extensions.StreamResolver
 import com.missa.tv360.playback.PlayerActivity
+import com.missa.tv360.ui.mobile.RatioImageView
+import kotlinx.coroutines.launch
 
 /** Fiche partagée : hiérarchie tactile compacte ou composition large TV/tablette. */
 class DetailsFragment : Fragment() {
     private lateinit var video: Video
     private lateinit var primaryButton: Button
     private lateinit var myListButton: Button
+    private var resolvedHeaders: Map<String, String> = emptyMap()
+    private var isResolvingSources = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +60,7 @@ class DetailsFragment : Fragment() {
         buildActions(view)
         bindSimilar(view)
         setupDescriptionToggle(view)
+        resolveSourcesIfNeeded()
     }
 
     override fun onResume() {
@@ -58,6 +68,36 @@ class DetailsFragment : Fragment() {
         CatalogStore.refreshUserRows(requireContext())
         if (::primaryButton.isInitialized) updatePrimaryButton()
         if (::myListButton.isInitialized) updateMyListButton()
+    }
+
+    private fun resolveSourcesIfNeeded() {
+        if (video.streamUrl.isNotBlank() || video.pageUrl.isNullOrBlank() || video.providerId.isNullOrBlank() || isResolvingSources) {
+            return
+        }
+        isResolvingSources = true
+        if (::primaryButton.isInitialized) {
+            primaryButton.text = getString(R.string.details_searching_sources)
+            primaryButton.isEnabled = false
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val res = StreamResolver.resolve(video)
+            if (!isAdded) return@launch
+            isResolvingSources = false
+            if (res.streams.isNotEmpty()) {
+                val best = res.streams[0]
+                resolvedHeaders = best.headers
+                video = video.copy(streamUrl = best.url, format = best.format)
+                updatePrimaryButton()
+            } else {
+                if (::primaryButton.isInitialized) {
+                    primaryButton.text = getString(R.string.details_no_sources)
+                    primaryButton.isEnabled = false
+                }
+                if (!res.error.isNullOrBlank()) {
+                    Toast.makeText(requireContext(), res.error, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     private fun bindBreadcrumb(view: View) {
@@ -71,7 +111,7 @@ class DetailsFragment : Fragment() {
         val bg = view.findViewById<ImageView>(R.id.details_bg)
         val art = view.findViewById<ImageView>(R.id.details_art)
         val shape = CardShape.forVideo(video)
-        (art as? com.missa.tv360.ui.mobile.RatioImageView)?.aspectRatio = shape.ratio
+        (art as? RatioImageView)?.aspectRatio = shape.ratio
         val artContainer = view.findViewById<View>(R.id.details_art_container)
         val compact = resources.getBoolean(R.bool.is_compact_layout)
         val twoColumn = resources.getBoolean(R.bool.details_two_column)
@@ -82,8 +122,6 @@ class DetailsFragment : Fragment() {
                     CardShape.SQUARE -> 180.dp to 180.dp
                     CardShape.LANDSCAPE -> if (compact) 240.dp to 135.dp else 264.dp to 148.dp
                 }
-                // L'affiche ne doit jamais empiéter sur la colonne de description :
-                // on la borne à la largeur réservée par le layout.
                 val reserved = artContainer.layoutParams.width
                 if (reserved > 0 && width > reserved) {
                     height = (height * reserved / width.toFloat()).toInt()
@@ -212,7 +250,7 @@ class DetailsFragment : Fragment() {
                 button.setBackgroundResource(R.drawable.bg_btn_primary)
                 button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.button_primary_text))
                 primaryButton = button
-                button.isEnabled = video.streamUrl.isNotBlank()
+                button.isEnabled = video.streamUrl.isNotBlank() || !video.pageUrl.isNullOrBlank()
             }
             button.setOnFocusChangeListener { v, focused -> FocusMotion.apply(v, focused) }
             when (action.id) {
@@ -328,7 +366,7 @@ class DetailsFragment : Fragment() {
             return
         }
         startActivity(
-            android.content.Intent(requireContext(), PlayerActivity::class.java).apply {
+            Intent(requireContext(), PlayerActivity::class.java).apply {
                 putExtra(PlayerActivity.EXTRA_URL, video.streamUrl)
                 putExtra(PlayerActivity.EXTRA_VIDEO_ID, video.id)
                 putExtra(PlayerActivity.EXTRA_TITLE, video.seriesDisplayTitle() ?: video.title)
@@ -340,6 +378,9 @@ class DetailsFragment : Fragment() {
                 )
                 putExtra(PlayerActivity.EXTRA_COVER_URL, video.cardUrl)
                 putExtra(PlayerActivity.EXTRA_FORMAT, video.format)
+                if (resolvedHeaders.isNotEmpty()) {
+                    putExtra(PlayerActivity.EXTRA_HEADERS, HashMap(resolvedHeaders))
+                }
             },
         )
     }
@@ -347,11 +388,11 @@ class DetailsFragment : Fragment() {
     private fun showReportDialog() {
         val reasons = resources.getStringArray(R.array.report_reasons)
         var selected = 0
-        android.app.AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setTitle(R.string.action_report)
             .setSingleChoiceItems(reasons, selected) { _, which -> selected = which }
             .setPositiveButton(R.string.report_send) { _, _ ->
-                com.missa.tv360.data.ReportStore.save(requireContext(), video.id, reasons[selected])
+                ReportStore.save(requireContext(), video.id, reasons[selected])
                 Toast.makeText(requireContext(), R.string.report_done, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(android.R.string.cancel, null)

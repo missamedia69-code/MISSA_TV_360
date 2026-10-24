@@ -1,10 +1,13 @@
 package com.missa.tv360.playback
 
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -31,6 +34,7 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_COVER_RES = "extra_cover_res"
         const val EXTRA_COVER_URL = "extra_cover_url"
         const val EXTRA_FORMAT = "extra_format"
+        const val EXTRA_HEADERS = "extra_headers"
         private const val USER_AGENT = "MISSA-TV-360/1.0 (Android player)"
         private const val STATE_POSITION = "state_position"
         private const val STATE_ERROR = "state_error"
@@ -106,15 +110,15 @@ class PlayerActivity : AppCompatActivity() {
         if (!intent.getBooleanExtra(EXTRA_AUDIO_ONLY, false)) return
         val playerView = findViewById<PlayerView>(R.id.player_view)
         playerView.useArtwork = true
-        playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+        playerView.setShutterBackgroundColor(Color.TRANSPARENT)
         val coverRes = intent.getIntExtra(EXTRA_COVER_RES, 0)
         if (coverRes != 0) {
-            playerView.defaultArtwork = androidx.core.content.ContextCompat.getDrawable(this, coverRes)
+            playerView.defaultArtwork = ContextCompat.getDrawable(this, coverRes)
         }
         intent.getStringExtra(EXTRA_COVER_URL)?.takeIf { it.isNotBlank() }?.let { url ->
             ThumbnailLoader.loadArtwork(url) { bitmap ->
                 if (!isFinishing && !isDestroyed) {
-                    playerView.defaultArtwork = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+                    playerView.defaultArtwork = BitmapDrawable(resources, bitmap)
                 }
             }
         }
@@ -199,15 +203,23 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun mimeTypeFor(format: String?): String? = when (format?.lowercase()) {
         "hls" -> MimeTypes.APPLICATION_M3U8
+        "dash" -> MimeTypes.APPLICATION_MPD
         "mp4" -> MimeTypes.VIDEO_MP4
         "mp3" -> MimeTypes.AUDIO_MPEG
         else -> null
     }
 
-    private fun createDataSourceFactory(): DefaultHttpDataSource.Factory =
-        DefaultHttpDataSource.Factory()
+    private fun createDataSourceFactory(): DefaultHttpDataSource.Factory {
+        val factory = DefaultHttpDataSource.Factory()
             .setUserAgent(USER_AGENT)
-            .setAllowCrossProtocolRedirects(false)
+            .setAllowCrossProtocolRedirects(true)
+        @Suppress("UNCHECKED_CAST")
+        val headers = intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<String, String>
+        if (!headers.isNullOrEmpty()) {
+            factory.setDefaultRequestProperties(headers)
+        }
+        return factory
+    }
 
     private fun releasePlayer() {
         findViewById<PlayerView>(R.id.player_view).player = null
