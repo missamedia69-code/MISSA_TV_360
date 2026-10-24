@@ -1,0 +1,75 @@
+name: Cloudstream provider diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "arena/**"
+    paths:
+      - ".github/workflows/diagnostic-allmovieland.yml"
+      - "app/src/androidTest/java/com/missa/tv360/extensions/AllMovieLandDeviceTest.kt"
+
+permissions:
+  contents: read
+
+env:
+  TEST_CLASS: com.missa.tv360.extensions.AllMovieLandDeviceTest
+  FIXTURE_URL: https://api.github.com/repos/phisher98/cloudstream-extensions-phisher/contents/AllMovieLandProvider.cs3?ref=c0ae17606076e1fdda312bdf7be657617e3d7f7e
+  EXPECTED_SHA256: 1282e16296bcb80dfe5c07e5aed8dda0ca4a744973abaa000ef0a3d714aa09d7
+
+jobs:
+  inspect:
+    name: Inspect pinned AllMovieLand fixture
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and inspect without executing the DEX
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            "$FIXTURE_URL" -o app/src/androidTest/assets/AllMovieLandProvider.cs3
+          echo "$EXPECTED_SHA256  app/src/androidTest/assets/AllMovieLandProvider.cs3" | sha256sum -c -
+          test "$(wc -c < app/src/androidTest/assets/AllMovieLandProvider.cs3)" -eq 85605
+          python3 - <<'PY'
+          import json
+          import zipfile
+          with zipfile.ZipFile('app/src/androidTest/assets/AllMovieLandProvider.cs3') as archive:
+              print(json.dumps(json.loads(archive.read('manifest.json'))))
+          PY
+
+  device:
+    name: AllMovieLand on Android emulator
+    needs: inspect
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch and verify pinned AllMovieLand fixture
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            "$FIXTURE_URL" -o app/src/androidTest/assets/AllMovieLandProvider.cs3
+          echo "$EXPECTED_SHA256  app/src/androidTest/assets/AllMovieLandProvider.cs3" | sha256sum -c -
+
+      - name: Run the real plugin on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disk-size: 4G
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: bash .github/scripts/p3_cloudstream_device.sh
