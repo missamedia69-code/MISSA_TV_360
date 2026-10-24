@@ -67,6 +67,14 @@ data class AnimeSearchResponse(
     var episodes: MutableMap<DubStatus, Int> = mutableMapOf(),
 ) : SearchResponse
 
+data class LiveSearchResponse(
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType? = null,
+    override var posterUrl: String? = null,
+) : SearchResponse
+
 data class Episode(
     var data: String,
     var name: String? = null,
@@ -134,6 +142,13 @@ abstract class MainAPI {
 fun mainPageOf(vararg items: Pair<String, String>): List<MainPageData> =
     items.map { (url, name) -> MainPageData(name = name, data = url) }
 
+fun MainAPI.fixUrl(url: String): String {
+    if (url.startsWith("http") || url.startsWith("{\"") || url.startsWith("[")) return url
+    if (url.isEmpty()) return ""
+    if (url.startsWith("//")) return "https:$url"
+    return if (url.startsWith('/')) mainUrl + url else "$mainUrl/$url"
+}
+
 fun newHomePageResponse(
     name: String,
     list: List<SearchResponse>,
@@ -142,6 +157,23 @@ fun newHomePageResponse(
     items = listOf(HomePageList(name, list)),
     hasNext = hasNext ?: list.isNotEmpty(),
 )
+
+fun MainAPI.newLiveSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.Live,
+    fix: Boolean = true,
+    initializer: LiveSearchResponse.() -> Unit = {},
+): LiveSearchResponse {
+    val response = LiveSearchResponse(
+        name = name,
+        url = if (fix) fixUrl(url) else url,
+        apiName = this.name,
+        type = type,
+    )
+    response.initializer()
+    return response
+}
 
 fun MainAPI.newAnimeSearchResponse(
     name: String,
@@ -152,7 +184,7 @@ fun MainAPI.newAnimeSearchResponse(
 ): AnimeSearchResponse {
     val response = AnimeSearchResponse(
         name = name,
-        url = if (fix) fixUrlCompat(url) else url,
+        url = if (fix) fixUrl(url) else url,
         apiName = this.name,
         type = type,
     )
@@ -194,11 +226,4 @@ suspend fun MainAPI.newTvSeriesLoadResponse(
     )
     response.initializer()
     return response
-}
-
-private fun MainAPI.fixUrlCompat(url: String): String = when {
-    url.startsWith("http://") || url.startsWith("https://") -> url
-    url.startsWith("//") -> "https:$url"
-    url.startsWith("/") -> mainUrl.trimEnd('/') + url
-    else -> "${mainUrl.trimEnd('/')}/$url"
 }
