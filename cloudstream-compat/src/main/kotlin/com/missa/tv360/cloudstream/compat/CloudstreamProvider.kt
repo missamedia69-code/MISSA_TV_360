@@ -77,15 +77,19 @@ class CloudstreamProvider(private val api: MainAPI) : ResolvingProvider {
                             return@withTimeout Resolution(episodes = eps)
                         }
                         is AnimeLoadResponse -> {
-                            val eps = loadRes.episodes.map { ep ->
-                                ResolvedEpisode(
-                                    title = ep.name ?: "Episode",
-                                    season = ep.season,
-                                    episode = ep.episode,
-                                    data = ep.data
-                                )
+                            if (loadRes.type == TvType.AnimeMovie || loadRes.episodes.size <= 1) {
+                                loadRes.episodes.firstOrNull()?.data ?: loadRes.url.ifBlank { pageUrl }
+                            } else {
+                                val eps = loadRes.episodes.map { ep ->
+                                    ResolvedEpisode(
+                                        title = ep.name ?: "Episode",
+                                        season = ep.season,
+                                        episode = ep.episode,
+                                        data = ep.data
+                                    )
+                                }
+                                return@withTimeout Resolution(episodes = eps)
                             }
-                            return@withTimeout Resolution(episodes = eps)
                         }
                         else -> {
                             loadRes.url.ifBlank { pageUrl }

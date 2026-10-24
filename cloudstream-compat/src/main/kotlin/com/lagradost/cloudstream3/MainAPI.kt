@@ -566,8 +566,8 @@ suspend fun MainAPI.newTvSeriesLoadResponse(
 suspend fun MainAPI.newAnimeLoadResponse(
     name: String,
     url: String,
-    type: TvType,
-    episodes: List<Episode>,
+    type: TvType = TvType.Anime,
+    comingSoonIfNone: Boolean = true,
     initializer: suspend AnimeLoadResponse.() -> Unit = {},
 ): AnimeLoadResponse {
     val response = AnimeLoadResponse(
@@ -575,7 +575,6 @@ suspend fun MainAPI.newAnimeLoadResponse(
         url = url,
         apiName = this.name,
         type = type,
-        episodes = episodes,
     )
     response.initializer()
     return response
@@ -598,6 +597,10 @@ suspend fun MainAPI.newLiveStreamLoadResponse(
     return response
 }
 
-fun addEpisodes(anime: AnimeLoadResponse, dubStatus: DubStatus, episodes: List<Episode>) {
-    // optional helper
+fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<Episode>) {
+    this.episodes = this.episodes + episodes
+}
+
+fun AnimeLoadResponse.addEpisodes(episodes: List<Episode>) {
+    this.episodes = this.episodes + episodes
 }
