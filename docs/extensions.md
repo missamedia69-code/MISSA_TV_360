@@ -19,11 +19,16 @@ Un dépôt manuel expose un `repo.json` HTTPS :
 ```
 
 Chaque liste contient des entrées d’extension avec notamment `url`,
-`internalName`, `version`, `apiVersion`, `fileSize` et `fileHash`. L’archive
-`.msa` est un ZIP contenant `manifest.json` et `classes.dex`.
+`internalName`, `version`, `apiVersion`, `fileSize` et, lorsqu’il est fourni,
+`fileHash`. Les archives `.msa` natives et `.cs3` Cloudstream sont des ZIP
+contenant `manifest.json` et `classes.dex`.
 
-- `fileHash` est obligatoire et utilise le format `sha256-<empreinte>` ;
-- `apiVersion` doit correspondre à `plugin-api` ;
+- `fileHash` est facultatif pour accepter les manifestes Cloudstream historiques ;
+  lorsqu’il est présent, il utilise `sha256-<empreinte>` (ou la forme acceptée
+  `sha256:<empreinte>`) et l’archive est vérifiée avant installation ;
+- `apiVersion` doit correspondre à `plugin-api` pour une extension native ; les
+  anciens manifestes Cloudstream sans cette valeur suivent le chemin de
+  compatibilité dédié ;
 - `status = 0` désactive l’extension côté auteur ;
 - les URL et les tailles de manifestes sont validées avant téléchargement.
 
@@ -31,12 +36,19 @@ Chaque liste contient des entrées d’extension avec notamment `url`,
 
 1. L’utilisateur ajoute le dépôt dans l’écran Extensions.
 2. Le manifeste et les listes sont lus avec des limites de taille et de temps.
-3. L’archive téléchargée est vérifiée par SHA-256 avant installation atomique.
+3. Si une empreinte est déclarée, l’archive téléchargée est vérifiée par SHA-256
+   avant installation atomique ; les tailles et la structure du paquet sont
+   contrôlées dans tous les cas.
 4. Le chargeur isole le DEX et enregistre les providers déclarés.
-5. Une extension en échec est désactivée sans empêcher le catalogue JSON de
-   fonctionner.
+5. Si le chargement échoue, le fichier et l’enregistrement installé sont purgés,
+   l’échec est conservé séparément et la même version n’est pas réinstallée
+   automatiquement au démarrage.
+6. Une extension en échec n’empêche pas le catalogue JSON ni les autres
+   extensions de fonctionner.
 
-Aucune extension n’est installée automatiquement au premier lancement.
+Aucune extension n’est installée automatiquement au premier lancement. Les
+états et les actions de l’écran Extensions distinguent installation, désactivation,
+incompatibilité, mise à jour et nouvelle tentative manuelle.
 
 ## Outil de publication
 
@@ -55,8 +67,26 @@ Le mode `--check` vérifie qu’un fichier existant correspond aux artefacts.
 L’outil ne publie ni release ni site : ces opérations restent manuelles et
 relèvent du dépôt d’extensions concerné.
 
+## Compatibilité Cloudstream expérimentale
+
+Le prototype `cloudstream-compat` est limité à la surface inspectée du plugin
+BuzzMonclick. Il ne signifie pas que tous les `.cs3` sont compatibles et ne
+fournit pas de contenu préconfiguré. La provenance de la fixture, les règles de
+non-réinvention des licences et le résultat réel de la sonde P3 sont documentés
+dans [`cloudstream-compat.md`](cloudstream-compat.md).
+
+La porte P3 reste actuellement ouverte : le plugin se charge, mais son domaine
+ne produit aucune rangée réelle sur l’émulateur. P4 n’est pas lancé sur cette
+base.
+
 ## Tests
 
 ```bash
 python3 -m unittest discover -s extension-tools -p 'test_*.py'
+./gradlew :app:testDebugUnitTest :cloudstream-compat:testDebugUnitTest
+./gradlew :app:assembleDebugAndroidTest
 ```
+
+Les tests unitaires et la compilation ne remplacent pas la validation sur
+appareil/émulateur, notamment pour le réseau, le D-pad, la lecture et le
+redémarrage.
