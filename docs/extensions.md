@@ -58,10 +58,11 @@ Aucune extension n’est installée automatiquement au premier lancement. Les
 incompatibilité, mise à jour et nouvelle tentative manuelle.
 
 L’état **Chargée** signifie uniquement que le DEX et son provider ont été
-enregistrés. Il ne garantit ni réponse réseau ni rangée de contenu. Sur l’accueil,
-les providers sont interrogés en parallèle avec un délai individuel ; la tuile
-Extensions indique le chargement, le nombre de rangées réellement affichées ou
-l’absence de rangée, sans créer de contenu de remplacement.
+enregistrés. Il ne garantit ni réponse réseau ni rangée de contenu. Les
+providers sont interrogés en parallèle avec un délai individuel. Sur l’accueil
+TV, l’action Extensions reste fixe et accessible au D-pad ; en l’absence de
+rangées, un état explicite distingue chargement, échec et provider sans contenu,
+sans créer de carte de remplacement.
 
 ## Outil de publication
 

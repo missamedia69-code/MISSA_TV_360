@@ -4,253 +4,161 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import android.widget.Button
+import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.leanback.app.BackgroundManager
-import androidx.leanback.app.BrowseSupportFragment
-import androidx.leanback.widget.ArrayObjectAdapter
-import androidx.leanback.widget.HeaderItem
-import androidx.leanback.widget.ListRow
-import androidx.leanback.widget.ListRowPresenter
-import androidx.leanback.widget.OnItemViewClickedListener
-import androidx.leanback.widget.OnItemViewSelectedListener
-import androidx.leanback.widget.Presenter
-import androidx.leanback.widget.Row
-import androidx.leanback.widget.RowPresenter
-import androidx.leanback.widget.SearchOrbView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.missa.tv360.R
-import com.missa.tv360.data.CardShapeHint
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
 import com.missa.tv360.data.Video
-import com.missa.tv360.data.VideoRow
+import com.missa.tv360.extensions.ExtensionCatalogLoader
+import com.missa.tv360.extensions.ExtensionManager
 import com.missa.tv360.extensions.ExtensionsActivity
 import com.missa.tv360.games.GamesActivity
+import com.missa.tv360.ui.mobile.MobileRowsAdapter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** Accueil Leanback synchronisé avec le catalogue partagé TV/mobile. */
-class BrowseFragment : BrowseSupportFragment() {
-    private val rowPresenter = ListRowPresenter().apply {
-        setHeaderPresenter(MissaRowHeaderPresenter())
-        selectEffectEnabled = false
-        shadowEnabled = false
-    }
-    private val rowsAdapter = ArrayObjectAdapter(rowPresenter)
-    private val cardPresenter = MissaCardPresenter()
-    private val rowsById = mutableMapOf<String, ListRow>()
-    private val boundVideos = mutableMapOf<String, List<Video>>()
-    private var extensionsRow: ListRow? = null
-    private var extensionCard: Video? = null
+/**
+ * Accueil TV avec des vues explicites et navigables au D-pad.
+ *
+ * Les détails et la recherche conservent leurs composants Leanback. L'accueil
+ * utilise des RecyclerView classiques afin que marges, textes et focus ne
+ * dépendent plus des transitions de BrowseSupportFragment.
+ */
+class BrowseFragment : Fragment() {
+    private lateinit var rowsAdapter: MobileRowsAdapter
     private var extensionJob: Job? = null
     private var refreshExtensionsOnResume = false
     private var extensionsStarted = false
-    private var lastCatalog: List<VideoRow>? = null
-    private var hasPresentedRows = false
-    private var selectedBackgroundId: String? = null
+    private var extensionsLoading = false
+    private var extensionsFailed = false
+    private var providerCount = 0
 
-    override fun onInflateTitleView(
+    override fun onCreateView(
         inflater: LayoutInflater,
-        parent: ViewGroup,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View = inflater.inflate(R.layout.lb_browse_title, parent, false)
+    ): View = inflater.inflate(R.layout.fragment_tv_home, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        title = getString(R.string.app_name)
-        badgeDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_app_logo)
-        headersState = HEADERS_ENABLED
-        isHeadersTransitionOnBackEnabled = true
-        brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
-        setSearchAffordanceColors(
-            SearchOrbView.Colors(
-                ContextCompat.getColor(requireContext(), R.color.missa_yellow),
-                ContextCompat.getColor(requireContext(), R.color.missa_yellow_focus),
-                ContextCompat.getColor(requireContext(), R.color.missa_on_yellow),
-            ),
+        rowsAdapter = MobileRowsAdapter(
+            onVideoClick = ::openVideo,
+            onMoreClick = { row -> openCategory(row.rowId, row.title) },
+            rowLayoutRes = R.layout.tv_catalog_row,
+            cardLayoutRes = R.layout.tv_video_card,
         )
-        adapter = rowsAdapter
-        setOnSearchClickedListener { openFilmSearch() }
-        // Le BackgroundManager est un singleton par activite : rattacher une seconde fois
-        // (retour depuis un detail) leve "Already attached to DecorView".
-        BackgroundManager.getInstance(requireActivity()).let { background ->
-            if (!background.isAttached) background.attach(requireActivity().window)
+        view.findViewById<RecyclerView>(R.id.tv_home_rows).apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = rowsAdapter
+            itemAnimator = null
         }
+        view.findViewById<Button>(R.id.tv_search).setOnClickListener { openSearch() }
+        val openExtensions = View.OnClickListener { openExtensions() }
+        view.findViewById<Button>(R.id.tv_extensions).setOnClickListener(openExtensions)
+        view.findViewById<Button>(R.id.tv_empty_extensions).setOnClickListener(openExtensions)
 
-        onItemViewClickedListener = OnItemViewClickedListener { _, item, _, _ ->
-            val video = item as? Video ?: return@OnItemViewClickedListener
-            when {
-                video.id == EXTENSIONS_CARD_ID -> openExtensions()
-                video.moreTargetRowId != null -> openCategoryGrid(video.moreTargetRowId, video.description)
-                video.isGamesLauncher -> openGames()
-                else -> openDetails(video)
-            }
-        }
-        onItemViewSelectedListener = OnItemViewSelectedListener { _, item, _, _ ->
-            val video = item as? Video ?: return@OnItemViewSelectedListener
-            updateBackground(video)
-        }
-
+        render()
         val model = ViewModelProvider(requireActivity())[CatalogViewModel::class.java]
-        viewLifecycleOwner.lifecycleScope.launch {
-            model.state.collect { state ->
-                if (state.rows != lastCatalog) {
-                    lastCatalog = state.rows
-                    syncRows()
-                }
+        viewLifecycleOwner.lifecycleScope.launch { model.state.collect { render() } }
+        loadExtensions(bootstrap = true)
+
+        if (savedInstanceState == null) {
+            view.findViewById<Button>(R.id.tv_extensions).post {
+                if (isAdded) view.findViewById<Button>(R.id.tv_extensions).requestFocus()
             }
         }
-        loadExtensions(bootstrap = true)
     }
 
     override fun onResume() {
         super.onResume()
         CatalogStore.refreshUserRows(requireContext())
-        syncRows()
+        render()
         if (refreshExtensionsOnResume) {
             refreshExtensionsOnResume = false
             loadExtensions(bootstrap = false)
         }
     }
 
-    /** Synchronise uniquement les rangées réellement modifiées pour préserver le focus. */
-    private fun syncRows() {
-        if (!isAdded) return
-        val desired = CatalogStore.snapshot()
-        val desiredIds = desired.mapIndexed { index, row -> row.rowId ?: "title-$index-${row.title}" }
-        val removed = rowsById.keys - desiredIds.toSet()
-        removed.forEach { id ->
-            rowsById.remove(id)?.let(rowsAdapter::remove)
-            boundVideos.remove(id)
+    private fun render() {
+        val currentView = view ?: return
+        val rows = CatalogStore.snapshot()
+        rowsAdapter.submitList(rows)
+        currentView.findViewById<RecyclerView>(R.id.tv_home_rows).isVisible = rows.isNotEmpty()
+        currentView.findViewById<View>(R.id.tv_home_empty).isVisible = rows.isEmpty()
+        currentView.findViewById<View>(R.id.tv_extension_loading).isVisible = extensionsLoading
+
+        val status = currentView.findViewById<TextView>(R.id.tv_extension_status)
+        status.isVisible = rows.isNotEmpty() && (extensionsLoading || extensionsFailed)
+        status.text = when {
+            extensionsLoading -> getString(R.string.extensions_home_loading)
+            extensionsFailed -> getString(R.string.extensions_home_failed)
+            else -> ""
         }
 
-        desired.forEachIndexed { index, displayRow ->
-            val id = desiredIds[index]
-            val isGames = id == "jeux" || id == "games" || displayRow.videos.firstOrNull()?.isGamesLauncher == true
-            val items = displayRow.videos + if (isGames) emptyList() else {
-                listOf(moreCard(id, displayRow.title, displayRow.videos.firstOrNull()))
+        val emptyTitle: String
+        val emptyBody: String
+        when {
+            extensionsLoading -> {
+                emptyTitle = getString(R.string.tv_home_loading_title)
+                emptyBody = getString(R.string.extensions_home_loading)
             }
-            val existing = rowsById[id]
-            if (existing == null) {
-                val listAdapter = ArrayObjectAdapter(cardPresenter)
-                items.forEach(listAdapter::add)
-                val row = ListRow(HeaderItem(id.hashCode().toLong(), displayRow.title), listAdapter)
-                rowsById[id] = row
-                boundVideos[id] = items
-                rowsAdapter.add(index.coerceAtMost(rowsAdapter.size()), row)
-            } else if (boundVideos[id] != items) {
-                @Suppress("UNCHECKED_CAST")
-                val listAdapter = existing.adapter as ArrayObjectAdapter
-                listAdapter.clear()
-                items.forEach(listAdapter::add)
-                boundVideos[id] = items
+            extensionsFailed -> {
+                emptyTitle = getString(R.string.tv_home_failed_title)
+                emptyBody = getString(R.string.extensions_home_failed)
             }
-        }
-        appendExtensionsCard()
-        if (!hasPresentedRows && rowsAdapter.size() > 0) {
-            hasPresentedRows = true
-            startHeadersTransition(true)
-        }
-    }
-
-    private fun moreCard(
-        rowId: String,
-        header: String,
-        sample: Video?,
-    ) = Video(
-        id = "more-$rowId",
-        title = getString(R.string.row_more),
-        description = header,
-        cardRes = R.drawable.card_more,
-        streamUrl = "",
-        kind = sample?.kind ?: com.missa.tv360.data.ContentKind.MOVIE,
-        shapeHint = sample?.shapeHint,
-        moreTargetRowId = rowId,
-    )
-
-    private fun appendExtensionsCard() {
-        if (extensionsRow != null) return
-        val card = extensionCard ?: newExtensionCard(
-            getString(R.string.extensions_card_description),
-        ).also { extensionCard = it }
-        val adapter = ArrayObjectAdapter(cardPresenter).apply { add(card) }
-        extensionsRow = ListRow(
-            HeaderItem(EXTENSIONS_HEADER_ID, getString(R.string.extensions_title)),
-            adapter,
-        ).also { rowsAdapter.add(it) }
-    }
-
-    private fun updateExtensionsCard(description: String) {
-        val card = newExtensionCard(description)
-        extensionCard = card
-        val listAdapter = extensionsRow?.adapter as? ArrayObjectAdapter
-        if (listAdapter == null) {
-            appendExtensionsCard()
-        } else if (listAdapter.size() == 0) {
-            listAdapter.add(card)
-        } else {
-            listAdapter.replace(0, card)
-        }
-    }
-
-    private fun newExtensionCard(description: String) = Video(
-        id = EXTENSIONS_CARD_ID,
-        title = getString(R.string.extensions_card_title),
-        description = description,
-        cardRes = R.drawable.card_more,
-        streamUrl = "",
-        shapeHint = CardShapeHint.LANDSCAPE,
-    )
-
-    private fun updateBackground(video: Video) {
-        selectedBackgroundId = video.id
-        val context = requireContext()
-        val fallback = fondParDefaut(video.kind.name)
-        BackgroundManager.getInstance(requireActivity()).drawable =
-            ContextCompat.getDrawable(context, fallback)
-        if (!video.cardUrl.isNullOrBlank()) {
-            ThumbnailLoader.loadDrawable(context, video.cardUrl, fallback) { drawable ->
-                if (selectedBackgroundId == video.id && isAdded) {
-                    BackgroundManager.getInstance(requireActivity()).drawable = drawable
-                }
+            providerCount > 0 -> {
+                emptyTitle = getString(R.string.tv_home_no_rows_title)
+                emptyBody = getString(R.string.extensions_home_no_rows, providerCount)
+            }
+            else -> {
+                emptyTitle = getString(R.string.empty_category)
+                emptyBody = getString(R.string.extensions_card_description)
             }
         }
+        currentView.findViewById<TextView>(R.id.tv_empty_title).text = emptyTitle
+        currentView.findViewById<TextView>(R.id.tv_empty_body).text = emptyBody
     }
 
     private fun loadExtensions(bootstrap: Boolean) {
         if (extensionsStarted && bootstrap) return
         extensionsStarted = true
         extensionJob?.cancel()
-        updateExtensionsCard(getString(R.string.extensions_home_loading))
+        extensionsLoading = true
+        extensionsFailed = false
+        render()
         extensionJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val rows = com.missa.tv360.extensions.ExtensionCatalogLoader.load(
-                    requireContext(),
-                    bootstrap,
-                )
+                val rows = ExtensionCatalogLoader.load(requireContext(), bootstrap)
                 if (!isAdded) return@launch
                 CatalogStore.removeExtensions(requireContext())
                 CatalogStore.append(requireContext(), rows)
-                syncRows()
-                val providerCount = com.missa.tv360.extensions.ExtensionManager.providers().size
-                val description = when {
-                    rows.isNotEmpty() -> getString(R.string.extensions_home_rows, rows.size)
-                    providerCount > 0 -> getString(R.string.extensions_home_no_rows, providerCount)
-                    else -> getString(R.string.extensions_card_description)
-                }
-                updateExtensionsCard(description)
+                providerCount = ExtensionManager.providers().size
+                extensionsLoading = false
+                extensionsFailed = false
+                render()
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (t: Throwable) {
-                android.util.Log.w("Browse", "Extensions indisponibles", t)
-                if (isAdded) updateExtensionsCard(getString(R.string.extensions_home_failed))
-            } finally {
-                if (isAdded) appendExtensionsCard()
+            } catch (error: Throwable) {
+                android.util.Log.w("Browse", "Extensions indisponibles", error)
+                if (isAdded) {
+                    extensionsLoading = false
+                    extensionsFailed = true
+                    render()
+                }
             }
         }
+    }
+
+    private fun openVideo(video: Video) {
+        if (video.isGamesLauncher) openGames() else openDetails(video)
     }
 
     private fun openExtensions() {
@@ -258,14 +166,14 @@ class BrowseFragment : BrowseSupportFragment() {
         startActivity(android.content.Intent(requireContext(), ExtensionsActivity::class.java))
     }
 
-    private fun openCategoryGrid(rowId: String?, header: String) {
+    private fun openCategory(rowId: String?, title: String) {
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.main_browse_container, CategoryFragment.newInstance(rowId, header))
+            .replace(R.id.main_browse_container, CategoryFragment.newInstance(rowId, title))
             .addToBackStack("category-grid")
             .commit()
     }
 
-    private fun openFilmSearch() {
+    private fun openSearch() {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.main_browse_container, FilmSearchFragment())
             .addToBackStack("film-search")
@@ -283,14 +191,9 @@ class BrowseFragment : BrowseSupportFragment() {
         startActivity(android.content.Intent(requireContext(), GamesActivity::class.java))
     }
 
-
     override fun onDestroyView() {
         extensionJob = null
+        extensionsLoading = false
         super.onDestroyView()
-    }
-
-    private companion object {
-        const val EXTENSIONS_CARD_ID = "open-extensions"
-        const val EXTENSIONS_HEADER_ID = 2000L
     }
 }

@@ -7,6 +7,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -23,6 +24,7 @@ import com.missa.tv360.ui.afficheParDefaut
 class MobileVideoAdapter(
     private val fillWidth: Boolean = false,
     private val onClick: (Video) -> Unit,
+    @LayoutRes private val itemLayoutRes: Int = R.layout.mobile_video_card,
 ) : ListAdapter<Video, MobileVideoAdapter.Holder>(Diff) {
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
         val root: View = view.findViewById(R.id.mobile_card_root)
@@ -35,7 +37,7 @@ class MobileVideoAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.mobile_video_card, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(itemLayoutRes, parent, false)
         return Holder(view).also { holder ->
             holder.root.setOnClickListener {
                 val position = holder.bindingAdapterPosition

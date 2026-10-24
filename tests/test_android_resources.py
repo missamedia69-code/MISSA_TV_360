@@ -105,6 +105,24 @@ class AndroidResourceTests(unittest.TestCase):
         presenter = (ROOT / "app" / "src" / "main" / "java" / "com" / "missa" / "tv360" / "ui" / "MissaCardPresenter.kt").read_text()
         self.assertNotIn("params.setMargins", presenter)
 
+    def test_tv_home_has_explicit_focusable_actions_and_separate_layouts(self):
+        home = (RES / "layout" / "fragment_tv_home.xml").read_text()
+        for view_id in (
+            "tv_search", "tv_extensions", "tv_home_rows", "tv_home_empty",
+            "tv_empty_title", "tv_empty_body", "tv_empty_extensions",
+        ):
+            self.assertIn(f'@+id/{view_id}', home)
+        row = (RES / "layout" / "tv_catalog_row.xml").read_text()
+        card = (RES / "layout" / "tv_video_card.xml").read_text()
+        for view_id in ("mobile_row_title", "mobile_row_more", "mobile_row_videos"):
+            self.assertIn(f'@+id/{view_id}', row)
+        for view_id in ("mobile_card_root", "mobile_card_image", "mobile_card_title", "mobile_card_subtitle"):
+            self.assertIn(f'@+id/{view_id}', card)
+        self.assertIn('android:focusable="true"', card)
+        fragment = (ROOT / "app" / "src" / "main" / "java" / "com" / "missa" / "tv360" / "ui" / "BrowseFragment.kt").read_text()
+        self.assertIn("class BrowseFragment : Fragment()", fragment)
+        self.assertNotIn("BrowseSupportFragment()", fragment)
+
 
 if __name__ == "__main__":
     unittest.main()

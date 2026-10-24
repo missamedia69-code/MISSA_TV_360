@@ -90,8 +90,11 @@
     <string name="extensions_card_description">Ajouter un dépôt d\'extensions et installer des sources</string>
     <string name="extensions_home_loading">Chargement des contenus des extensions…</string>
     <string name="extensions_home_no_rows">%1$d extension(s) chargée(s), aucune rangée publiée. Ouvrir pour vérifier.</string>
-    <string name="extensions_home_rows">%1$d rangée(s) d’extensions affichée(s). Gérer les sources.</string>
     <string name="extensions_home_failed">Chargement interrompu. Ouvrir Extensions pour vérifier.</string>
+    <string name="extensions_open">Ouvrir Extensions</string>
+    <string name="tv_home_loading_title">Chargement des extensions</string>
+    <string name="tv_home_no_rows_title">Aucune rangée publiée</string>
+    <string name="tv_home_failed_title">Chargement des extensions interrompu</string>
     <string name="extensions_add_repo">Ajouter un dépôt</string>
     <string name="extensions_refresh">Actualiser</string>
     <string name="extensions_repo_hint">URL HTTPS ou code Cloudstream</string>

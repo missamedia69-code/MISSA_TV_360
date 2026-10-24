@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mobile_card_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_focusable_surface"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:id="@+id/mobile_art_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipChildren="false">
+
+        <com.missa.tv360.ui.mobile.RatioImageView
+            android:id="@+id/mobile_card_image"
+            android:layout_width="204dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_image"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/mobile_card_live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_badge_live"
+            android:importantForAccessibility="no"
+            android:paddingStart="7dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="7dp"
+            android:paddingBottom="3dp"
+            android:text="@string/badge_live"
+            android:textColor="@color/missa_white"
+            android:textSize="@dimen/text_caption"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/mobile_card_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="204dp"
+        android:layout_height="@dimen/progress_h"
+        android:max="100"
+        android:progressBackgroundTint="@color/missa_border"
+        android:progressTint="@color/missa_yellow"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/mobile_card_title"
+        android:layout_width="204dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/missa_white"
+        android:textSize="@dimen/text_body"
+        android:textStyle="bold"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/mobile_card_subtitle"
+        android:layout_width="204dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/missa_text_secondary"
+        android:textSize="@dimen/text_meta"
+        android:importantForAccessibility="no" />
+</LinearLayout>

@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,19 +18,25 @@ import com.missa.tv360.data.Video
 class MobileRowsAdapter(
     private val onVideoClick: (Video) -> Unit,
     private val onMoreClick: (CatalogStore.DisplayRow) -> Unit,
+    @LayoutRes private val rowLayoutRes: Int = R.layout.mobile_catalog_row,
+    @LayoutRes private val cardLayoutRes: Int = R.layout.mobile_video_card,
 ) : ListAdapter<CatalogStore.DisplayRow, MobileRowsAdapter.Holder>(Diff) {
-    class Holder(view: View, onVideoClick: (Video) -> Unit) : RecyclerView.ViewHolder(view) {
+    class Holder(
+        view: View,
+        onVideoClick: (Video) -> Unit,
+        @LayoutRes cardLayoutRes: Int,
+    ) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.mobile_row_title)
         val more: Button = view.findViewById(R.id.mobile_row_more)
         val videos: RecyclerView = view.findViewById(R.id.mobile_row_videos)
         val empty: TextView = view.findViewById(R.id.mobile_row_empty)
-        val adapter = MobileVideoAdapter(onClick = onVideoClick)
+        val adapter = MobileVideoAdapter(onClick = onVideoClick, itemLayoutRes = cardLayoutRes)
         var row: CatalogStore.DisplayRow? = null
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.mobile_catalog_row, parent, false)
-        return Holder(view, onVideoClick).also { holder ->
+        val view = LayoutInflater.from(parent.context).inflate(rowLayoutRes, parent, false)
+        return Holder(view, onVideoClick, cardLayoutRes).also { holder ->
             holder.videos.layoutManager = LinearLayoutManager(parent.context, LinearLayoutManager.HORIZONTAL, false)
             holder.videos.adapter = holder.adapter
             holder.more.setOnClickListener { holder.row?.let(onMoreClick) }
