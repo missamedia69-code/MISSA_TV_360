@@ -48,7 +48,8 @@ class FStreamDeviceTest {
                 try {
                     ExtensionLoader.load(activity, record)
                 } catch (error: Throwable) {
-                    throw AssertionError("Chargement FStream échoué : ${describe(error)}")
+                    val category = (error as? ExtensionException)?.type?.let { " [$it]" }.orEmpty()
+                    throw AssertionError("Chargement FStream échoué$category : ${describe(error)}")
                         .apply { initCause(error) }
                 }
                 provider = CloudstreamCompatRegistry.providers()

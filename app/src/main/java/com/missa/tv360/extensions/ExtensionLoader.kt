@@ -185,17 +185,21 @@ internal object ExtensionLoader {
     }
 
     private fun classFailure(className: String, error: Throwable): ExtensionException {
-        dependencyFailure(error)?.let { return it }
-        val notFound = causes(error).any { it is ClassNotFoundException }
-        return if (notFound) {
-            ExtensionException(
+        val classification = classifyClassFailure(className, error)
+        return when (classification.type) {
+            ExtensionErrorType.BAD_MANIFEST -> ExtensionException(
                 "Classe du manifeste introuvable : $className.",
                 error,
-                ExtensionErrorType.BAD_MANIFEST,
+                classification.type,
                 Log.getStackTraceString(error),
             )
-        } else {
-            ExtensionException(
+            ExtensionErrorType.MISSING_DEPENDENCY -> ExtensionException(
+                "Dépendance manquante : ${classification.missingClass}.",
+                error,
+                classification.type,
+                Log.getStackTraceString(error),
+            )
+            else -> ExtensionException(
                 "Liaison impossible de $className : ${rootMessage(error)}.",
                 error,
                 ExtensionErrorType.LOAD_FAILED,
@@ -206,27 +210,13 @@ internal object ExtensionLoader {
 
     private fun dependencyFailure(error: Throwable): ExtensionException? {
         val missing = causes(error).firstOrNull { it is NoClassDefFoundError } ?: return null
-        val dependency = missingClassName(missing)
+        val dependency = extractMissingClassName(missing) ?: return null
         return ExtensionException(
             "Dépendance manquante : $dependency.",
             error,
             ExtensionErrorType.MISSING_DEPENDENCY,
             Log.getStackTraceString(error),
         )
-    }
-
-    private fun missingClassName(error: Throwable): String {
-        val message = error.message.orEmpty()
-        val descriptor = Regex("L[A-Za-z0-9_$/.-]+;").find(message)?.value
-        val token = descriptor ?: message.split(Regex("\\s+"))
-            .firstOrNull { it.contains('/') || it.startsWith("L") }
-            ?.removePrefix(":")
-        return token
-            ?.removePrefix("L")
-            ?.removeSuffix(";")
-            ?.replace('/', '.')
-            ?.takeIf(String::isNotBlank)
-            ?: error::class.java.simpleName
     }
 
     private fun rootMessage(error: Throwable): String {
