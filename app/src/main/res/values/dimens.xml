@@ -5,6 +5,15 @@
     <dimen name="topbar_height">56dp</dimen>
     <dimen name="touch_target_min">48dp</dimen>
 
+    <!-- Accueil Leanback : explicite car le thème AppCompat ne fournit pas ces marges. -->
+    <dimen name="tv_browse_padding_start">48dp</dimen>
+    <dimen name="tv_browse_padding_end">48dp</dimen>
+    <dimen name="tv_browse_padding_top">24dp</dimen>
+    <dimen name="tv_browse_padding_bottom">48dp</dimen>
+    <dimen name="tv_browse_rows_margin_start">200dp</dimen>
+    <dimen name="tv_browse_rows_margin_top">144dp</dimen>
+    <dimen name="tv_browse_rows_fading_edge">0dp</dimen>
+
     <dimen name="text_screen_title">28sp</dimen>
     <dimen name="text_section_title">20sp</dimen>
     <dimen name="text_content_title">16sp</dimen>

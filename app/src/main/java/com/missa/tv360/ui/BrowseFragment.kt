@@ -17,9 +17,11 @@ import androidx.leanback.widget.OnItemViewSelectedListener
 import androidx.leanback.widget.Presenter
 import androidx.leanback.widget.Row
 import androidx.leanback.widget.RowPresenter
+import androidx.leanback.widget.SearchOrbView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.missa.tv360.R
+import com.missa.tv360.data.CardShapeHint
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
 import com.missa.tv360.data.Video
@@ -42,6 +44,7 @@ class BrowseFragment : BrowseSupportFragment() {
     private val rowsById = mutableMapOf<String, ListRow>()
     private val boundVideos = mutableMapOf<String, List<Video>>()
     private var extensionsRow: ListRow? = null
+    private var extensionCard: Video? = null
     private var extensionJob: Job? = null
     private var refreshExtensionsOnResume = false
     private var extensionsStarted = false
@@ -62,6 +65,13 @@ class BrowseFragment : BrowseSupportFragment() {
         headersState = HEADERS_ENABLED
         isHeadersTransitionOnBackEnabled = true
         brandColor = ContextCompat.getColor(requireContext(), R.color.missa_bg_top)
+        setSearchAffordanceColors(
+            SearchOrbView.Colors(
+                ContextCompat.getColor(requireContext(), R.color.missa_yellow),
+                ContextCompat.getColor(requireContext(), R.color.missa_yellow_focus),
+                ContextCompat.getColor(requireContext(), R.color.missa_on_yellow),
+            ),
+        )
         adapter = rowsAdapter
         setOnSearchClickedListener { openFilmSearch() }
         // Le BackgroundManager est un singleton par activite : rattacher une seconde fois
@@ -163,19 +173,37 @@ class BrowseFragment : BrowseSupportFragment() {
 
     private fun appendExtensionsCard() {
         if (extensionsRow != null) return
-        val card = Video(
-            id = EXTENSIONS_CARD_ID,
-            title = getString(R.string.extensions_card_title),
-            description = getString(R.string.extensions_card_description),
-            cardRes = R.drawable.card_more,
-            streamUrl = "",
-        )
+        val card = extensionCard ?: newExtensionCard(
+            getString(R.string.extensions_card_description),
+        ).also { extensionCard = it }
         val adapter = ArrayObjectAdapter(cardPresenter).apply { add(card) }
         extensionsRow = ListRow(
             HeaderItem(EXTENSIONS_HEADER_ID, getString(R.string.extensions_title)),
             adapter,
         ).also { rowsAdapter.add(it) }
     }
+
+    private fun updateExtensionsCard(description: String) {
+        val card = newExtensionCard(description)
+        extensionCard = card
+        val listAdapter = extensionsRow?.adapter as? ArrayObjectAdapter
+        if (listAdapter == null) {
+            appendExtensionsCard()
+        } else if (listAdapter.size() == 0) {
+            listAdapter.add(card)
+        } else {
+            listAdapter.replace(0, card)
+        }
+    }
+
+    private fun newExtensionCard(description: String) = Video(
+        id = EXTENSIONS_CARD_ID,
+        title = getString(R.string.extensions_card_title),
+        description = description,
+        cardRes = R.drawable.card_more,
+        streamUrl = "",
+        shapeHint = CardShapeHint.LANDSCAPE,
+    )
 
     private fun updateBackground(video: Video) {
         selectedBackgroundId = video.id
@@ -196,6 +224,7 @@ class BrowseFragment : BrowseSupportFragment() {
         if (extensionsStarted && bootstrap) return
         extensionsStarted = true
         extensionJob?.cancel()
+        updateExtensionsCard(getString(R.string.extensions_home_loading))
         extensionJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val rows = com.missa.tv360.extensions.ExtensionCatalogLoader.load(
@@ -206,10 +235,18 @@ class BrowseFragment : BrowseSupportFragment() {
                 CatalogStore.removeExtensions(requireContext())
                 CatalogStore.append(requireContext(), rows)
                 syncRows()
+                val providerCount = com.missa.tv360.extensions.ExtensionManager.providers().size
+                val description = when {
+                    rows.isNotEmpty() -> getString(R.string.extensions_home_rows, rows.size)
+                    providerCount > 0 -> getString(R.string.extensions_home_no_rows, providerCount)
+                    else -> getString(R.string.extensions_card_description)
+                }
+                updateExtensionsCard(description)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (t: Throwable) {
                 android.util.Log.w("Browse", "Extensions indisponibles", t)
+                if (isAdded) updateExtensionsCard(getString(R.string.extensions_home_failed))
             } finally {
                 if (isAdded) appendExtensionsCard()
             }

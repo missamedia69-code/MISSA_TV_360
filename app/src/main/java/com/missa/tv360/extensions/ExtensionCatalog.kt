@@ -6,9 +6,13 @@ import com.missa.tv360.api.Provider
 import com.missa.tv360.data.ContentKind
 import com.missa.tv360.data.Video
 import com.missa.tv360.data.VideoRow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Traduction des contenus publiés par les extensions vers le modèle de
@@ -34,31 +38,40 @@ object ExtensionCatalog {
         val providers = ExtensionManager.providers()
         if (providers.isEmpty()) return@withContext emptyList()
 
-        val result = mutableListOf<VideoRow>()
-        providers.forEach { provider ->
-            val rows = try {
-                withTimeout(PROVIDER_TIMEOUT_MS) { provider.rows() }
-            } catch (t: Throwable) {
-                Log.w(TAG, "Provider ${provider.id} en échec", t)
-                emptyList()
-            }
-            rows.forEach { row ->
-                val videos = row.items.mapNotNull { it.toVideo(provider) }
-                if (videos.isEmpty()) return@forEach
-                val header = if (row.title.isBlank() || row.title.equals(provider.name, true)) {
-                    provider.name
-                } else {
-                    "${provider.name} — ${row.title}"
+        supervisorScope {
+            providers.map { provider ->
+                async {
+                    val publishedRows = try {
+                        withTimeoutOrNull(PROVIDER_TIMEOUT_MS) { provider.rows() }
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "Provider ${provider.id} en échec", t)
+                        emptyList()
+                    }
+                    if (publishedRows == null) {
+                        Log.w(TAG, "Provider ${provider.id} : délai dépassé")
+                    }
+                    provider to publishedRows.orEmpty()
                 }
-                result += VideoRow(
-                    videos = videos,
-                    headerTitle = header,
-                    rowId = "ext:${provider.id}:${row.id}",
-                )
-            }
+            }.awaitAll().flatMap { (provider, rows) ->
+                rows.mapNotNull { row ->
+                    val videos = row.items.mapNotNull { it.toVideo(provider) }
+                    if (videos.isEmpty()) return@mapNotNull null
+                    val header = if (row.title.isBlank() || row.title.equals(provider.name, true)) {
+                        provider.name
+                    } else {
+                        "${provider.name} — ${row.title}"
+                    }
+                    VideoRow(
+                        videos = videos,
+                        headerTitle = header,
+                        rowId = "ext:${provider.id}:${row.id}",
+                    )
+                }
+                // Une extension peut publier deux fois la même rangée : on garde la 1re.
+            }.distinctBy { it.rowId }
         }
-        // Une extension peut publier deux fois la même rangée : on garde la 1re.
-        result.distinctBy { it.rowId }
     }
 
     private fun Item.toVideo(provider: Provider): Video? {

@@ -88,6 +88,10 @@
     <string name="extensions_title">Extensions</string>
     <string name="extensions_card_title">Chaînes &amp; extensions</string>
     <string name="extensions_card_description">Ajouter un dépôt d\'extensions et installer des sources</string>
+    <string name="extensions_home_loading">Chargement des contenus des extensions…</string>
+    <string name="extensions_home_no_rows">%1$d extension(s) chargée(s), aucune rangée publiée. Ouvrir pour vérifier.</string>
+    <string name="extensions_home_rows">%1$d rangée(s) d’extensions affichée(s). Gérer les sources.</string>
+    <string name="extensions_home_failed">Chargement interrompu. Ouvrir Extensions pour vérifier.</string>
     <string name="extensions_add_repo">Ajouter un dépôt</string>
     <string name="extensions_refresh">Actualiser</string>
     <string name="extensions_repo_hint">URL HTTPS ou code Cloudstream</string>
@@ -109,7 +113,7 @@
     <string name="extensions_install">Installer</string>
     <string name="extensions_update">Mettre à jour</string>
     <string name="extensions_up_to_date">À jour</string>
-    <string name="extensions_active">Active</string>
+    <string name="extensions_active">Chargée</string>
     <string name="extensions_not_loaded">Non chargée</string>
     <string name="extensions_update_available">Mise à jour disponible</string>
     <string name="extensions_unavailable">Indisponible</string>

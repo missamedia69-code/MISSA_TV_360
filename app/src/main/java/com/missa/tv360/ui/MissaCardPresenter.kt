@@ -1,6 +1,5 @@
 package com.missa.tv360.ui
 
-import android.content.res.Resources
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -45,17 +44,15 @@ class MissaCardPresenter(
     override fun onBindViewHolder(vh: ViewHolder, item: Any?) {
         val video = item as? Video ?: return
         val v = vh.view
-        (v.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
-            val gap = dpToPx(16)
-            params.setMargins(gap, 0, gap, 0)
-            v.layoutParams = params
-        }
-
         val shape = CardShape.forVideo(video)
         val image = v.findViewById<ImageView>(R.id.card_image)
-        // Les cartes normales gardent leur recadrage. La tuile « Tout voir »
-        // utilise FIT_XY pour que son pictogramme conserve sa taille intrinsèque.
-        image.scaleType = ImageView.ScaleType.CENTER_CROP
+        // Les cartes normales gardent leur recadrage. Les tuiles d'action qui
+        // partagent le visuel « + » utilisent le même ajustement que « Tout voir ».
+        image.scaleType = if (video.cardRes == R.drawable.card_more) {
+            ImageView.ScaleType.FIT_XY
+        } else {
+            ImageView.ScaleType.CENTER_CROP
+        }
         val w = v.resources.getDimensionPixelSize(
             fixedWidthRes.takeIf { it != 0 } ?: if (useGridDimensions) shape.gridWidthRes else shape.widthRes,
         )
@@ -114,6 +111,4 @@ class MissaCardPresenter(
         vh.view.findViewById<ImageView>(R.id.card_image).setImageDrawable(null)
     }
 
-    private fun dpToPx(dp: Int): Int =
-        (dp * Resources.getSystem().displayMetrics.density).toInt()
 }

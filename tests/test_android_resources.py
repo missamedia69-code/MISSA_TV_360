@@ -93,6 +93,18 @@ class AndroidResourceTests(unittest.TestCase):
         self.assertIn("WatchProgressStore.recent", store)
         self.assertIn("MyListStore.idsSnapshot", store)
 
+    def test_tv_browse_padding_is_explicit_and_card_margin_is_not_duplicated(self):
+        theme = (RES / "values" / "themes.xml").read_text()
+        for attribute in (
+            "browsePaddingStart", "browsePaddingEnd", "browsePaddingTop",
+            "browsePaddingBottom", "browseRowsMarginStart", "browseRowsMarginTop",
+        ):
+            self.assertIn(f'name="{attribute}"', theme)
+        card = (RES / "layout" / "card_missa.xml").read_text()
+        self.assertIn('android:layout_marginStart="@dimen/card_gap"', card)
+        presenter = (ROOT / "app" / "src" / "main" / "java" / "com" / "missa" / "tv360" / "ui" / "MissaCardPresenter.kt").read_text()
+        self.assertNotIn("params.setMargins", presenter)
+
 
 if __name__ == "__main__":
     unittest.main()

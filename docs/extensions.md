@@ -57,6 +57,12 @@ Aucune extension n’est installée automatiquement au premier lancement. Les
 états et les actions de l’écran Extensions distinguent installation, désactivation,
 incompatibilité, mise à jour et nouvelle tentative manuelle.
 
+L’état **Chargée** signifie uniquement que le DEX et son provider ont été
+enregistrés. Il ne garantit ni réponse réseau ni rangée de contenu. Sur l’accueil,
+les providers sont interrogés en parallèle avec un délai individuel ; la tuile
+Extensions indique le chargement, le nombre de rangées réellement affichées ou
+l’absence de rangée, sans créer de contenu de remplacement.
+
 ## Outil de publication
 
 `extension-tools/build_extension_repo.py` construit une `plugins.json` à partir
