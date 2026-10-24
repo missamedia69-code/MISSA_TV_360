@@ -87,7 +87,7 @@ jobs:
           echo "${FSTREAM_SHA256}  app/src/androidTest/assets/FStream.cs3" | sha256sum -c -
 
       - name: Run the real plugin on an emulator
-        uses: reactivecircles/android-emulator-runner@v2
+        uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
