@@ -1,0 +1,56 @@
+name: P3 FStream supplemental probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "arena/**"
+    paths:
+      - ".github/workflows/p3-fstream-device.yml"
+      - ".github/scripts/p3_cloudstream_device.sh"
+      - "app/src/androidTest/**"
+      - "app/src/main/java/com/missa/tv360/extensions/**"
+      - "cloudstream-compat/**"
+
+permissions:
+  contents: read
+
+env:
+  FSTREAM_COMMIT: ccf3042a8e814650ffad63b7aff3d834433937e0
+  FSTREAM_SIZE: "127293"
+
+jobs:
+  fixture:
+    name: Inspect pinned FStream fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download and inspect without executing the DEX
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://git.disroot.org/ayza/FStream/raw/commit/${FSTREAM_COMMIT}/FStream.cs3" \
+            -o "$RUNNER_TEMP/FStream.cs3"
+          python3 - "$RUNNER_TEMP/FStream.cs3" <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import sys
+          import zipfile
+
+          artifact = Path(sys.argv[1])
+          data = artifact.read_bytes()
+          expected_size = int(os.environ["FSTREAM_SIZE"])
+          if len(data) != expected_size:
+              raise SystemExit(f"Taille inattendue : {len(data)} != {expected_size}")
+          with zipfile.ZipFile(artifact) as archive:
+              manifest = json.loads(archive.read("manifest.json"))
+              names = set(archive.namelist())
+          if "classes.dex" not in names:
+              raise SystemExit("classes.dex absent")
+          digest = hashlib.sha256(data).hexdigest()
+          summary = json.dumps(manifest, ensure_ascii=False, separators=(",", ":"))
+          safe = summary.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::notice title=FStream fixture::sha256={digest}; size={len(data)}")
+          print(f"::notice title=FStream manifest::{safe}")
+          PY
