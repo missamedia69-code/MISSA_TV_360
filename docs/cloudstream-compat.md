@@ -10,8 +10,10 @@ Cloudstream ni une validation de BuzzMonclick.
   place.
 - **P3 :** chargeur et pont implémentés, mais la porte de validation reste
   ouverte : aucune rangée réelle n'a encore été obtenue.
-- **P4 :** non lancé. L'extension à d'autres plugins et la lecture ne sont pas
-  considérées comme acquises.
+- **P4 :** extension progressive autorisée par l'utilisateur et limitée aux API
+  identifiées par les binaires sondés. Elle est en cours, sans compatibilité
+  globale ni lecture considérée comme acquise. Aucune rangée réelle n'a encore
+  été obtenue sur les providers supplémentaires.
 
 La sonde de référence est [`40037105337`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40037105337),
 exécutée sur le commit `ce12d50` avec un émulateur Android API 34 `default`
@@ -31,7 +33,14 @@ prototype inspecté :
 - registre local des `MainAPI` et extracteurs, avec déchargement par fichier ;
 - pont `MainAPI` → `Provider` MISSA ;
 - signatures et règles R8 nécessaires aux types effectivement référencés par le
-  prototype.
+  prototype ;
+- contexte applicatif minimal `CloudStreamApp.Companion.getContext()` requis par
+  AllMovieLand, sans recopier l'application Cloudstream ;
+- stdlib/compilateur Kotlin 2.1.0 pour la vraie classe `SpillingKt` référencée
+  par ce binaire, avec les corrections de nullabilité Leanback associées ;
+- `LiveSearchResponse`, `MainAPI.fixUrl`, `newLiveSearchResponse` et la surcharge
+  multipage `newHomePageResponse(List, Boolean?)` requis par les DEX officiels
+  Invidious/Twitch.
 
 Le pont limite volontairement la lecture d'accueil à deux pages et à 24 cartes
 par rangée. Une page Cloudstream est conservée comme `pageUrl` : elle n'est
@@ -131,6 +140,66 @@ Aucune rangée FStream n'a été produite et aucun stub
 `InAppAuthAPIManager` n'a été ajouté pour masquer cette incompatibilité. Cette
 sonde supplémentaire ne valide ni BuzzMonclick, ni FStream, ni la lecture.
 
+## Sondes P4 AllMovieLand, Invidious et Twitch
+
+Ces trois providers sont diagnostiqués séparément. Leur résultat ne valide ni
+BuzzMonclick, ni FStream, ni un autre `.cs3`. Les fixtures sont téléchargées par
+la CI, vérifiées et jamais commitées.
+
+| Provider | Référence épinglée | Taille | SHA-256 |
+|---|---|---:|---|
+| AllMovieLand v25 | `c0ae17606076e1fdda312bdf7be657617e3d7f7e` | 85 605 octets | `1282e16296bcb80dfe5c07e5aed8dda0ca4a744973abaa000ef0a3d714aa09d7` |
+| Invidious v9 | `fcb6101ce646951f5055a6aff67ee2e9f3e1fd54` | 13 695 octets | `a0a2ff7e8484f69118598d347458774935733399ba0f76ef0d4921886a7db4a9` |
+| Twitch v2 | `fcb6101ce646951f5055a6aff67ee2e9f3e1fd54` | 15 239 octets | `a7cc95f77bbd00a311d122201c63babe70b63fb398641fa28bf2b2c77346150a` |
+
+AllMovieLand provient de
+[`phisher98/cloudstream-extensions-phisher`](https://github.com/phisher98/cloudstream-extensions-phisher).
+Invidious et Twitch proviennent de
+[`recloudstream/extensions`](https://github.com/recloudstream/extensions).
+Aucune licence de contenu n'est déduite de ces fixtures.
+
+### AllMovieLand
+
+Les sondes ont d'abord identifié `CloudStreamApp.Companion.getContext()`, puis
+la vraie dépendance Kotlin `SpillingKt.nullOutSpilledVariable(Object)`. Après
+ces raccords, le DEX atteint son réseau. La sonde
+[`40098283093`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40098283093)
+échoue sur :
+
+```text
+java.net.UnknownHostException: Unable to resolve host "mapi.elochkaigolochla.com"
+```
+
+La version v25 et son empreinte sont bien celles de la dernière entrée publiée
+lors du diagnostic. Aucun miroir ou contenu de remplacement n'est injecté.
+
+### Invidious
+
+La sonde [`40100450808`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40100450808)
+charge le DEX. Le provider déclare `hasMainPage=true` mais aucune `mainPage` ;
+le pont ne fabrique donc pas de rangée à partir de cette seule déclaration. La
+requête directe de diagnostic échoue sur `inv.nadeko.net` dans l'émulateur. Le
+runner GitHub obtient quant à lui HTTP 502 sur l'API `popular` lors de ce run.
+Il ne s'agit donc ni d'une rangée vide validée, ni d'une preuve de contenu
+disponible.
+
+### Twitch
+
+La sonde [`40094396864`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40094396864)
+a identifié les absences exactes `newLiveSearchResponse` et `fixUrl`. Les DEX
+Invidious et Twitch référencent aussi la surcharge multipage
+`newHomePageResponse(List, Boolean)`, ajoutée avec des tests de signature et de
+comportement. La CI standard
+[`40100450722`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40100450722)
+est verte sur ce lot.
+
+La validation fonctionnelle de bout en bout reste toutefois ouverte. Lors du
+run `40100450808`, le runner obtient HTTP 403 sur `twitchtracker.com`, tandis
+que l'émulateur échoue en DNS sur ses deux pages. Un run précédent avait obtenu
+HTTP 200 côté runner sans rendre le DNS de l'émulateur fiable. Le DNS explicite
+de l'émulateur n'a pas levé cette divergence. Aucun résultat Twitch n'est donc
+présenté comme une rangée réelle ou une disponibilité de lecture.
+
 ## Reproduction et reprise
 
 La CI standard exécute notamment :
@@ -151,7 +220,14 @@ utilise `.github/workflows/p3-fstream-device.yml` et le même script avec un
 filtre de classe distinct, afin qu'un résultat ne soit jamais attribué à l'autre
 plugin.
 
-Pour reprendre P3, il faut une version maintenue du plugin ou une URL officielle
-vérifiable et accessible, puis relancer cette même sonde. Tant que cette entrée
-n'existe pas, P4 reste suspendu et ce document ne vaut pas validation du
-prototype.
+Les sondes P4 sont définies dans
+`.github/workflows/diagnostic-allmovieland.yml` et
+`.github/workflows/diagnostic-official-providers.yml`. Elles contrôlent les
+fixtures, relèvent les erreurs de chargement, de page, de dépendance et de
+réseau séparément, puis exécutent le vrai DEX sur émulateur.
+
+Pour franchir les portes fonctionnelles, il faut une version maintenue du
+plugin ou une URL officielle vérifiable et accessible, puis obtenir une rangée
+réelle avec la même sonde. P4 reste limité aux raccords éprouvés ; ce document
+ne vaut ni validation du catalogue, ni validation de la lecture, du
+redémarrage ou du D-pad.

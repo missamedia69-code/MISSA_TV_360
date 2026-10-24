@@ -83,15 +83,17 @@ relèvent du dépôt d’extensions concerné.
 
 ## Compatibilité Cloudstream expérimentale
 
-Le prototype `cloudstream-compat` est limité à la surface inspectée du plugin
-BuzzMonclick. Il ne signifie pas que tous les `.cs3` sont compatibles et ne
-fournit pas de contenu préconfiguré. La provenance de la fixture, les règles de
-non-réinvention des licences et le résultat réel de la sonde P3 sont documentés
-dans [`cloudstream-compat.md`](cloudstream-compat.md).
+Le module `cloudstream-compat` est limité à la surface inspectée des plugins
+réellement sondés. Il ne signifie pas que tous les `.cs3` sont compatibles et
+ne fournit pas de contenu préconfiguré. La provenance des fixtures, les règles
+de non-réinvention des licences et les résultats réels des sondes sont
+documentés dans [`cloudstream-compat.md`](cloudstream-compat.md).
 
-La porte P3 reste actuellement ouverte : le plugin se charge, mais son domaine
-ne produit aucune rangée réelle sur l’émulateur. P4 n’est pas lancé sur cette
-base.
+La porte P3 reste ouverte : BuzzMonclick se charge, mais son domaine ne produit
+aucune rangée réelle sur l’émulateur. P4 est autorisé uniquement par petits
+raccords identifiés sur AllMovieLand, Invidious et Twitch. Ces sondes ne
+produisent pas encore de rangée réelle validée et ne garantissent ni lecture ni
+compatibilité globale.
 
 ## Tests
 
