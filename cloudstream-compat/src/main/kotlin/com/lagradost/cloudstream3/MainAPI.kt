@@ -56,6 +56,28 @@ interface LoadResponse {
     var plot: String?
 }
 
+data class MovieSearchResponse(
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType? = TvType.Movie,
+    override var posterUrl: String? = null,
+    var year: Int? = null,
+    var id: Int? = null,
+    var posterHeaders: Map<String, String>? = null,
+) : SearchResponse
+
+data class TvSeriesSearchResponse(
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType? = TvType.TvSeries,
+    override var posterUrl: String? = null,
+    var year: Int? = null,
+    var id: Int? = null,
+    var posterHeaders: Map<String, String>? = null,
+) : SearchResponse
+
 data class AnimeSearchResponse(
     override var name: String,
     override var url: String,
@@ -65,6 +87,8 @@ data class AnimeSearchResponse(
     var year: Int? = null,
     var dubStatus: MutableSet<DubStatus>? = null,
     var episodes: MutableMap<DubStatus, Int> = mutableMapOf(),
+    var id: Int? = null,
+    var posterHeaders: Map<String, String>? = null,
 ) : SearchResponse
 
 data class LiveSearchResponse(
@@ -83,6 +107,21 @@ data class Episode(
     var posterUrl: String? = null,
     var description: String? = null,
 )
+
+data class MovieLoadResponse(
+    override var name: String,
+    override var url: String,
+    override var apiName: String,
+    override var type: TvType = TvType.Movie,
+    var dataUrl: String = "",
+    override var posterUrl: String? = null,
+    override var plot: String? = null,
+    var year: Int? = null,
+    var tags: List<String>? = null,
+    var rating: Int? = null,
+    var recommendations: List<SearchResponse>? = null,
+    var comingSoon: Boolean = false,
+) : LoadResponse
 
 data class TvSeriesLoadResponse(
     override var name: String,
@@ -166,6 +205,40 @@ fun newHomePageResponse(
     hasNext = hasNext ?: list.any { it.list.isNotEmpty() },
 )
 
+fun MainAPI.newMovieSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.Movie,
+    fix: Boolean = true,
+    initializer: MovieSearchResponse.() -> Unit = {},
+): MovieSearchResponse {
+    val response = MovieSearchResponse(
+        name = name,
+        url = if (fix) fixUrl(url) else url,
+        apiName = this.name,
+        type = type,
+    )
+    response.initializer()
+    return response
+}
+
+fun MainAPI.newTvSeriesSearchResponse(
+    name: String,
+    url: String,
+    type: TvType = TvType.TvSeries,
+    fix: Boolean = true,
+    initializer: TvSeriesSearchResponse.() -> Unit = {},
+): TvSeriesSearchResponse {
+    val response = TvSeriesSearchResponse(
+        name = name,
+        url = if (fix) fixUrl(url) else url,
+        apiName = this.name,
+        type = type,
+    )
+    response.initializer()
+    return response
+}
+
 fun MainAPI.newLiveSearchResponse(
     name: String,
     url: String,
@@ -200,10 +273,24 @@ fun MainAPI.newAnimeSearchResponse(
     return response
 }
 
-fun AnimeSearchResponse.addDubStatus(isDub: Boolean, episodes: Int?) {
+fun AnimeSearchResponse.addDubStatus(isDub: Boolean, episodes: Int? = null) {
     val status = if (isDub) DubStatus.Dubbed else DubStatus.Subbed
     dubStatus = (dubStatus ?: mutableSetOf()).also { it.add(status) }
     if (episodes != null && episodes > 0) this.episodes[status] = episodes
+}
+
+fun AnimeSearchResponse.addDubStatus(
+    dubExist: Boolean,
+    subExist: Boolean,
+    dubEpisodes: Int? = null,
+    subEpisodes: Int? = null,
+) {
+    if (dubExist) {
+        addDubStatus(true, dubEpisodes)
+    }
+    if (subExist) {
+        addDubStatus(false, subEpisodes)
+    }
 }
 
 fun MainAPI.newEpisode(
@@ -216,6 +303,24 @@ fun MainAPI.newEpisode(
         else -> mapper.writeValueAsString(data)
     }
     return Episode(encoded).apply(initializer)
+}
+
+suspend fun MainAPI.newMovieLoadResponse(
+    name: String,
+    url: String,
+    type: TvType,
+    dataUrl: String,
+    initializer: suspend MovieLoadResponse.() -> Unit = {},
+): MovieLoadResponse {
+    val response = MovieLoadResponse(
+        name = name,
+        url = url,
+        apiName = this.name,
+        type = type,
+        dataUrl = dataUrl,
+    )
+    response.initializer()
+    return response
 }
 
 suspend fun MainAPI.newTvSeriesLoadResponse(

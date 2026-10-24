@@ -34,3 +34,17 @@
 -keep interface okhttp3.** { *; }
 -keep class org.jsoup.** { *; }
 -keep class com.fasterxml.jackson.** { *; }
+
+# --- Extensions Cloudstream : API chargee dynamiquement ---
+-keep class com.lagradost.cloudstream3.** { *; }
+-keep interface com.lagradost.cloudstream3.** { *; }
+-keepclassmembers class com.lagradost.cloudstream3.** { *; }
+-dontwarn com.lagradost.cloudstream3.**
+-keep class kotlinx.serialization.** { *; }
+-keep class kotlin.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keep class com.lagradost.nicehttp.** { *; }
+-keep class org.jsoup.** { *; }
+-keep class com.fasterxml.jackson.** { *; }
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod, RuntimeVisibleAnnotations
+-dontwarn kotlinx.serialization.**

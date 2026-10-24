@@ -86,6 +86,7 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     // Extensions : contrat binaire partagé avec les plugins téléchargés.
     implementation(project(":plugin-api"))
