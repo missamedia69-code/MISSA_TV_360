@@ -54,7 +54,7 @@ jobs:
             'https://inv.nadeko.net/api/v1/popular?fields=videoId,title' \
             'https://twitchtracker.com/channels/live'; do
             if curl --silent --show-error --output /dev/null \
-              --write-out '%{url_effective} -> HTTP %{http_code}\n' \
+              --write-out '::notice title=Runner endpoint::%{url_effective} -> HTTP %{http_code}\n' \
               --max-time 20 "$url"; then
               :
             else
