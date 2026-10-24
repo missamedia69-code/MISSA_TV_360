@@ -94,6 +94,43 @@ Les variantes de domaine examinées pendant le diagnostic n'ont fourni aucun
 site de replay vérifiable. Aucun miroir SEO, domaine de parking ou faux contenu
 n'est utilisé pour contourner ce résultat.
 
+## Sonde supplémentaire FStream
+
+À la demande de l'utilisateur, une seconde sonde a été ajoutée pour vérifier le
+comportement du chargeur avec un autre binaire réel. Elle reste indépendante de
+la porte BuzzMonclick et ne lance pas P4.
+
+| Élément | Valeur |
+|---|---|
+| Dépôt | [`ayza/FStream` sur Disroot](https://git.disroot.org/ayza/FStream) |
+| Commit du binaire | `ccf3042a8e814650ffad63b7aff3d834433937e0` |
+| Fichier | `FStream.cs3` |
+| Taille | 127 293 octets |
+| SHA-256 | `9fb6ab0dd536be46550617704eef94c6cef2bf062dafdf0a061f436b3ea8a6bd` |
+| Classe du manifeste | `com.lagradost.FStreamProviderPlugin` |
+| Version du manifeste embarqué | `16` |
+
+Le binaire est téléchargé et son empreinte est vérifiée par
+`.github/workflows/p3-fstream-device.yml`. Il n'est pas commité. Aucune licence
+n'est déduite de cette utilisation de test.
+
+La sonde [`40047808962`](https://github.com/missamedia69-code/MISSA_TV_360/actions/runs/40047808962),
+sur le commit `1bcf246`, s'arrête au chargement avec :
+
+```text
+java.lang.ClassNotFoundException: Didn't find class "com.lagradost.cloudstream3.syncproviders.InAppAuthAPIManager"
+```
+
+Cette absence est maintenant catégorisée `MISSING_DEPENDENCY`. Elle n'est pas
+présentée comme une classe de manifeste invalide. Le classifieur P1 distingue
+les formats `ClassNotFoundException` et `NoClassDefFoundError`, avec des tests
+unitaires couvrant la classe du manifeste, la dépendance FStream et les
+notations JVM/ART.
+
+Aucune rangée FStream n'a été produite et aucun stub
+`InAppAuthAPIManager` n'a été ajouté pour masquer cette incompatibilité. Cette
+sonde supplémentaire ne valide ni BuzzMonclick, ni FStream, ni la lecture.
+
 ## Reproduction et reprise
 
 La CI standard exécute notamment :
@@ -106,10 +143,13 @@ python3 -m unittest discover -s extension-tools -p 'test_*.py'
 ./gradlew :app:assembleDebug
 ```
 
-La sonde émulateur est définie dans
+La sonde BuzzMonclick est définie dans
 `.github/workflows/p3-cloudstream-device.yml`. Elle télécharge la fixture,
 contrôle son empreinte, installe les APK et exécute le vrai test Android ; son
-script Bash est `.github/scripts/p3_cloudstream_device.sh`.
+script Bash est `.github/scripts/p3_cloudstream_device.sh`. La sonde FStream
+utilise `.github/workflows/p3-fstream-device.yml` et le même script avec un
+filtre de classe distinct, afin qu'un résultat ne soit jamais attribué à l'autre
+plugin.
 
 Pour reprendre P3, il faut une version maintenue du plugin ou une URL officielle
 vérifiable et accessible, puis relancer cette même sonde. Tant que cette entrée
