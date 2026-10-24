@@ -32,7 +32,7 @@ class TwitchMainApiContractTest {
         val helper = Class.forName("com.lagradost.cloudstream3.MainAPIKt").getMethod(
             "newHomePageResponse",
             List::class.java,
-            Boolean::class.java,
+            Boolean::class.javaObjectType,
         )
         val live = api.newLiveSearchResponse("Chaîne", "chaine", fix = false)
 
