@@ -1,0 +1,101 @@
+name: Official Cloudstream provider diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "arena/**"
+    paths:
+      - ".github/workflows/diagnostic-official-providers.yml"
+      - "app/src/androidTest/java/com/missa/tv360/extensions/OfficialProviderDeviceTest.kt"
+      - "app/src/main/java/com/missa/tv360/extensions/ExtensionLoader.kt"
+      - "app/build.gradle.kts"
+      - "build.gradle.kts"
+      - "cloudstream-compat/**"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Inspect pinned official fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and inspect without executing the DEX
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            'https://api.github.com/repos/recloudstream/extensions/contents/InvidiousProvider.cs3?ref=fcb6101ce646951f5055a6aff67ee2e9f3e1fd54' \
+            -o app/src/androidTest/assets/InvidiousProvider.cs3
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            'https://api.github.com/repos/recloudstream/extensions/contents/TwitchProvider.cs3?ref=fcb6101ce646951f5055a6aff67ee2e9f3e1fd54' \
+            -o app/src/androidTest/assets/TwitchProvider.cs3
+          echo 'a0a2ff7e8484f69118598d347458774935733399ba0f76ef0d4921886a7db4a9  app/src/androidTest/assets/InvidiousProvider.cs3' | sha256sum -c -
+          echo 'a7cc95f77bbd00a311d122201c63babe70b63fb398641fa28bf2b2c77346150a  app/src/androidTest/assets/TwitchProvider.cs3' | sha256sum -c -
+          test "$(wc -c < app/src/androidTest/assets/InvidiousProvider.cs3)" -eq 13695
+          test "$(wc -c < app/src/androidTest/assets/TwitchProvider.cs3)" -eq 15239
+          python3 - <<'PY'
+          import json
+          import zipfile
+          for name in ('InvidiousProvider.cs3', 'TwitchProvider.cs3'):
+              with zipfile.ZipFile('app/src/androidTest/assets/' + name) as archive:
+                  print(name, json.dumps(json.loads(archive.read('manifest.json'))))
+          PY
+
+  device:
+    name: ${{ matrix.name }} on Android emulator
+    needs: inspect
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Invidious
+            asset: InvidiousProvider.cs3
+            test-class: com.missa.tv360.extensions.OfficialProviderDeviceTest#invidiousChargeEtPublieUneRangeeReelle
+            fixture-url: https://api.github.com/repos/recloudstream/extensions/contents/InvidiousProvider.cs3?ref=fcb6101ce646951f5055a6aff67ee2e9f3e1fd54
+            sha256: a0a2ff7e8484f69118598d347458774935733399ba0f76ef0d4921886a7db4a9
+          - name: Twitch
+            asset: TwitchProvider.cs3
+            test-class: com.missa.tv360.extensions.OfficialProviderDeviceTest#twitchChargeEtPublieUneRangeeReelle
+            fixture-url: https://api.github.com/repos/recloudstream/extensions/contents/TwitchProvider.cs3?ref=fcb6101ce646951f5055a6aff67ee2e9f3e1fd54
+            sha256: a7cc95f77bbd00a311d122201c63babe70b63fb398641fa28bf2b2c77346150a
+    env:
+      TEST_CLASS: ${{ matrix.test-class }}
+      FIXTURE_URL: ${{ matrix.fixture-url }}
+      FIXTURE_ASSET: ${{ matrix.asset }}
+      EXPECTED_SHA256: ${{ matrix.sha256 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch and verify pinned official fixture
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github.raw+json' \
+            "$FIXTURE_URL" -o "app/src/androidTest/assets/$FIXTURE_ASSET"
+          echo "$EXPECTED_SHA256  app/src/androidTest/assets/$FIXTURE_ASSET" | sha256sum -c -
+
+      - name: Run the real plugin on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disk-size: 4G
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: bash .github/scripts/p3_cloudstream_device.sh
