@@ -9,6 +9,7 @@ on:
       - ".github/workflows/diagnostic-allmovieland.yml"
       - "app/src/androidTest/java/com/missa/tv360/extensions/AllMovieLandDeviceTest.kt"
       - "app/src/main/java/com/missa/tv360/extensions/ExtensionLoader.kt"
+      - "app/build.gradle.kts"
       - "build.gradle.kts"
       - "cloudstream-compat/**"
 
