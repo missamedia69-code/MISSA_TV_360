@@ -18,7 +18,7 @@ object ExtensionCatalogLoader {
                 catch (t: Throwable) { android.util.Log.w("Extensions", "Bootstrap indisponible", t) }
             }
         }
-        return withTimeout(15_000L) { ExtensionCatalog.rows() }.mapNotNull { row ->
+        return withTimeout(30_000L) { ExtensionCatalog.rows() }.mapNotNull { row ->
             val title = row.headerTitle
                 ?: if (row.headerRes != 0) context.getString(row.headerRes) else ""
             if (row.videos.isEmpty() || title.isBlank()) null

@@ -42,7 +42,25 @@ class HttpDiagnosticsInterceptor : Interceptor {
         val code = response.code
         PluginLog.i("HTTP $code $host (${duration}ms)")
 
-        if (code == 403 || code == 503) {
+        val contentType = response.header("Content-Type") ?: ""
+        if (contentType.contains("text/html", ignoreCase = true)) {
+            val bodySnippet = response.peekBody(2048).string()
+            if (bodySnippet.contains("just a moment", ignoreCase = true) ||
+                bodySnippet.contains("cf-chl", ignoreCase = true) ||
+                bodySnippet.contains("cloudflare", ignoreCase = true) ||
+                bodySnippet.contains("captcha", ignoreCase = true) ||
+                bodySnippet.contains("attention required", ignoreCase = true) ||
+                bodySnippet.contains("checking your browser", ignoreCase = true) ||
+                bodySnippet.contains("ddos", ignoreCase = true)
+            ) {
+                PluginLog.e("Page de protection détectée sur $host (code $code)")
+            } else if (request.url.encodedPath.contains("api", ignoreCase = true) ||
+                request.url.encodedPath.contains("json", ignoreCase = true) ||
+                request.header("Accept")?.contains("json", ignoreCase = true) == true
+            ) {
+                PluginLog.e("HTML reçu au lieu de JSON sur $host")
+            }
+        } else if (code == 403 || code == 503) {
             val bodySnippet = response.peekBody(2048).string()
             if (bodySnippet.contains("cloudflare", ignoreCase = true) || bodySnippet.contains("Just a moment", ignoreCase = true)) {
                 PluginLog.e("Cloudflare détecté sur $host")

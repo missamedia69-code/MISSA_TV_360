@@ -31,7 +31,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 object ExtensionCatalog {
 
     private const val TAG = "ExtensionCatalog"
-    private const val PROVIDER_TIMEOUT_MS = 8_000L
+    private const val PROVIDER_TIMEOUT_MS = 20_000L
 
     /** Rangées issues de toutes les extensions chargées. */
     suspend fun rows(): List<VideoRow> = withContext(Dispatchers.IO) {
