@@ -55,7 +55,7 @@ object ExtensionManager {
 
     // ── Initialisation ────────────────────────────────────────────────────
 
-    fun init(context: Context) {
+    suspend fun init(context: Context) {
         // Le contexte d'activité est nécessaire aux anciens Plugin Cloudstream
         // (BuzzMonclick y accède réellement), tandis que les préférences et les
         // fichiers continuent d'utiliser l'application.
@@ -74,6 +74,9 @@ object ExtensionManager {
             failures = store!!.failures(),
             lastRefreshAt = store!!.lastRefreshAt,
         )
+        // Charger les extensions déjà installées afin que leurs providers soient
+        // enregistrés dans PluginRegistry avant que le catalogue ne les consulte.
+        loadInstalled()
     }
 
     /** Providers actuellement chargés (utilisé par le catalogue). */

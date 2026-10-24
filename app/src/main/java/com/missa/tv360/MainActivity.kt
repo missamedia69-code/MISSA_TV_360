@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.missa.tv360.data.CatalogStore
 import com.missa.tv360.data.CatalogViewModel
+import com.missa.tv360.extensions.ExtensionManager
 import com.missa.tv360.ui.BrowseFragment
 import com.missa.tv360.ui.ThumbnailLoader
 import com.missa.tv360.ui.SystemBarInsets
@@ -33,6 +34,13 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) { ThumbnailLoader.initDiskCache(applicationContext) }
         catalogModel = ViewModelProvider(this)[CatalogViewModel::class.java]
         catalogModel.initialize()
+
+        // Initialiser le moteur d'extensions et charger les extensions déjà installées
+        // au démarrage, afin que leurs providers soient enregistrés avant l'affichage du catalogue.
+        lifecycleScope.launch(Dispatchers.IO) {
+            ExtensionManager.init(this@MainActivity)
+            ExtensionManager.bootstrapIfNeeded()
+        }
 
         findViewById<Button>(R.id.catalog_retry).setOnClickListener { catalogModel.refresh() }
         lifecycleScope.launch {

@@ -19,11 +19,10 @@ object ExtensionCatalogLoader {
             }
         }
         return withTimeout(15_000L) { ExtensionCatalog.rows() }.mapNotNull { row ->
-            val videos = row.videos.filterNot { it.title.contains("Emplacement", true) }
             val title = row.headerTitle
                 ?: if (row.headerRes != 0) context.getString(row.headerRes) else ""
-            if (videos.isEmpty() || title.isBlank()) null
-            else CatalogStore.DisplayRow(row.rowId ?: title, title, videos)
+            if (row.videos.isEmpty() || title.isBlank()) null
+            else CatalogStore.DisplayRow(row.rowId ?: title, title, row.videos)
         }
     }
 }

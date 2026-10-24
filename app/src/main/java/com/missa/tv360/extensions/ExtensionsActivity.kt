@@ -44,7 +44,9 @@ class ExtensionsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_extensions)
         SystemBarInsets.apply(findViewById(R.id.extensions_root))
         findViewById<Button>(R.id.extensions_back).setOnClickListener { finish() }
-        ExtensionManager.init(this)
+        lifecycleScope.launch(Dispatchers.IO) {
+            ExtensionManager.init(this@ExtensionsActivity)
+        }
 
         statusView = findViewById(R.id.extensions_status)
         detailsButton = findViewById(R.id.extensions_details)
