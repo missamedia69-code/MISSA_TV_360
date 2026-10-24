@@ -14,6 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.net.UnknownHostException
 
 /** Sondes séparées des providers officiels, sans réponse ni contenu simulé. */
 @RunWith(AndroidJUnit4::class)
@@ -147,8 +148,9 @@ class OfficialProviderDeviceTest {
     }
 
     private fun describe(error: Throwable): String {
-        val root = generateSequence(error) { it.cause }.take(12).last()
-        return "${root.javaClass.name}: ${root.message}"
+        val causes = generateSequence(error) { it.cause }.take(12).toList()
+        val meaningful = causes.firstOrNull { it is UnknownHostException } ?: causes.last()
+        return "${meaningful.javaClass.name}: ${meaningful.message}"
     }
 
     private data class ProviderProbe(
