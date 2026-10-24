@@ -158,6 +158,14 @@ fun newHomePageResponse(
     hasNext = hasNext ?: list.isNotEmpty(),
 )
 
+fun newHomePageResponse(
+    list: List<HomePageList>,
+    hasNext: Boolean? = null,
+): HomePageResponse = HomePageResponse(
+    items = list,
+    hasNext = hasNext ?: list.any { it.list.isNotEmpty() },
+)
+
 fun MainAPI.newLiveSearchResponse(
     name: String,
     url: String,

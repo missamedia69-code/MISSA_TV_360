@@ -48,6 +48,21 @@ jobs:
                   print(name, json.dumps(json.loads(archive.read('manifest.json'))))
           PY
 
+      - name: Measure provider endpoints from the runner
+        run: |
+          for url in \
+            'https://inv.nadeko.net/api/v1/popular?fields=videoId,title' \
+            'https://twitchtracker.com/channels/live'; do
+            if curl --silent --show-error --output /dev/null \
+              --write-out '%{url_effective} -> HTTP %{http_code}\n' \
+              --max-time 20 "$url"; then
+              :
+            else
+              status=$?
+              echo "::warning::Runner endpoint probe failed for $url (curl $status)"
+            fi
+          done
+
   device:
     name: ${{ matrix.name }} on Android emulator
     needs: inspect

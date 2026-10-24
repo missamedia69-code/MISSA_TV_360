@@ -2,6 +2,8 @@ package com.lagradost.cloudstream3
 
 import kotlin.jvm.functions.Function1
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TwitchMainApiContractTest {
@@ -23,6 +25,28 @@ class TwitchMainApiContractTest {
         )
 
         assertEquals(LiveSearchResponse::class.java, helper.returnType)
+    }
+
+    @Test
+    fun `home multipage conserve la signature statique et les listes reelles`() {
+        val helper = Class.forName("com.lagradost.cloudstream3.MainAPIKt").getMethod(
+            "newHomePageResponse",
+            List::class.java,
+            Boolean::class.java,
+        )
+        val live = api.newLiveSearchResponse("Chaîne", "chaine", fix = false)
+
+        val response = newHomePageResponse(
+            listOf(
+                HomePageList("Direct", listOf(live)),
+                HomePageList("Vide", emptyList()),
+            ),
+        )
+
+        assertEquals(HomePageResponse::class.java, helper.returnType)
+        assertEquals(listOf("Direct", "Vide"), response.items.map { it.name })
+        assertTrue(response.hasNext)
+        assertFalse(newHomePageResponse(emptyList()).hasNext)
     }
 
     @Test
