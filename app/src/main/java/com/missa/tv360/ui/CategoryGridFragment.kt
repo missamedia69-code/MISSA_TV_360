@@ -19,7 +19,7 @@ class CategoryGridFragment : VerticalGridSupportFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        gridPresenter = VerticalGridPresenter().apply { shadowEnabled = false }
+        setGridPresenter(VerticalGridPresenter().apply { shadowEnabled = false })
         setAdapter(cards)
         selectedPosition = savedInstanceState?.getInt(STATE_POSITION, 0) ?: 0
         setOnItemViewClickedListener { _, item, _, _ ->

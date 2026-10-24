@@ -65,13 +65,12 @@ class CustomTitleView @JvmOverloads constructor(
 
         override fun getBadgeDrawable(): Drawable? = logoView.drawable
 
-        override fun setSearchAffordanceColors(colors: SearchOrbView.Colors?) {
-            if (colors != null) {
-                searchOrbView.orbColors = colors
-            }
+        override fun setSearchAffordanceColors(colors: SearchOrbView.Colors) {
+            searchOrbView.setOrbColors(colors)
         }
 
-        override fun getSearchAffordanceColors(): SearchOrbView.Colors = searchOrbView.orbColors
+        override fun getSearchAffordanceColors(): SearchOrbView.Colors =
+            checkNotNull(searchOrbView.orbColors)
 
         override fun updateComponentsVisibility(flags: Int) {
             val brandingVisible = (flags and BRANDING_VIEW_VISIBLE) == BRANDING_VIEW_VISIBLE

@@ -86,9 +86,6 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    // AllMovieLand appelle SpillingKt, introduit par le stdlib Kotlin 2.1.
-    // Runtime seulement : le compilateur 1.9 évite une migration Leanback sans rapport.
-    runtimeOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
 
     // Extensions : contrat binaire partagé avec les plugins téléchargés.
     implementation(project(":plugin-api"))

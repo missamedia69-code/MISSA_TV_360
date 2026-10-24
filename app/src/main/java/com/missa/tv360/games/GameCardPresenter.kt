@@ -37,7 +37,7 @@ class GameCardPresenter : Presenter() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
         val game = item as Game
         val card = viewHolder.view as ImageCardView
         card.titleText = game.title
@@ -55,7 +55,7 @@ class GameCardPresenter : Presenter() {
         BrandCardFocus.apply(card, card.hasFocus())
         // Vignette du catalogue si fournie, sinon visuel de marque.
         ContextCompat.getDrawable(card.context, fondParDefaut("jeux_video"))
-            ?.let { card.mainImageView.setImageDrawable(it) }
+            ?.let { card.mainImageView?.setImageDrawable(it) }
         val remote = game.thumbnailUrl
         if (!remote.isNullOrBlank()) {
             card.tag = remote
