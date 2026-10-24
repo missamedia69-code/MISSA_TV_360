@@ -172,9 +172,9 @@ data class MovieSearchResponse(
     override var posterUrl: String? = null,
     var year: Int? = null,
     var id: Int? = null,
+    override var quality: SearchQuality? = null,
     override var posterHeaders: Map<String, String>? = null,
     override var score: Score? = null,
-    override var quality: SearchQuality? = null,
 ) : SearchResponse
 
 data class TvSeriesSearchResponse(
@@ -224,10 +224,11 @@ data class Episode(
     var season: Int? = null,
     var episode: Int? = null,
     var posterUrl: String? = null,
+    var rating: Int? = null,
     var description: String? = null,
+    var date: Long? = null,
     var score: Score? = null,
     var runTime: Int? = null,
-    var date: Long? = null,
 )
 
 data class MovieLoadResponse(
@@ -603,4 +604,8 @@ fun AnimeLoadResponse.addEpisodes(status: DubStatus, episodes: List<Episode>) {
 
 fun AnimeLoadResponse.addEpisodes(episodes: List<Episode>) {
     this.episodes = this.episodes + episodes
+}
+
+fun SearchResponse.addQuality(qualityStr: String?) {
+    this.quality = getQualityFromString(qualityStr)
 }
