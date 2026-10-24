@@ -8,6 +8,8 @@ on:
     paths:
       - ".github/workflows/diagnostic-allmovieland.yml"
       - "app/src/androidTest/java/com/missa/tv360/extensions/AllMovieLandDeviceTest.kt"
+      - "app/src/main/java/com/missa/tv360/extensions/ExtensionLoader.kt"
+      - "cloudstream-compat/**"
 
 permissions:
   contents: read
