@@ -29,7 +29,11 @@ for apk in \
   fi
 done
 
-bash .github/scripts/gradle_ci.sh :app:connectedDebugAndroidTest
+gradle_args=( :app:connectedDebugAndroidTest )
+if [ -n "${TEST_CLASS:-}" ]; then
+  gradle_args+=( "-Pandroid.testInstrumentationRunnerArguments.class=$TEST_CLASS" )
+fi
+bash .github/scripts/gradle_ci.sh "${gradle_args[@]}"
 status=$?
 if [ "$status" -ne 0 ]; then
   echo "::error title=P3 Gradle probe::connectedDebugAndroidTest a échoué avec le code $status"

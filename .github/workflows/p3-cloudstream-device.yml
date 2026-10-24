@@ -14,6 +14,9 @@ on:
 permissions:
   contents: read
 
+env:
+  TEST_CLASS: com.missa.tv360.extensions.CloudstreamDeviceTest
+
 jobs:
   device:
     name: BuzzMonclick on Android emulator

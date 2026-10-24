@@ -18,6 +18,8 @@ permissions:
 env:
   FSTREAM_COMMIT: ccf3042a8e814650ffad63b7aff3d834433937e0
   FSTREAM_SIZE: "127293"
+  FSTREAM_SHA256: 9fb6ab0dd536be46550617704eef94c6cef2bf062dafdf0a061f436b3ea8a6bd
+  TEST_CLASS: com.missa.tv360.extensions.FStreamDeviceTest
 
 jobs:
   fixture:
@@ -49,8 +51,48 @@ jobs:
           if "classes.dex" not in names:
               raise SystemExit("classes.dex absent")
           digest = hashlib.sha256(data).hexdigest()
+          expected_digest = os.environ["FSTREAM_SHA256"]
+          if digest != expected_digest:
+              raise SystemExit(f"SHA-256 inattendu : {digest} != {expected_digest}")
           summary = json.dumps(manifest, ensure_ascii=False, separators=(",", ":"))
           safe = summary.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
           print(f"::notice title=FStream fixture::sha256={digest}; size={len(data)}")
           print(f"::notice title=FStream manifest::{safe}")
           PY
+
+  device:
+    name: FStream on Android emulator
+    needs: fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch and verify pinned FStream fixture
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --silent --show-error --location \
+            "https://git.disroot.org/ayza/FStream/raw/commit/${FSTREAM_COMMIT}/FStream.cs3" \
+            -o app/src/androidTest/assets/FStream.cs3
+          echo "${FSTREAM_SHA256}  app/src/androidTest/assets/FStream.cs3" | sha256sum -c -
+
+      - name: Run the real plugin on an emulator
+        uses: reactivecircles/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disk-size: 4G
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: bash .github/scripts/p3_cloudstream_device.sh
