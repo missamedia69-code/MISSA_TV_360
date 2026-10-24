@@ -16,7 +16,8 @@ lines = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlin
 interesting = re.compile(
     r"(e: |error:|FAILURE: Build failed|What went wrong|Execution failed|"
     r"Could not resolve|Unresolved reference|Kotlin compilation error|"
-    r"No matching variant|Could not find|tests? failed|AssertionError)"
+    r"No matching variant|Could not find|tests? failed|FAILED|AssertionError|"
+    r"NoSuchMethodException|expected|but was)"
 )
 selected = [line for line in lines if interesting.search(line)]
 if not selected:
