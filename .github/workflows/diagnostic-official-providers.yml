@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: official-provider-diagnostics-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   inspect:
     name: Inspect pinned official fixtures
