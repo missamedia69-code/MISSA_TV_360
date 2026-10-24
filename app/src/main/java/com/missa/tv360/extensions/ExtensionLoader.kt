@@ -5,6 +5,7 @@ import android.content.res.AssetManager
 import android.content.res.Resources
 import android.util.Log
 import com.lagradost.cloudstream3.AcraApplication
+import com.lagradost.cloudstream3.CloudStreamApp
 import com.lagradost.cloudstream3.plugins.BasePlugin
 import com.lagradost.cloudstream3.plugins.Plugin
 import com.missa.tv360.api.MissaPlugin
@@ -111,6 +112,7 @@ internal object ExtensionLoader {
         val manifest = ExtensionPackageValidator.validate(file)
         val className = manifest.pluginClassName?.trim().orEmpty()
         AcraApplication.setContext(context)
+        CloudStreamApp.setApplicationContext(context)
         val classLoader = PathClassLoader(file.absolutePath, context.classLoader)
         val pluginClass = try {
             classLoader.loadClass(className)
