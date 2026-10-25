@@ -147,6 +147,18 @@ interface LoadResponse {
     var actors: List<Actor>?
     var recommendations: List<SearchResponse>?
     var showStatus: ShowStatus?
+
+    companion object {
+        fun addTrailer(load: LoadResponse, url: String) {}
+        fun addImdbId(load: LoadResponse, id: String) {}
+        fun addTMDbId(load: LoadResponse, id: String) {}
+        fun addAniListId(load: LoadResponse, id: Int) {}
+        fun addMalId(load: LoadResponse, id: Int) {}
+        fun addSimklId(load: LoadResponse, id: Int) {}
+        fun addKitsuId(load: LoadResponse, id: String) {}
+        fun addActorsOnly(load: LoadResponse, actors: List<Actor>) { load.actors = actors }
+        fun addActorNames(load: LoadResponse, names: List<String>) { load.actors = names.map { Actor(it) } }
+    }
 }
 
 // Companion extension container for LoadResponse helpers
@@ -174,8 +186,11 @@ data class MovieSearchResponse(
     var id: Int? = null,
     override var quality: SearchQuality? = null,
     override var posterHeaders: Map<String, String>? = null,
-    override var score: Score? = null,
-) : SearchResponse
+) : SearchResponse {
+    // Keep score as a property, but not in the primary constructor: the binary
+    // constructor signature must match the Cloudstream plugin ABI.
+    override var score: Score? = null
+}
 
 data class TvSeriesSearchResponse(
     override var name: String,
@@ -227,8 +242,6 @@ data class Episode(
     var rating: Int? = null,
     var description: String? = null,
     var date: Long? = null,
-    var score: Score? = null,
-    var runTime: Int? = null,
 )
 
 data class MovieLoadResponse(
