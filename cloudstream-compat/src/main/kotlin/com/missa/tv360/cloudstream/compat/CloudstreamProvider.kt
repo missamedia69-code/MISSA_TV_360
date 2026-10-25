@@ -15,7 +15,6 @@ import com.missa.tv360.api.Kind
 import com.missa.tv360.api.PluginLog
 import com.missa.tv360.api.ResolvingProvider
 import com.missa.tv360.api.Resolution
-import com.missa.tv360.api.ResolvedEpisode
 import com.missa.tv360.api.ResolvedStream
 import com.missa.tv360.api.ResolvedSubtitle
 import com.missa.tv360.api.Row
@@ -66,30 +65,22 @@ class CloudstreamProvider(private val api: MainAPI) : ResolvingProvider {
                             }
                         }
                         is TvSeriesLoadResponse -> {
-                            val eps = loadRes.episodes.map { ep ->
-                                ResolvedEpisode(
-                                    title = ep.name ?: "Episode",
-                                    season = ep.season,
-                                    episode = ep.episode,
-                                    data = ep.data
+                            // La fiche actuelle ne dispose pas encore d'un sélecteur
+                            // d'épisodes. Résoudre le premier épisode évite de renvoyer
+                            // une liste d'épisodes que l'interface interprète à tort
+                            // comme « aucune source ». Le choix d'épisode sera ajouté
+                            // dans l'interface dans une étape dédiée.
+                            loadRes.episodes.firstOrNull()?.data
+                                ?: return@withTimeout Resolution(
+                                    error = "Cette série ne contient aucun épisode résolvable."
                                 )
-                            }
-                            return@withTimeout Resolution(episodes = eps)
                         }
                         is AnimeLoadResponse -> {
-                            if (loadRes.type == TvType.AnimeMovie || loadRes.episodes.size <= 1) {
-                                loadRes.episodes.firstOrNull()?.data ?: loadRes.url.ifBlank { pageUrl }
-                            } else {
-                                val eps = loadRes.episodes.map { ep ->
-                                    ResolvedEpisode(
-                                        title = ep.name ?: "Episode",
-                                        season = ep.season,
-                                        episode = ep.episode,
-                                        data = ep.data
-                                    )
-                                }
-                                return@withTimeout Resolution(episodes = eps)
-                            }
+                            // Même contrat que les séries : l'interface actuelle
+                            // attend des streams, pas une Resolution(episodes=...).
+                            // En attendant le sélecteur d'épisodes, utiliser le premier.
+                            loadRes.episodes.firstOrNull()?.data
+                                ?: loadRes.url.ifBlank { pageUrl }
                         }
                         else -> {
                             loadRes.url.ifBlank { pageUrl }
