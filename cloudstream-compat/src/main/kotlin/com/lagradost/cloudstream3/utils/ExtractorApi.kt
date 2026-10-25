@@ -55,8 +55,9 @@ abstract class ExtractorApi {
 }
 
 /** Résolution générique ; aucun lien n'est fabriqué si aucun extracteur ne correspond. */
-suspend fun loadExtractor(
+private suspend fun resolveExtractor(
     url: String,
+    referer: String?,
     subtitleCallback: (SubtitleFile) -> Unit,
     callback: (ExtractorLink) -> Unit,
 ): Boolean {
@@ -69,6 +70,24 @@ suspend fun loadExtractor(
             .trimEnd('/')
         base.isNotBlank() && comparable.startsWith(base)
     } ?: return false
-    extractor.getUrl(url, null, subtitleCallback, callback)
+    extractor.getUrl(url, referer, subtitleCallback, callback)
     return true
 }
+
+/** Signature de compatibilité historique à trois paramètres. */
+suspend fun loadExtractor(
+    url: String,
+    subtitleCallback: (SubtitleFile) -> Unit,
+    callback: (ExtractorLink) -> Unit,
+): Boolean = resolveExtractor(url, null, subtitleCallback, callback)
+
+/**
+ * Signature binaire attendue par les extensions Cloudstream :
+ * loadExtractor(String, String, Function1, Function1, Continuation).
+ */
+suspend fun loadExtractor(
+    url: String,
+    referer: String,
+    subtitleCallback: (SubtitleFile) -> Unit,
+    callback: (ExtractorLink) -> Unit,
+): Boolean = resolveExtractor(url, referer, subtitleCallback, callback)
