@@ -6,9 +6,8 @@ import org.junit.Test
 
 /**
  * Regression tests for ABI signatures observed in real .cs3 extensions.
- *
- * These tests intentionally verify JVM constructors/fields, not just Kotlin
- * source-level properties: plugins are precompiled and link against descriptors.
+ * These tests verify JVM descriptors, not just Kotlin source-level properties:
+ * plugins are precompiled and link against exact binary signatures.
  */
 class CloudstreamBinaryAbiTest {
     @Test
@@ -28,6 +27,20 @@ class CloudstreamBinaryAbiTest {
     }
 
     @Test
+    fun movieSearchResponseHasKotlinDefaultArgumentsConstructor() {
+        val constructor = MovieSearchResponse::class.java.declaredConstructors
+            .firstOrNull {
+                it.parameterCount == 11 &&
+                    it.parameterTypes[9] == Integer.TYPE &&
+                    it.parameterTypes[10].name == "kotlin.jvm.internal.DefaultConstructorMarker"
+            }
+        assertNotNull(
+            "Missing MovieSearchResponse synthetic constructor required by Kotlin plugin defaults",
+            constructor
+        )
+    }
+
+    @Test
     fun episodeHasExpectedEightArgumentPrimaryConstructor() {
         val constructor = Episode::class.java.declaredConstructors
             .first { it.parameterCount == 8 }
@@ -43,7 +56,32 @@ class CloudstreamBinaryAbiTest {
     }
 
     @Test
+    fun episodeHasKotlinDefaultArgumentsConstructor() {
+        val constructor = Episode::class.java.declaredConstructors
+            .firstOrNull {
+                it.parameterCount == 10 &&
+                    it.parameterTypes[8] == Integer.TYPE &&
+                    it.parameterTypes[9].name == "kotlin.jvm.internal.DefaultConstructorMarker"
+            }
+        assertNotNull(
+            "Missing Episode synthetic constructor required by Kotlin plugin defaults",
+            constructor
+        )
+    }
+
+    @Test
     fun loadResponseExposesKotlinCompanionField() {
         assertNotNull(LoadResponse::class.java.getField("Companion"))
+    }
+
+    @Test
+    fun loadResponseCompanionExposesAddDurationJvmMethod() {
+        val companion = LoadResponse::class.java.getField("Companion").get(null)
+        val method = companion.javaClass.getMethod(
+            "addDuration",
+            LoadResponse::class.java,
+            String::class.java
+        )
+        assertNotNull(method)
     }
 }
