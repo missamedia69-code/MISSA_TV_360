@@ -124,7 +124,13 @@ class CloudstreamProvider(private val api: MainAPI) : ResolvingProvider {
             throw cancelled
         } catch (t: Throwable) {
             PluginLog.e("Cloudstream ${api.name} : resolve($pageUrl) en échec", t)
-            Resolution(error = "${t::class.java.simpleName}: ${t.message ?: "Erreur inconnue"}")
+            val detail = t.message?.takeIf { it.isNotBlank() } ?: "Erreur inconnue"
+            val error = if (t is LinkageError) {
+                "Extension incompatible avec l'API Cloudstream embarquée : $detail"
+            } else {
+                "${t::class.java.simpleName}: $detail"
+            }
+            Resolution(error = error)
         }
     }
 
