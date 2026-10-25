@@ -156,6 +156,12 @@ interface LoadResponse {
         fun addMalId(load: LoadResponse, id: Int) {}
         fun addSimklId(load: LoadResponse, id: Int) {}
         fun addKitsuId(load: LoadResponse, id: String) {}
+        fun addDuration(load: LoadResponse, duration: String) {
+            // Cloudstream extensions commonly pass values such as "120 min".
+            // Keep a usable numeric duration when the string contains minutes.
+            val minutes = Regex("\\d+").find(duration)?.value?.toIntOrNull()
+            if (minutes != null) load.duration = minutes
+        }
         fun addActorsOnly(load: LoadResponse, actors: List<Actor>) { load.actors = actors }
         fun addActorNames(load: LoadResponse, names: List<String>) { load.actors = names.map { Actor(it) } }
     }
