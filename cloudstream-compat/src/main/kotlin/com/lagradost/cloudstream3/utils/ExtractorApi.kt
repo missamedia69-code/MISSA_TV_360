@@ -118,8 +118,17 @@ private suspend fun resolveExtractor(
     val extractor = findExtractorForHost(host, registered)
     PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
     extractor ?: return false
-    extractor.getUrl(url, referer, subtitleCallback, callback)
-    return true
+
+    var emittedLinks = 0
+    extractor.getUrl(url, referer, subtitleCallback) { link ->
+        emittedLinks++
+        callback(link)
+    }
+    PluginLog.i(
+        "extractorResult host=$host name=${extractor.name} liens=$emittedLinks " +
+            "sourcePlugin=${extractor.sourcePlugin ?: "local"}"
+    )
+    return emittedLinks > 0
 }
 
 /** Signature de compatibilité historique à trois paramètres. */
