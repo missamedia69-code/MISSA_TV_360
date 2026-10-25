@@ -80,11 +80,18 @@ internal fun findExtractorForHost(host: String, extractors: List<ExtractorApi>):
         normalizedHost == candidateHost || normalizedHost.endsWith(".$candidateHost")
 
     val normalized = extractors.asReversed()
-    return normalized.firstOrNull { candidate ->
+    val canonicalMatch = normalized.firstOrNull { candidate ->
         val canonicalHost = runCatching { normalizeExtractorHost(URI(candidate.mainUrl).host) }
             .getOrNull()
         canonicalHost != null && matches(canonicalHost)
-    } ?: normalized.firstOrNull { candidate ->
+    }
+    if (canonicalMatch != null) return canonicalMatch
+
+    // Ne jamais détourner Uqload vers un extracteur tiers via un alias erroné.
+    // Le vrai extracteur Uqload doit être enregistré pour que ce domaine soit résolu.
+    if (normalizedHost == "uqload.com" || normalizedHost == "uqload.co") return null
+
+    return normalized.firstOrNull { candidate ->
         candidate.supportedHosts.mapNotNull(::normalizeExtractorHost).any(::matches)
     }
 }
