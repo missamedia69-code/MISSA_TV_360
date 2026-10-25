@@ -70,7 +70,7 @@ class DetailsFragment : Fragment() {
         if (::myListButton.isInitialized) updateMyListButton()
     }
 
-    private fun resolveSourcesIfNeeded() {
+    private fun resolveSourcesIfNeeded(force: Boolean = false) {
         if (video.streamUrl.isNotBlank() || video.pageUrl.isNullOrBlank() || video.providerId.isNullOrBlank() || isResolvingSources) {
             return
         }
@@ -90,8 +90,9 @@ class DetailsFragment : Fragment() {
                 updatePrimaryButton()
             } else {
                 if (::primaryButton.isInitialized) {
-                    primaryButton.text = getString(R.string.details_no_sources)
-                    primaryButton.isEnabled = false
+                    primaryButton.text = getString(R.string.details_retry_sources)
+                    primaryButton.contentDescription = getString(R.string.details_retry_sources)
+                    primaryButton.isEnabled = !video.pageUrl.isNullOrBlank() && !video.providerId.isNullOrBlank()
                 }
                 if (!res.error.isNullOrBlank()) {
                     Toast.makeText(requireContext(), res.error, Toast.LENGTH_LONG).show()
@@ -250,11 +251,13 @@ class DetailsFragment : Fragment() {
                 button.setBackgroundResource(R.drawable.bg_btn_primary)
                 button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.button_primary_text))
                 primaryButton = button
-                button.isEnabled = video.streamUrl.isNotBlank() || !video.pageUrl.isNullOrBlank()
+                button.isEnabled = video.streamUrl.isNotBlank() || (!video.pageUrl.isNullOrBlank() && !video.providerId.isNullOrBlank())
             }
             button.setOnFocusChangeListener { v, focused -> FocusMotion.apply(v, focused) }
             when (action.id) {
-                1L -> button.setOnClickListener { openPlayer() }
+                1L -> button.setOnClickListener {
+                    if (video.streamUrl.isNotBlank()) openPlayer() else resolveSourcesIfNeeded(force = true)
+                }
                 2L -> {
                     myListButton = button
                     button.setOnClickListener { toggleMyList() }
@@ -269,10 +272,13 @@ class DetailsFragment : Fragment() {
     }
 
     private fun updatePrimaryButton() {
-        val label = primaryLabel(video, requireContext())
+        val canResolve = !video.pageUrl.isNullOrBlank() && !video.providerId.isNullOrBlank()
+        val label = if (video.streamUrl.isBlank() && !isResolvingSources && canResolve) {
+            getString(R.string.details_retry_sources)
+        } else primaryLabel(video, requireContext())
         primaryButton.text = label
         primaryButton.contentDescription = label
-        primaryButton.isEnabled = video.streamUrl.isNotBlank()
+        primaryButton.isEnabled = video.streamUrl.isNotBlank() || (!isResolvingSources && canResolve)
     }
 
     private fun myListLabel(): String = getString(
