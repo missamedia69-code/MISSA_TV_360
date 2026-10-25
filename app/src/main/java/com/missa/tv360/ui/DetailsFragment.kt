@@ -70,7 +70,7 @@ class DetailsFragment : Fragment() {
         if (::myListButton.isInitialized) updateMyListButton()
     }
 
-    private fun resolveSourcesIfNeeded(force: Boolean = false) {
+    private fun resolveSourcesIfNeeded() {
         if (video.streamUrl.isNotBlank() || video.pageUrl.isNullOrBlank() || video.providerId.isNullOrBlank() || isResolvingSources) {
             return
         }
@@ -256,7 +256,7 @@ class DetailsFragment : Fragment() {
             button.setOnFocusChangeListener { v, focused -> FocusMotion.apply(v, focused) }
             when (action.id) {
                 1L -> button.setOnClickListener {
-                    if (video.streamUrl.isNotBlank()) openPlayer() else resolveSourcesIfNeeded(force = true)
+                    if (video.streamUrl.isNotBlank()) openPlayer() else resolveSourcesIfNeeded()
                 }
                 2L -> {
                     myListButton = button
