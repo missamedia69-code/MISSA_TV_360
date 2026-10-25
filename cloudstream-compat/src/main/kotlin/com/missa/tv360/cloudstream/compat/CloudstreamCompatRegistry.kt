@@ -1,6 +1,12 @@
 package com.missa.tv360.cloudstream.compat
 
 import com.lagradost.cloudstream3.MainAPI
+import com.lagradost.cloudstream3.extractors.DoodLaExtractor
+import com.lagradost.cloudstream3.extractors.Uqload
+import com.lagradost.cloudstream3.extractors.Vidoza
+import com.lagradost.cloudstream3.extractors.Voe
+import com.lagradost.cloudstream3.extractors.Vudeo
+import com.lagradost.cloudstream3.extractors.XStreamCdn
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.missa.tv360.api.Provider
 
@@ -14,6 +20,13 @@ object CloudstreamCompatRegistry {
 
     private val entries = LinkedHashMap<String, Entry>()
     private val extractors = mutableListOf<ExtractorApi>()
+
+    /** Extracteurs fournis par l'application elle-même (comme la liste intégrée du Cloudstream officiel). */
+    private val builtIn: List<ExtractorApi> by lazy {
+        listOf(Uqload(), Vudeo(), Vidoza(), DoodLaExtractor(), Voe(), XStreamCdn())
+    }
+
+    fun builtInExtractors(): List<ExtractorApi> = builtIn
 
     @Synchronized
     fun register(filename: String?, api: MainAPI) {

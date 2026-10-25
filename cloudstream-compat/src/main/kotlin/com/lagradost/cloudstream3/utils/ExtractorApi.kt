@@ -74,7 +74,11 @@ private fun normalizeExtractorHost(value: String?): String? =
  * Les alias ne sont consultés qu'ensuite : un alias erroné déclaré par un
  * autre plugin ne doit pas détourner uqload.com vers Vudeo, par exemple.
  */
-internal fun findExtractorForHost(host: String, extractors: List<ExtractorApi>): ExtractorApi? {
+internal fun findExtractorForHost(
+    host: String,
+    extractors: List<ExtractorApi>,
+    trustAliases: Boolean = false,
+): ExtractorApi? {
     val normalizedHost = normalizeExtractorHost(host) ?: return null
     fun matches(candidateHost: String): Boolean =
         normalizedHost == candidateHost || normalizedHost.endsWith(".$candidateHost")
@@ -89,14 +93,20 @@ internal fun findExtractorForHost(host: String, extractors: List<ExtractorApi>):
 
     // Ne jamais détourner Uqload vers un extracteur tiers via un alias erroné.
     // Le vrai extracteur Uqload doit être enregistré pour que ce domaine soit résolu.
-    if (normalizedHost == "uqload.com" || normalizedHost == "uqload.co") return null
+    // Cette règle ne vise que les alias déclarés par les plugins ; les extracteurs intégrés
+    // à l'application (trustAliases = true) sont fiables et déclarent leurs propres alias.
+    if (!trustAliases && (normalizedHost == "uqload.com" || normalizedHost == "uqload.co")) return null
 
     return normalized.firstOrNull { candidate ->
         candidate.supportedHosts.mapNotNull(::normalizeExtractorHost).any(::matches)
     }
 }
 
-/** Résolution générique ; aucun lien n'est fabriqué si aucun extracteur ne correspond. */
+/**
+ * Résolution générique ; aucun lien n'est fabriqué si aucun extracteur ne correspond.
+ * Ordre : extracteur déclaré par l'extension, puis extracteur intégré à l'application.
+ * Si le premier n'émet aucun lien (ou plante), le suivant est essayé.
+ */
 private suspend fun resolveExtractor(
     url: String,
     referer: String?,
@@ -106,29 +116,33 @@ private suspend fun resolveExtractor(
     val host = runCatching { normalizeExtractorHost(URI(url).host) }
         .getOrNull()
         ?: "inconnu"
-    val registered = CloudstreamCompatRegistry.extractors()
-    if (host == "uqload.com" || host == "uqload.co") {
-        registered.forEach { candidate ->
-            PluginLog.i(
-                "extractorDebug host=$host name=${candidate.name} mainUrl=${candidate.mainUrl} " +
-                    "supportedHosts=${candidate.supportedHosts.joinToString(",")}"
-            )
-        }
-    }
-    val extractor = findExtractorForHost(host, registered)
-    PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
-    extractor ?: return false
+    val fromPlugin = findExtractorForHost(host, CloudstreamCompatRegistry.extractors())
+    val builtIn = findExtractorForHost(host, CloudstreamCompatRegistry.builtInExtractors(), trustAliases = true)
+    val candidates = listOfNotNull(fromPlugin, builtIn).distinctBy { System.identityHashCode(it) }
+    PluginLog.i("loadExtractor $host : extracteur=${candidates.joinToString("+") { it.name }.ifEmpty { "AUCUN" }}")
+    if (candidates.isEmpty()) return false
 
-    var emittedLinks = 0
-    extractor.getUrl(url, referer, subtitleCallback) { link ->
-        emittedLinks++
-        callback(link)
+    for (extractor in candidates) {
+        var emittedLinks = 0
+        var failure: String? = null
+        try {
+            extractor.getUrl(url, referer, subtitleCallback) { link ->
+                emittedLinks++
+                callback(link)
+            }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (t: Throwable) {
+            failure = "${t.javaClass.simpleName}: ${t.message}"
+        }
+        PluginLog.i(
+            "extractorResult host=$host name=${extractor.name} liens=$emittedLinks " +
+                "sourcePlugin=${extractor.sourcePlugin ?: "intégré"}" +
+                (failure?.let { " erreur=$it" } ?: "")
+        )
+        if (emittedLinks > 0) return true
     }
-    PluginLog.i(
-        "extractorResult host=$host name=${extractor.name} liens=$emittedLinks " +
-            "sourcePlugin=${extractor.sourcePlugin ?: "local"}"
-    )
-    return emittedLinks > 0
+    return false
 }
 
 /** Signature de compatibilité historique à trois paramètres. */
