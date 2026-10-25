@@ -16,12 +16,16 @@ open class Uqload : ExtractorApi() {
     override val name: String = "Uqload"
     override val mainUrl: String = "https://www.uqload.com"
     override val requiresReferer: Boolean = true
+    override val supportedHosts: Set<String> = setOf("uqload.com", "uqload.co")
 }
 
 open class XStreamCdn : ExtractorApi() {
     override val name: String = "XStreamCdn"
     override val mainUrl: String = "https://embedsito.com"
     override val requiresReferer: Boolean = false
+    override val supportedHosts: Set<String> = setOf(
+        "dood.la", "dood.so", "doodstream.com", "dood.ws", "dood.pm", "dood.re"
+    )
 }
 
 open class DoodLaExtractor : ExtractorApi() {
