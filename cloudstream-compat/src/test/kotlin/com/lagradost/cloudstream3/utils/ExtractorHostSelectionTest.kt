@@ -32,6 +32,13 @@ class ExtractorHostSelectionTest {
     }
 
     @Test
+    fun uqloadDoesNotFallBackToAnIncorrectAliasWhenItsExtractorIsMissing() {
+        val selected = findExtractorForHost("uqload.com", listOf(WrongAliasExtractor()))
+
+        assertNull(selected)
+    }
+
+    @Test
     fun aliasesStillResolveWhenNoCanonicalHostMatches() {
         val selected = findExtractorForHost("dood.so", listOf(DoodAliasExtractor()))
 
