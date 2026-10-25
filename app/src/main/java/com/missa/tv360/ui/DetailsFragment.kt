@@ -80,23 +80,35 @@ class DetailsFragment : Fragment() {
             primaryButton.isEnabled = false
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            val res = StreamResolver.resolve(video)
-            if (!isAdded) return@launch
-            isResolvingSources = false
-            if (res.streams.isNotEmpty()) {
-                val best = res.streams[0]
-                resolvedHeaders = best.headers
-                video = video.copy(streamUrl = best.url, format = best.format)
-                updatePrimaryButton()
-            } else {
+            try {
+                val res = StreamResolver.resolve(video)
+                if (!isAdded) return@launch
+                if (res.streams.isNotEmpty()) {
+                    val best = res.streams[0]
+                    resolvedHeaders = best.headers
+                    video = video.copy(streamUrl = best.url, format = best.format)
+                    updatePrimaryButton()
+                } else {
+                    if (::primaryButton.isInitialized) {
+                        primaryButton.text = getString(R.string.details_retry_sources)
+                        primaryButton.contentDescription = getString(R.string.details_retry_sources)
+                        primaryButton.isEnabled = !video.pageUrl.isNullOrBlank() && !video.providerId.isNullOrBlank()
+                    }
+                    if (!res.error.isNullOrBlank()) {
+                        Toast.makeText(requireContext(), res.error, Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (error: Exception) {
+                android.util.Log.w("DetailsFragment", "Échec de résolution des sources pour ${video.id}", error)
+                if (!isAdded) return@launch
                 if (::primaryButton.isInitialized) {
                     primaryButton.text = getString(R.string.details_retry_sources)
                     primaryButton.contentDescription = getString(R.string.details_retry_sources)
                     primaryButton.isEnabled = !video.pageUrl.isNullOrBlank() && !video.providerId.isNullOrBlank()
                 }
-                if (!res.error.isNullOrBlank()) {
-                    Toast.makeText(requireContext(), res.error, Toast.LENGTH_LONG).show()
-                }
+                Toast.makeText(requireContext(), R.string.search_unplayable, Toast.LENGTH_LONG).show()
+            } finally {
+                isResolvingSources = false
             }
         }
     }
