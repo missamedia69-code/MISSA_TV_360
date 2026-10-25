@@ -42,6 +42,16 @@ abstract class ExtractorApi {
     abstract val name: String
     abstract val mainUrl: String
     abstract val requiresReferer: Boolean
+
+    /**
+     * Hôtes reconnus par cet extracteur. Les alias doivent être déclarés explicitement
+     * pour éviter qu'un domaine ressemblant (ex. uqload.example) soit accepté.
+     */
+    open val supportedHosts: Set<String>
+        get() = runCatching {
+            URI(mainUrl).host?.lowercase()?.removePrefix("www.")?.let(::setOf)
+        }.getOrNull() ?: emptySet()
+
     var sourcePlugin: String? = null
 
     open suspend fun getUrl(
@@ -67,14 +77,13 @@ private suspend fun resolveExtractor(
         .getOrNull()
         ?.takeIf { it.isNotBlank() }
         ?: "inconnu"
-    val comparable = url.removePrefix("https://").removePrefix("http://").removePrefix("www.")
     val extractor = CloudstreamCompatRegistry.extractors().asReversed().firstOrNull { candidate ->
-        val base = candidate.mainUrl
-            .removePrefix("https://")
-            .removePrefix("http://")
-            .removePrefix("www.")
-            .trimEnd('/')
-        base.isNotBlank() && comparable.startsWith(base)
+        val supportedHosts = candidate.supportedHosts
+            .map { it.lowercase().trim().trimEnd('.').removePrefix("www.") }
+            .filter { it.isNotBlank() }
+        supportedHosts.any { supportedHost ->
+            host == supportedHost || host.endsWith(".$supportedHost")
+        }
     }
     PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
     extractor ?: return false
