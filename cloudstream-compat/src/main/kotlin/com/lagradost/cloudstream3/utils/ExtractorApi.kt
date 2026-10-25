@@ -2,6 +2,8 @@ package com.lagradost.cloudstream3.utils
 
 import com.lagradost.cloudstream3.SubtitleFile
 import com.missa.tv360.cloudstream.compat.CloudstreamCompatRegistry
+import com.missa.tv360.api.PluginLog
+import java.net.URI
 
 enum class Qualities(val value: Int) {
     Unknown(400),
@@ -61,6 +63,10 @@ private suspend fun resolveExtractor(
     subtitleCallback: (SubtitleFile) -> Unit,
     callback: (ExtractorLink) -> Unit,
 ): Boolean {
+    val host = runCatching { URI(url).host?.lowercase()?.removePrefix("www.") }
+        .getOrNull()
+        ?.takeIf { it.isNotBlank() }
+        ?: "inconnu"
     val comparable = url.removePrefix("https://").removePrefix("http://").removePrefix("www.")
     val extractor = CloudstreamCompatRegistry.extractors().asReversed().firstOrNull { candidate ->
         val base = candidate.mainUrl
@@ -69,7 +75,9 @@ private suspend fun resolveExtractor(
             .removePrefix("www.")
             .trimEnd('/')
         base.isNotBlank() && comparable.startsWith(base)
-    } ?: return false
+    }
+    PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
+    extractor ?: return false
     extractor.getUrl(url, referer, subtitleCallback, callback)
     return true
 }
