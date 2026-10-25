@@ -66,6 +66,29 @@ abstract class ExtractorApi {
     open suspend fun getUrl(url: String, referer: String? = null): List<ExtractorLink>? = emptyList()
 }
 
+private fun normalizeExtractorHost(value: String?): String? =
+    value?.lowercase()?.trim()?.trimEnd('.')?.removePrefix("www.")?.takeIf { it.isNotBlank() }
+
+/**
+ * Choisit d'abord l'extracteur dont l'hôte canonique correspond à l'URL.
+ * Les alias ne sont consultés qu'ensuite : un alias erroné déclaré par un
+ * autre plugin ne doit pas détourner uqload.com vers Vudeo, par exemple.
+ */
+internal fun findExtractorForHost(host: String, extractors: List<ExtractorApi>): ExtractorApi? {
+    val normalizedHost = normalizeExtractorHost(host) ?: return null
+    fun matches(candidateHost: String): Boolean =
+        normalizedHost == candidateHost || normalizedHost.endsWith(".$candidateHost")
+
+    val normalized = extractors.asReversed()
+    return normalized.firstOrNull { candidate ->
+        val canonicalHost = runCatching { normalizeExtractorHost(URI(candidate.mainUrl).host) }
+            .getOrNull()
+        canonicalHost != null && matches(canonicalHost)
+    } ?: normalized.firstOrNull { candidate ->
+        candidate.supportedHosts.mapNotNull(::normalizeExtractorHost).any(::matches)
+    }
+}
+
 /** Résolution générique ; aucun lien n'est fabriqué si aucun extracteur ne correspond. */
 private suspend fun resolveExtractor(
     url: String,
@@ -73,18 +96,10 @@ private suspend fun resolveExtractor(
     subtitleCallback: (SubtitleFile) -> Unit,
     callback: (ExtractorLink) -> Unit,
 ): Boolean {
-    val host = runCatching { URI(url).host?.lowercase()?.removePrefix("www.") }
+    val host = runCatching { normalizeExtractorHost(URI(url).host) }
         .getOrNull()
-        ?.takeIf { it.isNotBlank() }
         ?: "inconnu"
-    val extractor = CloudstreamCompatRegistry.extractors().asReversed().firstOrNull { candidate ->
-        val supportedHosts = candidate.supportedHosts
-            .map { it.lowercase().trim().trimEnd('.').removePrefix("www.") }
-            .filter { it.isNotBlank() }
-        supportedHosts.any { supportedHost ->
-            host == supportedHost || host.endsWith(".$supportedHost")
-        }
-    }
+    val extractor = findExtractorForHost(host, CloudstreamCompatRegistry.extractors())
     PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
     extractor ?: return false
     extractor.getUrl(url, referer, subtitleCallback, callback)
