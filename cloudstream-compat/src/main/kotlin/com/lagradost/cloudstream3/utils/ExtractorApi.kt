@@ -99,7 +99,16 @@ private suspend fun resolveExtractor(
     val host = runCatching { normalizeExtractorHost(URI(url).host) }
         .getOrNull()
         ?: "inconnu"
-    val extractor = findExtractorForHost(host, CloudstreamCompatRegistry.extractors())
+    val registered = CloudstreamCompatRegistry.extractors()
+    if (host == "uqload.com" || host == "uqload.co") {
+        registered.forEach { candidate ->
+            PluginLog.i(
+                "extractorDebug host=$host name=${candidate.name} mainUrl=${candidate.mainUrl} " +
+                    "supportedHosts=${candidate.supportedHosts.joinToString(",")}"
+            )
+        }
+    }
+    val extractor = findExtractorForHost(host, registered)
     PluginLog.i("loadExtractor $host : extracteur=${extractor?.name ?: "AUCUN"}")
     extractor ?: return false
     extractor.getUrl(url, referer, subtitleCallback, callback)
