@@ -48,6 +48,7 @@
     <string name="details_description">Aucune description disponible.</string>
     <string name="details_searching_sources">Recherche des sources…</string>
     <string name="details_no_sources">Aucune source</string>
+    <string name="details_retry_sources">Réessayer les sources</string>
     <string name="details_read_more">Lire la suite</string>
     <string name="details_similar">Contenus similaires</string>
     <string name="details_similar_channels">Chaînes similaires</string>
