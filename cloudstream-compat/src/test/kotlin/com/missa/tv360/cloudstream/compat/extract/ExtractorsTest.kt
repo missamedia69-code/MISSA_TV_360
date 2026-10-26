@@ -258,3 +258,12 @@ class HtmlDiagnosticsTest {
         assertFalse(HtmlDiagnostics.looksLikeInterstitial(null))
     }
 }
+
+class HtmlPreviewTest {
+    @Test
+    fun previewFlattensAndTruncates() {
+        assertEquals("(corps vide)", HtmlDiagnostics.preview("  \n\t "))
+        assertEquals("<div> a b </div>", HtmlDiagnostics.preview("<div>\n a\n\n b </div>"))
+        assertEquals(201, HtmlDiagnostics.preview("x".repeat(500)).length)
+    }
+}

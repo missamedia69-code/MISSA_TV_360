@@ -48,7 +48,14 @@ class HttpDiagnosticsInterceptor : Interceptor {
         val contentType = response.header("Content-Type") ?: ""
         if (contentType.contains("text/html", ignoreCase = true)) {
             val bodySnippet = response.peekBody(2048).string()
-            val pageTitle = HtmlDiagnostics.title(response.peekBody(16384).string())
+            val head = response.peekBody(16384).string()
+            val pageTitle = HtmlDiagnostics.title(head)
+            if (pageTitle == null) {
+                PluginLog.i(
+                    "HTML $finalHost sans titre : content-length=${response.header("Content-Length") ?: "?"} " +
+                        "début=\"${HtmlDiagnostics.preview(head)}\""
+                )
+            }
             PluginLog.i(
                 "HTML $finalHost titre=\"${pageTitle ?: "(aucun)"}\"" +
                     if (HtmlDiagnostics.looksLikeInterstitial(pageTitle)) " (page suspecte : vérification, erreur ou domaine changé ?)" else ""
