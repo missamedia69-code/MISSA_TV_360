@@ -139,8 +139,8 @@ class PlayerActivity : AppCompatActivity() {
         findViewById<View>(R.id.player_loading).isVisible = true
         val isLive = intent.getBooleanExtra(EXTRA_LIVE, false)
         val format = intent.getStringExtra(EXTRA_FORMAT)
-        val requestHeaders = @Suppress("UNCHECKED_CAST")
-            (intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<String, String>).orEmpty()
+        @Suppress("UNCHECKED_CAST")
+        val requestHeaders = (intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<String, String>).orEmpty()
         Log.i(
             TAG,
             "playbackStart source=${safeUrlSummary(url)} format=${format ?: "auto"} " +
