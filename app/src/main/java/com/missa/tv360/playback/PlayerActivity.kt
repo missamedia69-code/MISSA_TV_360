@@ -2,6 +2,8 @@ package com.missa.tv360.playback
 
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
+import android.util.Log
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -14,6 +16,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
@@ -35,6 +38,7 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_COVER_URL = "extra_cover_url"
         const val EXTRA_FORMAT = "extra_format"
         const val EXTRA_HEADERS = "extra_headers"
+        private const val TAG = "PlayerActivity"
         private const val USER_AGENT = "MISSA-TV-360/1.0 (Android player)"
         private const val STATE_POSITION = "state_position"
         private const val STATE_ERROR = "state_error"
@@ -134,6 +138,14 @@ class PlayerActivity : AppCompatActivity() {
         findViewById<View>(R.id.player_error_panel).isVisible = false
         findViewById<View>(R.id.player_loading).isVisible = true
         val isLive = intent.getBooleanExtra(EXTRA_LIVE, false)
+        val format = intent.getStringExtra(EXTRA_FORMAT)
+        val requestHeaders = @Suppress("UNCHECKED_CAST")
+            (intent.getSerializableExtra(EXTRA_HEADERS) as? HashMap<String, String>).orEmpty()
+        Log.i(
+            TAG,
+            "playbackStart source=${safeUrlSummary(url)} format=${format ?: "auto"} " +
+                "live=$isLive headerNames=${requestHeaders.keys.joinToString(",")}"
+        )
         val exo = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setSeekBackIncrementMs(10_000)
@@ -167,6 +179,15 @@ class PlayerActivity : AppCompatActivity() {
 
             override fun onPlayerError(error: PlaybackException) {
                 retryPositionMs = exo.currentPosition.coerceAtLeast(0L)
+                val httpError = findHttpResponseCode(error)
+                Log.e(
+                    TAG,
+                    "playbackError source=${safeUrlSummary(url)} " +
+                        "failedRequest=${httpError?.let { safeUrlSummary(it.dataSpec.uri.toString()) } ?: "unknown"} " +
+                        "httpCode=${httpError?.responseCode ?: "none"} format=${format ?: "auto"} " +
+                        "errorCode=${error.errorCode} cause=${rootCauseSummary(error)}",
+                    error,
+                )
                 showError(errorMessage(error))
             }
         })
@@ -207,6 +228,39 @@ class PlayerActivity : AppCompatActivity() {
         "mp4" -> MimeTypes.VIDEO_MP4
         "mp3" -> MimeTypes.AUDIO_MPEG
         else -> null
+    }
+
+    /**
+     * Résumé destiné aux journaux : ne jamais écrire de jeton ou de query string
+     * d'une URL vidéo temporaire.
+     */
+    private fun safeUrlSummary(raw: String?): String {
+        val uri = Uri.parse(raw.orEmpty())
+        val host = uri.host ?: return "invalid-uri"
+        val lastSegment = uri.lastPathSegment.orEmpty()
+        val extension = lastSegment.substringAfterLast('.', "")
+            .takeIf { it.matches(Regex("[A-Za-z0-9]{2,6}")) }
+            ?: "none"
+        return "${uri.scheme ?: "unknown"}://$host segments=${uri.pathSegments.size} " +
+            "extension=$extension hasQuery=${!uri.query.isNullOrEmpty()}"
+    }
+
+    private fun findHttpResponseCode(error: Throwable): HttpDataSource.InvalidResponseCodeException? {
+        var current: Throwable? = error
+        var depth = 0
+        while (current != null && depth++ < 20) {
+            if (current is HttpDataSource.InvalidResponseCodeException) return current
+            current = current.cause
+        }
+        return null
+    }
+
+    private fun rootCauseSummary(error: Throwable): String {
+        var current: Throwable = error
+        var depth = 0
+        while (current.cause != null && depth++ < 20) current = current.cause!!
+        val message = current.message.orEmpty().replace(Regex("\\s+"), " ").take(180)
+        return "${current::class.java.simpleName}:$message"
     }
 
     private fun createDataSourceFactory(): DefaultHttpDataSource.Factory {
