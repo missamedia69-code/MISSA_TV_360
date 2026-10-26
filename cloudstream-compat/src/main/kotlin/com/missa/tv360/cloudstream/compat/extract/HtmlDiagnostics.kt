@@ -12,6 +12,13 @@ object HtmlDiagnostics {
         return if (clean.length > max) clean.take(max) + "…" else clean
     }
 
+    /** Début du corps, sur une seule ligne, pour comprendre une page sans titre (vide ? script ? fragment ?). */
+    fun preview(html: String, max: Int = 200): String {
+        val flat = html.replace(Regex("""\s+"""), " ").trim()
+        if (flat.isEmpty()) return "(corps vide)"
+        return if (flat.length > max) flat.take(max) + "…" else flat
+    }
+
     /** Vrai si le titre ressemble à une page de vérification / d'erreur plutôt qu'au contenu attendu. */
     fun looksLikeInterstitial(title: String?): Boolean {
         val t = title?.lowercase() ?: return false
