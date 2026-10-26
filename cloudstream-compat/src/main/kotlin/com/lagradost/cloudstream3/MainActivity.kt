@@ -2,6 +2,7 @@ package com.lagradost.cloudstream3
 
 import com.lagradost.cloudstream3.utils.Event
 import com.missa.tv360.api.PluginLog
+import com.missa.tv360.cloudstream.compat.extract.HtmlDiagnostics
 import com.lagradost.nicehttp.Requests
 import com.lagradost.nicehttp.ResponseParser
 import okhttp3.Interceptor
@@ -41,10 +42,17 @@ class HttpDiagnosticsInterceptor : Interceptor {
         val duration = System.currentTimeMillis() - start
         val code = response.code
         PluginLog.i("HTTP $code $host (${duration}ms)")
+        val finalHost = response.request.url.host
+        if (finalHost != host) PluginLog.i("HTTP redirection $host -> $finalHost")
 
         val contentType = response.header("Content-Type") ?: ""
         if (contentType.contains("text/html", ignoreCase = true)) {
             val bodySnippet = response.peekBody(2048).string()
+            val pageTitle = HtmlDiagnostics.title(response.peekBody(16384).string())
+            PluginLog.i(
+                "HTML $finalHost titre=\"${pageTitle ?: "(aucun)"}\"" +
+                    if (HtmlDiagnostics.looksLikeInterstitial(pageTitle)) " (page suspecte : vérification, erreur ou domaine changé ?)" else ""
+            )
             if (bodySnippet.contains("just a moment", ignoreCase = true) ||
                 bodySnippet.contains("cf-chl", ignoreCase = true) ||
                 bodySnippet.contains("cloudflare", ignoreCase = true) ||

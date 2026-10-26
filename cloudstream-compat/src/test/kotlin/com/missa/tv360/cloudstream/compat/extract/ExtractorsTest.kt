@@ -240,3 +240,21 @@ class ExtractorsTest {
         assertTrue(fetcher.requested.isEmpty())
     }
 }
+
+class HtmlDiagnosticsTest {
+    @Test
+    fun titleIsExtractedCleanedAndTruncated() {
+        assertEquals("Anime-Sama - Catalogue", HtmlDiagnostics.title("<html><head><TITLE>\n  Anime-Sama -\n Catalogue </TITLE></head>"))
+        assertNull(HtmlDiagnostics.title("<html><body>pas de titre</body></html>"))
+        assertNull(HtmlDiagnostics.title("<title>   </title>"))
+        assertEquals(81, HtmlDiagnostics.title("<title>" + "a".repeat(200) + "</title>")!!.length)
+    }
+
+    @Test
+    fun interstitialTitlesAreFlagged() {
+        assertTrue(HtmlDiagnostics.looksLikeInterstitial("Just a moment..."))
+        assertTrue(HtmlDiagnostics.looksLikeInterstitial("This domain is for sale"))
+        assertFalse(HtmlDiagnostics.looksLikeInterstitial("Copycat - Anime-Sama"))
+        assertFalse(HtmlDiagnostics.looksLikeInterstitial(null))
+    }
+}
