@@ -29,18 +29,28 @@ private val jsonResponseParser = object : ResponseParser {
 
 private val htmlDumpCounter = java.util.concurrent.atomic.AtomicInteger(0)
 
+/** Hôtes dont on copie TOUTES les pages : fichier cache/html-debug/hosts.txt (un fragment d'hôte par ligne). */
+private fun shouldDumpHost(host: String): Boolean {
+    val ctx = CloudStreamApp.context ?: return false
+    val marker = java.io.File(java.io.File(ctx.cacheDir, "html-debug"), "hosts.txt")
+    if (!marker.exists()) return false
+    return runCatching {
+        marker.readLines().map { it.trim() }.filter { it.isNotEmpty() }.any { host.contains(it) }
+    }.getOrDefault(false)
+}
+
 /**
- * Copie (debug) d'une page HTML sans titre dans cache/html-debug/page-N.html (6 fichiers tournants).
- * Lisible avec :  adb shell "run-as com.missa.tv360 cat cache/html-debug/page-0.html > /data/local/tmp/page-0.html"
+ * Copie (debug) d'une page HTML dans cache/html-debug/page-N.html (6 fichiers tournants) : pages sans titre,
+ * ou pages d'un hôte listé dans hosts.txt.
  * Le contenu est la page publique du site (aucun en-tête ni cookie n'est écrit).
  */
-private fun dumpHtmlForDebug(host: String, body: String) {
+private fun dumpHtmlForDebug(host: String, path: String, body: String) {
     val ctx = CloudStreamApp.context ?: return
     runCatching {
         val dir = java.io.File(ctx.cacheDir, "html-debug").apply { mkdirs() }
         val name = "page-${htmlDumpCounter.getAndIncrement() % 6}.html"
         java.io.File(dir, name).writeText(body)
-        PluginLog.i("HTML $host : copie écrite cache/html-debug/$name (${body.length} caractères)")
+        PluginLog.i("HTML $host$path : copie écrite cache/html-debug/$name (${body.length} caractères)")
     }
 }
 
@@ -67,8 +77,10 @@ class HttpDiagnosticsInterceptor : Interceptor {
             val bodySnippet = response.peekBody(2048).string()
             val head = response.peekBody(65536).string()
             val pageTitle = HtmlDiagnostics.title(head)
+            if (pageTitle == null || shouldDumpHost(finalHost)) {
+                dumpHtmlForDebug(finalHost, response.request.url.encodedPath, response.peekBody(524288).string())
+            }
             if (pageTitle == null) {
-                dumpHtmlForDebug(finalHost, response.peekBody(524288).string())
                 PluginLog.i(
                     "HTML $finalHost sans titre : content-length=${response.header("Content-Length") ?: "?"} " +
                         "début=\"${HtmlDiagnostics.preview(head)}\""
