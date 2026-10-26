@@ -27,6 +27,23 @@ private val jsonResponseParser = object : ResponseParser {
     override fun writeValueAsString(obj: Any): String = mapper.writeValueAsString(obj)
 }
 
+private val htmlDumpCounter = java.util.concurrent.atomic.AtomicInteger(0)
+
+/**
+ * Copie (debug) d'une page HTML sans titre dans cache/html-debug/page-N.html (6 fichiers tournants).
+ * Lisible avec :  adb shell "run-as com.missa.tv360 cat cache/html-debug/page-0.html > /data/local/tmp/page-0.html"
+ * Le contenu est la page publique du site (aucun en-tête ni cookie n'est écrit).
+ */
+private fun dumpHtmlForDebug(host: String, body: String) {
+    val ctx = CloudStreamApp.context ?: return
+    runCatching {
+        val dir = java.io.File(ctx.cacheDir, "html-debug").apply { mkdirs() }
+        val name = "page-${htmlDumpCounter.getAndIncrement() % 6}.html"
+        java.io.File(dir, name).writeText(body)
+        PluginLog.i("HTML $host : copie écrite cache/html-debug/$name (${body.length} caractères)")
+    }
+}
+
 class HttpDiagnosticsInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
@@ -48,9 +65,10 @@ class HttpDiagnosticsInterceptor : Interceptor {
         val contentType = response.header("Content-Type") ?: ""
         if (contentType.contains("text/html", ignoreCase = true)) {
             val bodySnippet = response.peekBody(2048).string()
-            val head = response.peekBody(16384).string()
+            val head = response.peekBody(65536).string()
             val pageTitle = HtmlDiagnostics.title(head)
             if (pageTitle == null) {
+                dumpHtmlForDebug(finalHost, response.peekBody(524288).string())
                 PluginLog.i(
                     "HTML $finalHost sans titre : content-length=${response.header("Content-Length") ?: "?"} " +
                         "début=\"${HtmlDiagnostics.preview(head)}\""
